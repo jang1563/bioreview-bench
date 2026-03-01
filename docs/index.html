@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bioreview-bench — Benchmark for AI Biomedical Peer Review</title>
+<meta name="description" content="978 articles, 9,394 concerns, 3 journals. A benchmark dataset for evaluating AI peer review tools.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1a1a;--paper:#faf8f5;--accent:#c2410c;--accent-light:#fed7aa;
+  --border:#d6d0c8;--muted:#8a8278;--card:#ffffff;
+  --serif:'Newsreader',Georgia,serif;
+  --sans:'DM Sans','Helvetica Neue',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:var(--sans);color:var(--ink);background:var(--paper);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+
+/* --- HEADER --- */
+.masthead{
+  border-bottom:3px double var(--border);padding:2rem 0 1.5rem;
+  background:linear-gradient(180deg,#f5f0ea 0%,var(--paper) 100%);
+}
+.masthead-inner{
+  max-width:1100px;margin:0 auto;padding:0 2rem;
+  display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;
+}
+.masthead h1{
+  font-family:var(--serif);font-size:2.2rem;font-weight:600;letter-spacing:-.02em;line-height:1.15;
+}
+.masthead h1 span{color:var(--accent);font-style:italic}
+.masthead-links{display:flex;gap:1.2rem;align-items:center}
+.masthead-links a{
+  font-size:.82rem;font-weight:500;text-decoration:none;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.08em;transition:color .2s;
+}
+.masthead-links a:hover{color:var(--accent)}
+.masthead-links a .arrow{font-style:normal;transition:transform .2s;display:inline-block}
+.masthead-links a:hover .arrow{transform:translateX(2px)}
+
+/* --- LAYOUT --- */
+.wrap{max-width:1100px;margin:0 auto;padding:0 2rem}
+section{padding:3rem 0}
+section+section{border-top:1px solid var(--border)}
+.section-label{
+  font-family:var(--mono);font-size:.7rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:.12em;color:var(--accent);
+  margin-bottom:.5rem;
+}
+h2{font-family:var(--serif);font-size:1.6rem;font-weight:500;margin-bottom:1.5rem;letter-spacing:-.01em}
+h3{font-family:var(--sans);font-size:.95rem;font-weight:600;margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+
+/* --- HERO STATS --- */
+.hero-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--border);border:1px solid var(--border);margin-top:1rem;
+}
+.hero-stat{
+  background:var(--card);padding:1.5rem 1.2rem;text-align:center;
+  position:relative;overflow:hidden;
+}
+.hero-stat::after{
+  content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:0;height:2px;background:var(--accent);transition:width .4s ease;
+}
+.hero-stat:hover::after{width:60%}
+.hero-stat .num{
+  font-family:var(--serif);font-size:2.4rem;font-weight:600;color:var(--ink);
+  line-height:1;display:block;
+}
+.hero-stat .label{
+  font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;
+  margin-top:.4rem;display:block;
+}
+
+/* --- INTRO TEXT --- */
+.intro{
+  font-family:var(--serif);font-size:1.15rem;line-height:1.75;color:#444;
+  max-width:720px;margin:1rem 0 0;
+}
+.intro strong{color:var(--ink)}
+
+/* --- CHART GRID --- */
+.chart-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:1rem;
+}
+.chart-card{
+  background:var(--card);border:1px solid var(--border);padding:1.5rem;
+  position:relative;
+}
+.chart-card h3{margin-bottom:1rem}
+.chart-card canvas{width:100%!important;max-height:280px}
+
+/* full-width chart */
+.chart-card.wide{grid-column:1/-1}
+.chart-card.wide canvas{max-height:220px}
+
+/* --- TABLES --- */
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+thead th{
+  font-family:var(--mono);font-size:.7rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+  text-align:left;padding:.6rem .8rem;border-bottom:2px solid var(--ink);
+}
+tbody td{padding:.55rem .8rem;border-bottom:1px solid var(--border)}
+tbody tr:hover{background:#f9f7f4}
+td.num{font-family:var(--mono);text-align:right;font-size:.85rem}
+td .badge{
+  display:inline-block;padding:.15rem .5rem;border-radius:2px;
+  font-size:.72rem;font-weight:500;text-transform:uppercase;letter-spacing:.04em;
+}
+td .badge.major{background:#fef2f2;color:#991b1b}
+td .badge.minor{background:#fef9c3;color:#854d0e}
+td .badge.optional{background:#f0fdf4;color:#166534}
+
+/* --- SAMPLE EXPLORER --- */
+.sample-list{display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border)}
+.sample-item{background:var(--card);overflow:hidden}
+.sample-header{
+  padding:1rem 1.2rem;cursor:pointer;display:flex;align-items:center;gap:1rem;
+  transition:background .15s;user-select:none;
+}
+.sample-header:hover{background:#f9f7f4}
+.sample-header .source-tag{
+  font-family:var(--mono);font-size:.65rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:.06em;
+  padding:.2rem .5rem;border:1px solid var(--border);color:var(--muted);
+  flex-shrink:0;min-width:3.5rem;text-align:center;
+}
+.sample-header .source-tag.elife{border-color:#7c3aed;color:#7c3aed}
+.sample-header .source-tag.plos{border-color:#0369a1;color:#0369a1}
+.sample-header .source-tag.f1000{border-color:#b45309;color:#b45309}
+.sample-header .title{font-family:var(--serif);font-size:.95rem;flex:1;line-height:1.4}
+.sample-header .n-concerns{
+  font-family:var(--mono);font-size:.75rem;color:var(--muted);flex-shrink:0;
+}
+.sample-header .chevron{
+  font-size:.75rem;color:var(--muted);transition:transform .2s;flex-shrink:0;
+}
+.sample-item.open .chevron{transform:rotate(90deg)}
+.sample-body{
+  display:none;padding:0 1.2rem 1.2rem;border-top:1px solid var(--border);
+}
+.sample-item.open .sample-body{display:block}
+.sample-abstract{
+  font-family:var(--serif);font-size:.88rem;color:#666;line-height:1.6;
+  margin:.8rem 0;font-style:italic;
+}
+.concern-list{list-style:none;display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem}
+.concern-list li{
+  padding:.6rem .8rem;background:#f9f7f4;border-left:3px solid var(--border);
+  font-size:.84rem;line-height:1.5;
+}
+.concern-list li .meta{
+  font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-top:.25rem;
+}
+
+/* --- SCHEMA --- */
+.schema-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+
+/* --- FOOTER --- */
+footer{
+  border-top:3px double var(--border);padding:2rem 0;margin-top:2rem;
+  background:linear-gradient(0deg,#f0ece6 0%,var(--paper) 100%);
+}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+footer .cite{font-family:var(--mono);font-size:.72rem;color:var(--muted);max-width:600px;line-height:1.6}
+footer nav a{
+  font-size:.78rem;color:var(--muted);text-decoration:none;margin-left:1.2rem;
+  text-transform:uppercase;letter-spacing:.06em;font-weight:500;
+}
+footer nav a:hover{color:var(--accent)}
+
+/* --- NAV DOT --- */
+.section-nav{
+  position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:.6rem;z-index:100;
+}
+.section-nav a{
+  width:8px;height:8px;border-radius:50%;background:var(--border);
+  display:block;transition:all .2s;
+}
+.section-nav a:hover,.section-nav a.active{background:var(--accent);transform:scale(1.3)}
+
+/* --- ANIMATIONS --- */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{opacity:0;animation:fadeUp .6s ease forwards}
+.fade-in:nth-child(1){animation-delay:.05s}
+.fade-in:nth-child(2){animation-delay:.1s}
+.fade-in:nth-child(3){animation-delay:.15s}
+.fade-in:nth-child(4){animation-delay:.2s}
+
+/* --- RESPONSIVE --- */
+@media(max-width:768px){
+  .hero-stats{grid-template-columns:repeat(2,1fr)}
+  .chart-grid,.schema-grid{grid-template-columns:1fr}
+  .masthead h1{font-size:1.6rem}
+  .hero-stat .num{font-size:1.8rem}
+  .section-nav{display:none}
+  .masthead-inner{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<!-- Section nav dots -->
+<nav class="section-nav" aria-label="Page sections">
+  <a href="#overview" title="Overview"></a>
+  <a href="#distributions" title="Distributions"></a>
+  <a href="#splits" title="Splits"></a>
+  <a href="#explorer" title="Explorer"></a>
+  <a href="#schema" title="Schema"></a>
+</nav>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-inner">
+    <h1>bioreview-<span>bench</span></h1>
+    <nav class="masthead-links">
+      <a href="https://github.com/jang1563/bioreview-bench">GitHub <i class="arrow">&rarr;</i></a>
+      <a href="https://huggingface.co/datasets/jang1563/bioreview-bench">HuggingFace <i class="arrow">&rarr;</i></a>
+    </nav>
+  </div>
+</header>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="wrap">
+    <div class="section-label">Dataset Overview</div>
+    <h2>A benchmark for evaluating AI biomedical peer review tools</h2>
+    <p class="intro">
+      <strong>bioreview-bench</strong> pairs published open-access biomedical articles with the
+      substantive concerns that professional peer reviewers raised during journal review.
+      Each concern is annotated with <strong>category</strong>, <strong>severity</strong>, and an
+      outcome-anchored <strong>author stance</strong> label. The benchmark measures how well AI
+      tools identify the concerns that human reviewers would raise.
+    </p>
+
+    <div class="hero-stats">
+      <div class="hero-stat fade-in"><span class="num">978</span><span class="label">Articles</span></div>
+      <div class="hero-stat fade-in"><span class="num">9,394</span><span class="label">Concerns</span></div>
+      <div class="hero-stat fade-in"><span class="num">3</span><span class="label">Journals</span></div>
+      <div class="hero-stat fade-in"><span class="num">9</span><span class="label">Categories</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- DISTRIBUTIONS -->
+<section id="distributions">
+  <div class="wrap">
+    <div class="section-label">Distributions</div>
+    <h2>Concern breakdown across the dataset</h2>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Source Distribution</h3>
+        <canvas id="chart-source"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Severity Distribution</h3>
+        <canvas id="chart-severity"></canvas>
+      </div>
+      <div class="chart-card wide">
+        <h3>Concern Categories</h3>
+        <canvas id="chart-category"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Author Stance</h3>
+        <canvas id="chart-stance"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Split Sizes</h3>
+        <canvas id="chart-splits"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SPLITS TABLE -->
+<section id="splits">
+  <div class="wrap">
+    <div class="section-label">Splits</div>
+    <h2>Train / Validation / Test</h2>
+    <table>
+      <thead>
+        <tr><th>Split</th><th>Articles</th><th>Concerns</th><th>eLife</th><th>PLOS</th><th>F1000</th><th>Avg / Article</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>train</td><td class="num">680</td><td class="num">6,444</td><td class="num">510</td><td class="num">113</td><td class="num">57</td><td class="num">9.5</td></tr>
+        <tr><td>validation</td><td class="num">149</td><td class="num">1,435</td><td class="num">110</td><td class="num">25</td><td class="num">14</td><td class="num">9.6</td></tr>
+        <tr><td>test</td><td class="num">149</td><td class="num">1,515</td><td class="num">110</td><td class="num">25</td><td class="num">14</td><td class="num">10.2</td></tr>
+        <tr style="font-weight:600"><td>Total</td><td class="num">978</td><td class="num">9,394</td><td class="num">730</td><td class="num">163</td><td class="num">85</td><td class="num">9.6</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SAMPLE EXPLORER -->
+<section id="explorer">
+  <div class="wrap">
+    <div class="section-label">Sample Explorer</div>
+    <h2>Example articles and their concerns</h2>
+    <div class="sample-list" id="sample-list">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- SCHEMA -->
+<section id="schema">
+  <div class="wrap">
+    <div class="section-label">Schema Reference</div>
+    <h2>Dataset fields</h2>
+    <div class="schema-grid">
+      <div>
+        <h3>Article Fields</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Type</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td>string</td></tr>
+            <tr><td><code>source</code></td><td>string</td></tr>
+            <tr><td><code>doi</code></td><td>string</td></tr>
+            <tr><td><code>title</code></td><td>string</td></tr>
+            <tr><td><code>abstract</code></td><td>string</td></tr>
+            <tr><td><code>subjects</code></td><td>list[string]</td></tr>
+            <tr><td><code>published_date</code></td><td>string</td></tr>
+            <tr><td><code>review_format</code></td><td>string</td></tr>
+            <tr><td><code>has_author_response</code></td><td>bool</td></tr>
+            <tr><td><code>concerns</code></td><td>list[Concern]</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Concern Fields</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Type</th></tr></thead>
+          <tbody>
+            <tr><td><code>concern_id</code></td><td>string</td></tr>
+            <tr><td><code>concern_text</code></td><td>string</td></tr>
+            <tr><td><code>category</code></td><td>string (9 values)</td></tr>
+            <tr><td><code>severity</code></td><td>major | minor | optional</td></tr>
+            <tr><td><code>author_stance</code></td><td>conceded | rebutted | partial | unclear | no_response</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="cite">
+      Kim, JangKeun (2026). <em>bioreview-bench: A Benchmark Dataset for Evaluating AI Biomedical Peer Review Tools.</em>
+      HuggingFace Datasets. v1.0. Data: CC-BY 4.0 | Code: Apache-2.0.
+    </div>
+    <nav>
+      <a href="https://github.com/jang1563/bioreview-bench">GitHub</a>
+      <a href="https://huggingface.co/datasets/jang1563/bioreview-bench">HuggingFace</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const SAMPLES = [
+  {
+    id:"elife:95713",source:"elife",
+    title:"Neural circuit mechanisms underlying context-dependent threat processing",
+    abstract:"How the brain encodes contextual information to modulate threat responses remains poorly understood. Here we investigate the neural circuits...",
+    concerns:[
+      {text:"The optogenetic manipulation lacks temporal specificity, making it unclear whether the observed effects are due to acute circuit activation or compensatory network changes.",category:"design_flaw",severity:"major"},
+      {text:"Statistical comparisons across groups do not account for the nested structure of the data (multiple trials per animal).",category:"statistical_methodology",severity:"major"},
+      {text:"The authors should include a fear renewal experiment to demonstrate that the contextual modulation persists beyond the training environment.",category:"missing_experiment",severity:"major"}
+    ]
+  },
+  {
+    id:"elife:87241",source:"elife",
+    title:"Structural basis of GPCR coupling to G proteins revealed by cryo-EM",
+    abstract:"G protein-coupled receptors mediate cellular responses to diverse extracellular signals. Despite advances in structural biology, the molecular...",
+    concerns:[
+      {text:"The resolution of the cryo-EM map in the transmembrane region is insufficient to confidently assign side-chain conformations.",category:"reagent_method_specificity",severity:"major"},
+      {text:"The functional assays use an overexpression system that may not reflect physiological receptor densities.",category:"interpretation",severity:"minor"},
+      {text:"Prior structural work by Patel et al. (2023) on the same receptor class is not adequately discussed.",category:"prior_art_novelty",severity:"minor"}
+    ]
+  },
+  {
+    id:"plos:10387254",source:"plos",
+    title:"Machine learning approaches for predicting antimicrobial resistance from whole-genome sequencing data",
+    abstract:"Antimicrobial resistance is a growing global health concern. Rapid identification of resistance profiles from genomic data could improve...",
+    concerns:[
+      {text:"The training and test sets were not split by time, allowing potential data leakage from temporally proximate isolates.",category:"design_flaw",severity:"major"},
+      {text:"Feature importance analysis is limited to SHAP values without biological validation of the identified genomic markers.",category:"interpretation",severity:"minor"},
+      {text:"The manuscript does not report confidence intervals for the reported AUC values.",category:"statistical_methodology",severity:"major"}
+    ]
+  },
+  {
+    id:"plos:10421889",source:"plos",
+    title:"Social determinants of vaccine hesitancy in rural sub-Saharan Africa",
+    abstract:"Understanding vaccine hesitancy requires examination of local social, economic, and cultural factors. This mixed-methods study examines...",
+    concerns:[
+      {text:"The qualitative coding framework is not described in sufficient detail to assess reproducibility.",category:"reagent_method_specificity",severity:"major"},
+      {text:"The quantitative survey results and qualitative themes are presented separately without integration or triangulation.",category:"writing_clarity",severity:"minor"},
+      {text:"Selection bias from convenience sampling limits generalizability beyond the studied communities.",category:"design_flaw",severity:"major"}
+    ]
+  },
+  {
+    id:"f1000:12847",source:"f1000",
+    title:"CRISPR-based screening identifies novel regulators of ferroptosis in hepatocellular carcinoma",
+    abstract:"Ferroptosis is an iron-dependent form of regulated cell death with emerging relevance to cancer therapy. Using a genome-wide CRISPR...",
+    concerns:[
+      {text:"The screen was performed in a single cell line; validation in additional HCC lines is essential to generalize the findings.",category:"missing_experiment",severity:"major"},
+      {text:"The claim that identified genes represent 'novel' regulators is overstated given overlap with previously published ferroptosis screens.",category:"prior_art_novelty",severity:"major"},
+      {text:"Methods should specify the MOI used for the CRISPR library transduction and the coverage per sgRNA.",category:"reagent_method_specificity",severity:"minor"}
+    ]
+  },
+  {
+    id:"f1000:13102",source:"f1000",
+    title:"Bayesian meta-analysis of gut microbiome diversity in inflammatory bowel disease",
+    abstract:"The gut microbiome plays a central role in inflammatory bowel disease pathogenesis. We performed a Bayesian meta-analysis of 16S rRNA...",
+    concerns:[
+      {text:"The choice of priors for the Bayesian hierarchical model is not justified or subjected to sensitivity analysis.",category:"statistical_methodology",severity:"major"},
+      {text:"Heterogeneity across studies is acknowledged but not formally tested using I-squared or prediction intervals.",category:"statistical_methodology",severity:"minor"},
+      {text:"The discussion overstates therapeutic implications without citing clinical trial evidence.",category:"interpretation",severity:"minor"}
+    ]
+  }
+];
+
+// ============================================================
+// CHARTS
+// ============================================================
+Chart.defaults.font.family = "'DM Sans','Helvetica Neue',sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#8a8278';
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.pointStyleWidth = 10;
+
+const COLORS = {
+  accent:'#c2410c',warm:'#ea580c',amber:'#d97706',teal:'#0d9488',
+  sky:'#0284c7',violet:'#7c3aed',rose:'#e11d48',slate:'#475569',green:'#16a34a'
+};
+const CAT_COLORS = [COLORS.accent,COLORS.warm,COLORS.amber,COLORS.teal,COLORS.sky,COLORS.violet,COLORS.rose,COLORS.slate,COLORS.green];
+
+// Source donut
+new Chart(document.getElementById('chart-source'),{
+  type:'doughnut',
+  data:{
+    labels:['eLife (730)','PLOS (163)','F1000 (85)'],
+    datasets:[{data:[730,163,85],backgroundColor:[COLORS.violet,COLORS.sky,'#d97706'],borderWidth:0,hoverOffset:6}]
+  },
+  options:{cutout:'62%',plugins:{legend:{position:'bottom'}}}
+});
+
+// Severity bar
+new Chart(document.getElementById('chart-severity'),{
+  type:'bar',
+  data:{
+    labels:['Major','Minor','Optional'],
+    datasets:[{data:[6677,2538,179],backgroundColor:[COLORS.accent,'#f59e0b',COLORS.green],borderRadius:3,barPercentage:.55}]
+  },
+  options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{display:false}}}}
+});
+
+// Category horizontal bar
+new Chart(document.getElementById('chart-category'),{
+  type:'bar',
+  data:{
+    labels:['Writing clarity','Missing experiment','Interpretation','Design flaw','Prior art / novelty','Statistical methodology','Reagent / method','Figure issue','Other'],
+    datasets:[{data:[2202,2143,1787,1128,576,556,515,457,30],backgroundColor:CAT_COLORS,borderRadius:3,barPercentage:.6}]
+  },
+  options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#eee'}},y:{grid:{display:false}}}}
+});
+
+// Author stance
+new Chart(document.getElementById('chart-stance'),{
+  type:'bar',
+  data:{
+    labels:['No response','Partial','Conceded','Rebutted','Unclear'],
+    datasets:[{data:[6615,1618,992,144,25],backgroundColor:[COLORS.slate,'#f59e0b',COLORS.green,COLORS.accent,COLORS.violet],borderRadius:3,barPercentage:.55}]
+  },
+  options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#eee'}}}}
+});
+
+// Splits grouped bar
+new Chart(document.getElementById('chart-splits'),{
+  type:'bar',
+  data:{
+    labels:['Train','Validation','Test'],
+    datasets:[
+      {label:'Articles',data:[680,149,149],backgroundColor:COLORS.sky,borderRadius:3,barPercentage:.4},
+      {label:'Concerns (x0.1)',data:[644.4,143.5,151.5],backgroundColor:COLORS.accent,borderRadius:3,barPercentage:.4}
+    ]
+  },
+  options:{plugins:{legend:{position:'bottom'}},scales:{x:{grid:{display:false}},y:{grid:{color:'#eee'}}}}
+});
+
+// ============================================================
+// SAMPLE EXPLORER
+// ============================================================
+const list = document.getElementById('sample-list');
+SAMPLES.forEach((s,i) => {
+  const item = document.createElement('div');
+  item.className = 'sample-item' + (i===0?' open':'');
+  item.innerHTML = `
+    <div class="sample-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="source-tag ${s.source}">${s.source}</span>
+      <span class="title">${s.title}</span>
+      <span class="n-concerns">${s.concerns.length} concerns</span>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="sample-body">
+      <p class="sample-abstract">${s.abstract}</p>
+      <h3>Top concerns</h3>
+      <ul class="concern-list">
+        ${s.concerns.map(c=>`<li>${c.text}<div class="meta"><span class="badge ${c.severity}">${c.severity}</span> &middot; ${c.category.replace(/_/g,' ')}</div></li>`).join('')}
+      </ul>
+    </div>`;
+  list.appendChild(item);
+});
+
+// ============================================================
+// NAV DOTS
+// ============================================================
+const dots = document.querySelectorAll('.section-nav a');
+const sections = ['overview','distributions','splits','explorer','schema'];
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      dots.forEach(d => d.classList.remove('active'));
+      const idx = sections.indexOf(e.target.id);
+      if(idx>=0) dots[idx].classList.add('active');
+    }
+  });
+},{threshold:0.3});
+sections.forEach(id => {const el=document.getElementById(id);if(el)observer.observe(el)});
+</script>
+</body>
+</html>

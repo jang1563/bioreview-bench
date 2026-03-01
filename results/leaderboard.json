@@ -1,0 +1,16 @@
+[
+  {
+    "rank": 1,
+    "tool_name": "DummyTool",
+    "tool_version": "0.1",
+    "split": "val",
+    "recall": 0.014714714714714715,
+    "precision": 0.02702702702702703,
+    "f1": 0.019055026249270853,
+    "recall_major": 0.015151515151515152,
+    "n_articles": 111,
+    "run_date": "2026-02-28",
+    "notes": "",
+    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/dummy_tool_val.json"
+  }
+]

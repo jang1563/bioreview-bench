@@ -1,0 +1,35 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.python-version
+
+# Data (hosted on HuggingFace, not in git)
+data/
+*.jsonl
+
+# Tool caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.DS_Store
+.hf_staging/
+
+# Results (except leaderboard)
+results/dummy_tool_val.json
+
+# Internal docs (not for public release)
+PLAN.md
+CRITICAL_REVIEW.md
+SYSTEM_REVIEW_*.md
+ANNOTATION_GUIDELINES.md
+DATA_SOURCES.md
+LICENSE_MATRIX.md
+RELATED_WORK.md
+scripts/overnight_collect.sh
