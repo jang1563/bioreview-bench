@@ -731,7 +731,7 @@ class TestPushDryRun:
 
         # Frozen test IDs
         splits_root = data / "splits"
-        (splits_root / "test_ids_frozen.json").write_text('{"ids": ["elife:2"]}')
+        (splits_root / "test_ids_frozen_v2.json").write_text('{"ids": ["elife:2"]}')
 
         # Split metadata
         (splits_v2 / "split_meta_v2.json").write_text('{"seed": 42}')
@@ -774,7 +774,7 @@ class TestPushDryRun:
         uploaded_str = " ".join(result["uploaded"])
 
         assert "manifests/" in uploaded_str
-        assert "metadata/test_ids_frozen.json" in uploaded_str
+        assert "metadata/test_ids_frozen_v2.json" in uploaded_str
         assert "metadata/split_meta_v2.json" in uploaded_str
 
     def test_dry_run_preserves_staging_dir(self, data_dir_with_splits):

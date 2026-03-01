@@ -41,13 +41,13 @@ import click
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Source → input JSONL filename mapping
-_SOURCE_FILES: dict[str, str] = {
-    "elife": "elife_v1.1.jsonl",
-    "plos": "plos_v1.jsonl",
-    "f1000": "f1000_v1.jsonl",
-    "nature": "nature_v1.jsonl",
-    "peerj": "peerj_v1.jsonl",
+# Source → input JSONL filename(s) mapping (multiple files per source supported)
+_SOURCE_FILES: dict[str, list[str]] = {
+    "elife": ["elife_v1.1.jsonl", "elife_legacy_v1.jsonl"],
+    "plos": ["plos_v1.jsonl"],
+    "f1000": ["f1000_v1.jsonl"],
+    "nature": ["nature_v1.jsonl"],
+    "peerj": ["peerj_v1.jsonl"],
 }
 
 
@@ -136,6 +136,42 @@ def stratified_split(
     return train, val, test
 
 
+def frozen_split(
+    entries: list[dict],
+    frozen_ids: set[str],
+    val_ratio: float,
+    seed: int,
+) -> tuple[list[dict], list[dict], list[dict]]:
+    """Split with a frozen test set.
+
+    Articles matching ``frozen_ids`` go to test. Remaining entries are split
+    into train/val only using stratified allocation.
+    """
+    rng = random.Random(seed)
+
+    test = [e for e in entries if e.get("id") in frozen_ids]
+    remaining = [e for e in entries if e.get("id") not in frozen_ids]
+
+    # Split remaining into train/val using stratified approach
+    strata: dict[str, list[dict]] = defaultdict(list)
+    for entry in remaining:
+        strata[get_stratum(entry)].append(entry)
+
+    train, val = [], []
+    for _key, stratum_entries in strata.items():
+        rng.shuffle(stratum_entries)
+        n = len(stratum_entries)
+        n_val = max(1, round(n * val_ratio)) if n >= 2 else 0
+        val.extend(stratum_entries[:n_val])
+        train.extend(stratum_entries[n_val:])
+
+    rng.shuffle(train)
+    rng.shuffle(val)
+    rng.shuffle(test)
+
+    return train, val, test
+
+
 def _check_source_balance(split: list[dict], split_name: str) -> None:
     """Warn if any single source exceeds 50% of a split."""
     if not split:
@@ -197,6 +233,11 @@ def _check_source_balance(split: list[dict], split_name: str) -> None:
     show_default=True,
     help="Only include entries with ≥ 1 extracted concern",
 )
+@click.option(
+    "--frozen-test",
+    default=None,
+    help="Path to frozen test IDs JSON. Test set is fixed; new articles go to train/val only.",
+)
 def main(
     sources: tuple[str, ...],
     input_dir: str | None,
@@ -205,6 +246,7 @@ def main(
     val_ratio: float,
     test_ratio: float,
     usable_only: bool,
+    frozen_test: str | None,
 ) -> None:
     """Rebuild multi-source stratified train/val/test splits."""
     in_dir = Path(input_dir) if input_dir else ROOT / "data" / "processed"
@@ -224,16 +266,18 @@ def main(
     source_counts: dict[str, int] = {}
 
     for source in sources:
-        filename = _SOURCE_FILES.get(source)
-        if filename is None:
+        filenames = _SOURCE_FILES.get(source)
+        if filenames is None:
             click.echo(f"  [warn] Unknown source '{source}', skipping.", err=True)
             continue
 
-        path = in_dir / filename
-        entries = load_jsonl(path)
+        entries: list[dict] = []
+        for filename in filenames:
+            path = in_dir / filename
+            entries.extend(load_jsonl(path))
 
         if not entries:
-            click.echo(f"  [warn] No data found for '{source}' at {path}", err=True)
+            click.echo(f"  [warn] No data found for '{source}'", err=True)
             continue
 
         # Filter to usable entries
@@ -271,8 +315,18 @@ def main(
 
     click.echo(f"\nTotal entries: {len(all_entries)}")
 
-    # Stratified split
-    train, val, test = stratified_split(all_entries, val_ratio=val_ratio, test_ratio=test_ratio, seed=seed)
+    # Stratified split (with optional frozen test set)
+    if frozen_test:
+        freeze_path = Path(frozen_test)
+        freeze_data = json.loads(freeze_path.read_text())
+        frozen_ids = set(freeze_data["test_ids"])
+        click.echo(f"Frozen test mode: {len(frozen_ids)} IDs from {freeze_path.name}")
+        train, val, test = frozen_split(all_entries, frozen_ids=frozen_ids, val_ratio=val_ratio, seed=seed)
+        missing = frozen_ids - {e.get("id") for e in test}
+        if missing:
+            click.echo(f"  [warn] {len(missing)} frozen test IDs not found in data", err=True)
+    else:
+        train, val, test = stratified_split(all_entries, val_ratio=val_ratio, test_ratio=test_ratio, seed=seed)
 
     # Balance checks
     _check_source_balance(train, "train")
@@ -289,7 +343,8 @@ def main(
         "version": "v2",
         "seed": seed,
         "val_ratio": val_ratio,
-        "test_ratio": test_ratio,
+        "test_ratio": "frozen" if frozen_test else test_ratio,
+        "frozen_test": frozen_test,
         "usable_only": usable_only,
         "sources": list(sources),
         "source_counts": source_counts,
