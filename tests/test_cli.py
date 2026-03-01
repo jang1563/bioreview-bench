@@ -8,10 +8,10 @@ from bioreview_bench.scripts import collect_elife as collect_cli
 from bioreview_bench.scripts.run_benchmark import main as run_benchmark_main
 
 
-def test_run_benchmark_requires_predictions() -> None:
+def test_run_benchmark_requires_tool_output() -> None:
     result = CliRunner().invoke(run_benchmark_main, [])
     assert result.exit_code == 2
-    assert "--predictions" in result.output
+    assert "--tool-output" in result.output or "--tool-name" in result.output
 
 
 def test_collect_cli_passes_start_date_and_dry_run(monkeypatch, tmp_path: Path) -> None:
