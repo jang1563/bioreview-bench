@@ -186,6 +186,13 @@ def _add_auxiliary_files(
     if update_state.exists():
         upload_plan.append((update_state, "metadata/update_state.json"))
 
+    # Leaderboard files (from results/ directory, sibling of data/)
+    results_dir = data_dir.parent / "results"
+    for lb_file in ["leaderboard.md", "leaderboard.json"]:
+        lb_path = results_dir / lb_file
+        if lb_path.exists():
+            upload_plan.append((lb_path, f"results/{lb_file}"))
+
     added = len(upload_plan) - initial_count
     if added:
         log.info("Added %d auxiliary files", added)

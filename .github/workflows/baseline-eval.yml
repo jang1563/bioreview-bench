@@ -1,0 +1,138 @@
+name: Baseline Evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: 'Model identifier'
+        required: false
+        default: 'claude-haiku-4-5-20251001'
+      provider:
+        description: 'LLM provider'
+        required: false
+        type: choice
+        options:
+          - anthropic
+          - openai
+        default: 'anthropic'
+      split:
+        description: 'Dataset split to evaluate'
+        required: false
+        type: choice
+        options:
+          - val
+          - test
+        default: 'val'
+      max_articles:
+        description: 'Max articles to process (0 = all)'
+        required: false
+        default: '0'
+      bootstrap:
+        description: 'Bootstrap resamples for CI (0 = skip)'
+        required: false
+        default: '1000'
+      push_hf:
+        description: 'Push leaderboard to HuggingFace'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: '3.12'
+  UV_VERSION: '0.6'
+
+jobs:
+  baseline-eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: uv sync --extra baseline --extra evaluate --extra hub
+
+      - name: Download dataset splits
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          mkdir -p data/splits/v2
+          uv run python -c "
+          from huggingface_hub import hf_hub_download
+          import shutil, os
+          repo = 'jang1563/bioreview-bench'
+          split = '${{ github.event.inputs.split || 'val' }}'
+          for config in ['default', 'benchmark']:
+              for s in [split]:
+                  try:
+                      path = hf_hub_download(repo, f'data/{config}/{s}.jsonl', repo_type='dataset')
+                      dest = f'data/splits/v2/{s}.jsonl' if config == 'default' else f'data/splits/v2/{config}_{s}.jsonl'
+                      shutil.copy2(path, dest)
+                      print(f'Downloaded {config}/{s}.jsonl -> {dest}')
+                  except Exception as e:
+                      print(f'Failed {config}/{s}: {e}')
+          "
+
+      - name: Run baseline reviewer
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          MODEL="${{ github.event.inputs.model || 'claude-haiku-4-5-20251001' }}"
+          PROVIDER="${{ github.event.inputs.provider || 'anthropic' }}"
+          SPLIT="${{ github.event.inputs.split || 'val' }}"
+          MAX="${{ github.event.inputs.max_articles || '0' }}"
+
+          CMD="uv run bioreview-baseline --split ${SPLIT} --model ${MODEL} --provider ${PROVIDER}"
+
+          if [ "${MAX}" != "0" ]; then
+            CMD="${CMD} -n ${MAX}"
+          fi
+
+          echo "Running: ${CMD}"
+          ${CMD}
+
+      - name: Run evaluation
+        run: |
+          MODEL="${{ github.event.inputs.model || 'claude-haiku-4-5-20251001' }}"
+          SPLIT="${{ github.event.inputs.split || 'val' }}"
+          BOOTSTRAP="${{ github.event.inputs.bootstrap || '1000' }}"
+          PUSH_HF="${{ github.event.inputs.push_hf || 'true' }}"
+
+          # Derive safe model name for file paths
+          SAFE_MODEL=$(echo "${MODEL}" | sed 's/[^a-zA-Z0-9_-]/_/g' | head -c 50)
+          TOOL_OUTPUT="tool_outputs/${SAFE_MODEL}_${SPLIT}.jsonl"
+          RESULT_OUTPUT="results/${SAFE_MODEL}_${SPLIT}.json"
+
+          CMD="uv run bioreview-run -i ${TOOL_OUTPUT} --tool-name ${SAFE_MODEL} --split ${SPLIT}"
+          CMD="${CMD} --bootstrap ${BOOTSTRAP} -o ${RESULT_OUTPUT} --update-leaderboard"
+
+          if [ "${PUSH_HF}" = "true" ]; then
+            CMD="${CMD} --push-hf"
+          fi
+
+          mkdir -p results
+          echo "Running: ${CMD}"
+          ${CMD}
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-results-${{ github.run_id }}
+          path: |
+            tool_outputs/
+            results/
+          retention-days: 90

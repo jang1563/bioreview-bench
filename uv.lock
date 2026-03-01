@@ -190,6 +190,12 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+baseline = [
+    { name = "anthropic" },
+    { name = "openai" },
+    { name = "rich" },
+    { name = "tenacity" },
+]
 collect = [
     { name = "anthropic" },
     { name = "httpx" },
@@ -218,6 +224,7 @@ hub = [
 
 [package.metadata]
 requires-dist = [
+    { name = "anthropic", marker = "extra == 'baseline'", specifier = ">=0.40" },
     { name = "anthropic", marker = "extra == 'collect'", specifier = ">=0.40" },
     { name = "click", specifier = ">=8.1" },
     { name = "datasets", marker = "extra == 'evaluate'", specifier = ">=2.20" },
@@ -228,6 +235,7 @@ requires-dist = [
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "numpy", marker = "extra == 'evaluate'", specifier = ">=1.26" },
+    { name = "openai", marker = "extra == 'baseline'", specifier = ">=1.30" },
     { name = "pdfplumber", marker = "extra == 'collect'", specifier = ">=0.11.9" },
     { name = "pydantic", specifier = ">=2.7" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2" },
@@ -235,14 +243,16 @@ requires-dist = [
     { name = "python-dotenv", marker = "extra == 'collect'", specifier = ">=1.0" },
     { name = "respx", marker = "extra == 'dev'", specifier = ">=0.21" },
     { name = "rich", specifier = ">=13.7" },
+    { name = "rich", marker = "extra == 'baseline'", specifier = ">=13.7" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4" },
     { name = "scipy", specifier = ">=1.13" },
     { name = "scipy", marker = "extra == 'evaluate'", specifier = ">=1.13" },
     { name = "sentence-transformers", marker = "extra == 'evaluate'", specifier = ">=3.0" },
+    { name = "tenacity", marker = "extra == 'baseline'", specifier = ">=8.3" },
     { name = "tenacity", marker = "extra == 'collect'", specifier = ">=8.3" },
     { name = "tqdm", specifier = ">=4.66" },
 ]
-provides-extras = ["collect", "evaluate", "hub", "dev"]
+provides-extras = ["collect", "evaluate", "baseline", "hub", "dev"]
 
 [[package]]
 name = "certifi"
@@ -1417,6 +1427,25 @@ version = "12.8.90"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a2/eb/86626c1bbc2edb86323022371c39aa48df6fd8b0a1647bc274577f72e90b/nvidia_nvtx_cu12-12.8.90-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:5b17e2001cc0d751a5bc2c6ec6d26ad95913324a4adb86788c944f8ce9ba441f", size = 89954, upload-time = "2025-03-07T01:42:44.131Z" },
+]
+
+[[package]]
+name = "openai"
+version = "2.24.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "distro" },
+    { name = "httpx" },
+    { name = "jiter" },
+    { name = "pydantic" },
+    { name = "sniffio" },
+    { name = "tqdm" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/55/13/17e87641b89b74552ed408a92b231283786523edddc95f3545809fab673c/openai-2.24.0.tar.gz", hash = "sha256:1e5769f540dbd01cb33bc4716a23e67b9d695161a734aff9c5f925e2bf99a673", size = 658717, upload-time = "2026-02-24T20:02:07.958Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c9/30/844dc675ee6902579b8eef01ed23917cc9319a1c9c0c14ec6e39340c96d0/openai-2.24.0-py3-none-any.whl", hash = "sha256:fed30480d7d6c884303287bde864980a4b137b60553ffbcf9ab4a233b7a73d94", size = 1120122, upload-time = "2026-02-24T20:02:05.669Z" },
 ]
 
 [[package]]

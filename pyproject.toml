@@ -33,6 +33,12 @@ evaluate = [
     "datasets>=2.20",
     "huggingface_hub>=0.23",
 ]
+baseline = [
+    "anthropic>=0.40",
+    "tenacity>=8.3",
+    "openai>=1.30",
+    "rich>=13.7",
+]
 hub = [
     "huggingface_hub>=0.23",
 ]
@@ -48,6 +54,7 @@ dev = [
 bioreview-collect = "bioreview_bench.scripts.collect_elife:main"
 bioreview-update = "bioreview_bench.scripts.update_pipeline:main"
 bioreview-run = "bioreview_bench.scripts.run_benchmark:main"
+bioreview-baseline = "bioreview_bench.scripts.run_baseline:main"
 
 [build-system]
 requires = ["hatchling"]
