@@ -23,6 +23,7 @@ import asyncio
 import datetime as _dt
 import fcntl
 import json
+import logging
 import os
 import sys
 from datetime import datetime, timedelta
@@ -41,6 +42,24 @@ from ..collect.state import (
 
 console = Console()
 ROOT = Path(__file__).resolve().parents[2]  # peer-review-benchmark/
+log = logging.getLogger(__name__)
+
+
+def _setup_file_logging(data_dir: Path) -> Path | None:
+    """Set up file logging for CI audit trail. Returns log path or None."""
+    log_dir = data_dir / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now(_dt.UTC).strftime("%Y%m%d_%H%M%S")
+    log_path = log_dir / f"update_{ts}.log"
+
+    handler = logging.FileHandler(log_path, encoding="utf-8")
+    handler.setLevel(logging.INFO)
+    handler.setFormatter(logging.Formatter(
+        "%(asctime)s %(name)s %(levelname)s %(message)s"
+    ))
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
+    return log_path
 
 # Date buffer: when resuming incremental collection, look back this many days
 # from last_article_date to catch articles with delayed indexing.
@@ -139,8 +158,6 @@ async def _run_source_update(
 
     console.print(f"  [dim]start_date={start_date}, known_ids={len(known_ids)}[/dim]")
 
-    # Currently only eLife uses _run() from collect_elife.py.
-    # Other sources will be added as their CLIs are implemented.
     if source_name == "elife":
         from .collect_elife import _run
 
@@ -150,6 +167,38 @@ async def _run_source_update(
             start_date=start_date,
             end_date=None,
             order="desc",
+            max_articles=max_new_articles,
+            output=output_path,
+            manifest_path=manifest_path,
+            model=model,
+            dry_run=dry_run,
+            append=True,
+            known_ids=known_ids,
+        )
+    elif source_name == "plos":
+        from .collect_plos import _run as _run_plos
+
+        manifest_path = manifest_dir / "em-plos-v1.0.json"
+        stats = await _run_plos(
+            journals=config.collector_kwargs.get("journals", []),
+            start_date=start_date,
+            end_date=None,
+            max_articles=max_new_articles,
+            output=output_path,
+            manifest_path=manifest_path,
+            model=model,
+            dry_run=dry_run,
+            append=True,
+            known_ids=known_ids,
+        )
+    elif source_name == "f1000":
+        from .collect_f1000 import _run as _run_f1000
+
+        manifest_path = manifest_dir / "em-f1000-v1.0.json"
+        stats = await _run_f1000(
+            journals=config.collector_kwargs.get("journals", []),
+            start_date=start_date,
+            end_date=None,
             max_articles=max_new_articles,
             output=output_path,
             manifest_path=manifest_path,
@@ -208,31 +257,25 @@ async def _run_source_update(
 
 
 def _run_update_splits(data_dir: Path) -> None:
-    """Re-run train/val/test split, preserving frozen test set if it exists."""
+    """Re-run multi-source train/val/test split, preserving frozen test set."""
     import subprocess
 
     splits_dir = data_dir / "splits"
-    frozen_path = splits_dir / "test_ids_frozen.json"
-    script = ROOT / "scripts" / "create_splits.py"
+    frozen_path = splits_dir / "test_ids_frozen_v2.json"
+    script = ROOT / "scripts" / "rebuild_splits.py"
 
-    # Collect all processed JSONL files as inputs
-    processed_dir = data_dir / "processed"
-    input_files = sorted(processed_dir.glob("*.jsonl")) if processed_dir.exists() else []
-
-    if not input_files:
-        console.print("  [yellow]No JSONL files found in processed/")
-        return
-
-    cmd = [sys.executable, str(script)]
-    for f in input_files:
-        cmd.extend(["-i", str(f)])
-    cmd.extend(["--output-dir", str(splits_dir)])
+    cmd = [
+        sys.executable, str(script),
+        "-s", "elife", "-s", "plos", "-s", "f1000",
+        "--input-dir", str(data_dir / "processed"),
+        "--output-dir", str(splits_dir / "v2"),
+    ]
 
     if frozen_path.exists():
         cmd.extend(["--frozen-test", str(frozen_path)])
         console.print(f"  [dim]Using frozen test: {frozen_path.name}[/dim]")
 
-    console.print(f"  [dim]Input files: {[f.name for f in input_files]}[/dim]")
+    console.print(f"  [dim]Script: {script.name}[/dim]")
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode == 0:
         console.print("  [green]Splits updated successfully")
@@ -242,12 +285,12 @@ def _run_update_splits(data_dir: Path) -> None:
         console.print(f"  [red]Split failed: {result.stderr}")
 
 
-def _run_push_hf(data_dir: Path) -> None:
+def _run_push_hf(data_dir: Path, version_tag: str | None = None) -> None:
     """Push data to HuggingFace Hub."""
     from ..collect.hf_push import push_to_hub
 
     try:
-        result = push_to_hub(data_dir=data_dir)
+        result = push_to_hub(data_dir=data_dir, version_tag=version_tag)
     except ImportError:
         console.print("  [red]huggingface_hub not installed. Run: uv sync --extra hub")
         return
@@ -300,6 +343,13 @@ def _run_push_hf(data_dir: Path) -> None:
     default=False,
     help="Push data to HuggingFace Hub after collection",
 )
+@click.option(
+    "--version-bump",
+    type=click.Choice(["minor", "major", "none"]),
+    default="minor",
+    show_default=True,
+    help="Version bump after push: minor (1.0→1.1), major (1.x→2.0), or none",
+)
 def main(
     source: str,
     max_new_articles: int,
@@ -308,6 +358,7 @@ def main(
     data_dir: str | None,
     update_splits: bool,
     push_hf: bool,
+    version_bump: str,
 ) -> None:
     """Incremental dataset update pipeline."""
     data_path = Path(data_dir) if data_dir else ROOT / "data"
@@ -321,12 +372,19 @@ def main(
     else:
         sources = [source]
 
+    # File logging for CI audit trail
+    log_path = _setup_file_logging(data_path)
+
     console.print("[bold cyan]bioreview-bench Update Pipeline[/bold cyan]")
     console.print(f"  sources  : {sources}")
     console.print(f"  max/src  : {max_new_articles}")
     console.print(f"  dry-run  : {dry_run}")
     console.print(f"  state    : {state_path}")
+    if log_path:
+        console.print(f"  log      : {log_path}")
     console.print()
+
+    log.info("Update started: sources=%s max=%d dry_run=%s", sources, max_new_articles, dry_run)
 
     # Acquire lockfile
     lock_fd = _acquire_lock(lock_path)
@@ -363,6 +421,7 @@ def main(
         console.print("[bold]Collection complete[/bold]")
         console.print(f"  New articles: {total_new}")
         console.print(f"  Skipped:      {total_skipped}")
+        log.info("Collection complete: new=%d skipped=%d", total_new, total_skipped)
 
         # --- Post-collection: re-split ---
         if update_splits and total_new > 0 and not dry_run:
@@ -370,11 +429,26 @@ def main(
             console.print("[bold]Updating splits...[/bold]")
             _run_update_splits(data_path)
 
-        # --- Post-collection: push to HuggingFace Hub ---
+        # --- Post-collection: version bump + push to HuggingFace Hub ---
         if push_hf and not dry_run:
+            state_mgr = StateManager(state_path)
+            state = state_mgr.load()
+
+            # Bump version
+            tag = None
+            if version_bump != "none" and total_new > 0:
+                old_ver = state.dataset_version
+                if version_bump == "major":
+                    new_ver = state.bump_major()
+                else:
+                    new_ver = state.bump_minor()
+                tag = f"v{new_ver}"
+                state_mgr.save(state)
+                console.print(f"  [dim]Version: {old_ver} → {new_ver} (tag: {tag})[/dim]")
+
             console.print()
             console.print("[bold]Pushing to HuggingFace Hub...[/bold]")
-            _run_push_hf(data_path)
+            _run_push_hf(data_path, version_tag=tag)
 
         console.print()
         console.print("[bold green]All done.[/bold green]")

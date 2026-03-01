@@ -32,6 +32,7 @@ def push_to_hub(
     repo_id: str = _DEFAULT_REPO_ID,
     dry_run: bool = False,
     splits_subdir: str = "splits/v2",
+    version_tag: str | None = None,
 ) -> dict[str, Any]:
     """Export multi-config JSONL files and push to HuggingFace Hub.
 
@@ -134,6 +135,19 @@ def push_to_hub(
         log.error("Upload failed; staging dir preserved at %s", staging_dir)
         raise
 
+    # Tag the commit with a version if requested
+    if version_tag:
+        try:
+            api.create_tag(
+                repo_id=repo_id,
+                repo_type="dataset",
+                tag=version_tag,
+                tag_message=f"bioreview-bench {version_tag}: {total} articles",
+            )
+            log.info("Created tag %s on %s", version_tag, repo_id)
+        except Exception as e:
+            log.warning("Failed to create tag %s: %s", version_tag, e)
+
     uploaded = [rp for _, rp in upload_plan]
     log.info("Pushed %d files to %s", len(uploaded), repo_id)
 
@@ -157,15 +171,20 @@ def _add_auxiliary_files(
         for f in sorted(manifests_dir.glob("*.json")):
             upload_plan.append((f, f"manifests/{f.name}"))
 
-    # Frozen test IDs
-    frozen_test = data_dir / "splits" / "test_ids_frozen.json"
+    # Frozen test IDs (v2 = multi-source)
+    frozen_test = data_dir / "splits" / "test_ids_frozen_v2.json"
     if frozen_test.exists():
-        upload_plan.append((frozen_test, "metadata/test_ids_frozen.json"))
+        upload_plan.append((frozen_test, "metadata/test_ids_frozen_v2.json"))
 
     # Split metadata
     split_meta = data_dir / "splits" / "v2" / "split_meta_v2.json"
     if split_meta.exists():
         upload_plan.append((split_meta, "metadata/split_meta_v2.json"))
+
+    # Update state (collection tracking)
+    update_state = data_dir / "update_state.json"
+    if update_state.exists():
+        upload_plan.append((update_state, "metadata/update_state.json"))
 
     added = len(upload_plan) - initial_count
     if added:

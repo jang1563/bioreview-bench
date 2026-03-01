@@ -32,9 +32,8 @@ def main() -> None:
             ROOT / "data" / "processed" / "elife_v1.1.jsonl",
             ROOT / "data" / "processed" / "elife_legacy_v1.jsonl",
         ],
-        # Add other sources here as they become available:
-        # "plos": [ROOT / "data" / "processed" / "plos_v1.jsonl"],
-        # "f1000": [ROOT / "data" / "processed" / "f1000_v1.jsonl"],
+        "plos": [ROOT / "data" / "processed" / "plos_v1.jsonl"],
+        "f1000": [ROOT / "data" / "processed" / "f1000_v1.jsonl"],
     }
 
     state = UpdateState()

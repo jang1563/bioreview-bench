@@ -734,6 +734,34 @@ class TestCLIRegistration:
         # Return annotation should be dict (string due to __future__ annotations)
         assert sig.return_annotation in (dict, "dict")
 
+    def test_collect_plos_run_has_incremental_params(self):
+        """PLOS _run() has append, known_ids, and returns dict (parity with eLife)."""
+        import inspect
+        from bioreview_bench.scripts.collect_plos import _run
+
+        sig = inspect.signature(_run)
+        params = sig.parameters
+
+        assert "append" in params
+        assert "known_ids" in params
+        assert params["append"].default is False
+        assert params["known_ids"].default is None
+        assert sig.return_annotation in (dict, "dict")
+
+    def test_collect_f1000_run_has_incremental_params(self):
+        """F1000 _run() has append, known_ids, and returns dict (parity with eLife)."""
+        import inspect
+        from bioreview_bench.scripts.collect_f1000 import _run
+
+        sig = inspect.signature(_run)
+        params = sig.parameters
+
+        assert "append" in params
+        assert "known_ids" in params
+        assert params["append"].default is False
+        assert params["known_ids"].default is None
+        assert sig.return_annotation in (dict, "dict")
+
 
 # ── M3: Split Tests ──────────────────────────────────────────────
 
@@ -961,7 +989,7 @@ class TestHfPush:
         (splits_v2 / "test.jsonl").write_text(entry + "\n")
 
         # Metadata files
-        (data / "splits" / "test_ids_frozen.json").write_text('{"ids": ["elife:100"]}')
+        (data / "splits" / "test_ids_frozen_v2.json").write_text('{"ids": ["elife:100"]}')
         (splits_v2 / "split_meta_v2.json").write_text('{"seed": 42}')
         (data / "manifests" / "em-v1.0.json").write_text('{"version": "1.0"}')
         return data
@@ -1035,3 +1063,109 @@ class TestHfPushCLIIntegration:
         """_run_update_splits helper is callable."""
         from bioreview_bench.scripts.update_pipeline import _run_update_splits
         assert callable(_run_update_splits)
+
+    def test_version_bump_option_exists(self):
+        """--version-bump option is registered on the CLI command."""
+        from bioreview_bench.scripts.update_pipeline import main
+        param_names = [p.name for p in main.params]
+        assert "version_bump" in param_names
+
+    def test_version_bump_default_is_minor(self):
+        """--version-bump defaults to 'minor'."""
+        from bioreview_bench.scripts.update_pipeline import main
+        for p in main.params:
+            if p.name == "version_bump":
+                assert p.default == "minor"
+                break
+
+
+# ── Phase 3: Dataset Versioning Tests ─────────────────────────────
+
+
+class TestDatasetVersioning:
+
+    def test_bump_minor(self):
+        """bump_minor increments minor version."""
+        state = UpdateState(dataset_version="1.0")
+        result = state.bump_minor()
+        assert result == "1.1"
+        assert state.dataset_version == "1.1"
+
+    def test_bump_minor_sequential(self):
+        """Multiple minor bumps work correctly."""
+        state = UpdateState(dataset_version="1.0")
+        state.bump_minor()
+        state.bump_minor()
+        assert state.dataset_version == "1.2"
+
+    def test_bump_major(self):
+        """bump_major increments major version and resets minor."""
+        state = UpdateState(dataset_version="1.5")
+        result = state.bump_major()
+        assert result == "2.0"
+        assert state.dataset_version == "2.0"
+
+    def test_bump_major_from_high_minor(self):
+        """bump_major works from high minor version."""
+        state = UpdateState(dataset_version="3.12")
+        result = state.bump_major()
+        assert result == "4.0"
+        assert state.dataset_version == "4.0"
+
+    def test_version_persists_through_save_load(self, state_path: Path):
+        """dataset_version survives save → load cycle."""
+        mgr = StateManager(state_path)
+        state = UpdateState(dataset_version="2.3")
+        mgr.save(state)
+
+        loaded = mgr.load()
+        assert loaded.dataset_version == "2.3"
+
+    def test_version_default_on_load(self, state_path: Path):
+        """Loading old state without dataset_version defaults to 1.0."""
+        # Write state without dataset_version field
+        state_path.parent.mkdir(parents=True, exist_ok=True)
+        state_path.write_text('{"sources": {}, "runs": []}')
+
+        mgr = StateManager(state_path)
+        state = mgr.load()
+        assert state.dataset_version == "1.0"
+
+    def test_hf_push_accepts_version_tag(self):
+        """push_to_hub signature accepts version_tag parameter."""
+        import inspect
+        from bioreview_bench.collect.hf_push import push_to_hub
+
+        sig = inspect.signature(push_to_hub)
+        assert "version_tag" in sig.parameters
+        assert sig.parameters["version_tag"].default is None
+
+    def test_hf_push_upload_includes_update_state(self, tmp_path: Path):
+        """update_state.json is included in HF upload plan."""
+        data = tmp_path / "data"
+        splits_v2 = data / "splits" / "v2"
+        splits_v2.mkdir(parents=True)
+        (data / "manifests").mkdir(parents=True)
+
+        entry = json.dumps({
+            "id": "elife:100", "source": "elife", "doi": "10.7554/eLife.100",
+            "title": "Study", "abstract": "Abstract", "subjects": ["Neuroscience"],
+            "published_date": "2025-01-01",
+            "paper_text_sections": {"intro": "text"},
+            "decision_letter_raw": "Review text",
+            "author_response_raw": "Response text",
+            "concerns": [{"concern_id": "elife:100:R1C1",
+                          "concern_text": "Issue", "category": "other",
+                          "severity": "minor", "author_stance": "conceded"}],
+        })
+        (splits_v2 / "train.jsonl").write_text(entry + "\n")
+        (splits_v2 / "val.jsonl").write_text(entry + "\n")
+        (splits_v2 / "test.jsonl").write_text(entry + "\n")
+
+        # Add update_state.json
+        (data / "update_state.json").write_text('{"dataset_version": "1.0"}')
+        (data / "manifests" / "em-v1.0.json").write_text('{"version": "1.0"}')
+
+        result = push_to_hub(data_dir=data, dry_run=True)
+        uploaded = result["uploaded"]
+        assert any("update_state.json" in p for p in uploaded)

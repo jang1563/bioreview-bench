@@ -67,7 +67,9 @@ async def _run(
     manifest_path: Path,
     model: str,
     dry_run: bool,
-) -> None:
+    append: bool = False,
+    known_ids: set[str] | None = None,
+) -> dict:
     manifest = _load_or_create_manifest(manifest_path, model)
     parser = JATSParser()
     extractor = (
@@ -80,6 +82,7 @@ async def _run(
 
     stats = {
         "total_fetched": 0,
+        "skipped": 0,
         "xml_ok": 0,
         "xml_fail": 0,
         "no_review": 0,
@@ -95,7 +98,7 @@ async def _run(
     summary_table.add_column("Status", style="green")
 
     with (
-        output.open("w", encoding="utf-8") as fout,
+        output.open("a" if append else "w", encoding="utf-8") as fout,
         Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -119,6 +122,13 @@ async def _run(
             ):
                 stats["total_fetched"] += 1
                 article_id = f"plos:{meta.article_id}"
+
+                # Skip already-collected articles (incremental mode)
+                if known_ids and article_id in known_ids:
+                    stats["skipped"] += 1
+                    progress.advance(task)
+                    continue
+
                 status = "ok"
 
                 if xml_bytes is None:
@@ -213,8 +223,10 @@ async def _run(
         console.print(f"  Figure concerns:{stats['figure_concerns']}")
     console.print(f"  Output: {output}")
 
-    manifest.n_articles_processed = stats["xml_ok"]
+    manifest.n_articles_processed = (manifest.n_articles_processed or 0) + stats["xml_ok"]
     manifest_path.write_text(manifest.model_dump_json(indent=2))
+
+    return stats
 
 
 @click.command()

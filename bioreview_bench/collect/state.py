@@ -53,6 +53,7 @@ class UpdateState:
 
     sources: dict[str, SourceState] = field(default_factory=dict)
     runs: list[RunRecord] = field(default_factory=list)
+    dataset_version: str = "1.0"
 
     def get_source(self, source: str) -> SourceState:
         """Get or create a SourceState for the given source name."""
@@ -65,6 +66,18 @@ class UpdateState:
         self.runs.append(run)
         if len(self.runs) > _MAX_RUNS:
             self.runs = self.runs[-_MAX_RUNS:]
+
+    def bump_minor(self) -> str:
+        """Bump minor version: 1.0 → 1.1, 1.1 → 1.2, etc."""
+        major, minor = self.dataset_version.split(".")
+        self.dataset_version = f"{major}.{int(minor) + 1}"
+        return self.dataset_version
+
+    def bump_major(self) -> str:
+        """Bump major version: 1.x → 2.0, 2.x → 3.0, etc."""
+        major, _minor = self.dataset_version.split(".")
+        self.dataset_version = f"{int(major) + 1}.0"
+        return self.dataset_version
 
 
 def _detect_trigger() -> str:
@@ -105,6 +118,7 @@ class StateManager:
 
         data = json.loads(self.state_path.read_text(encoding="utf-8"))
         state = UpdateState()
+        state.dataset_version = data.get("dataset_version", "1.0")
 
         for source_name, source_data in data.get("sources", {}).items():
             state.sources[source_name] = SourceState(
@@ -141,6 +155,7 @@ class StateManager:
             }
 
         data = {
+            "dataset_version": state.dataset_version,
             "sources": sources_dict,
             "runs": [asdict(r) for r in state.runs],
         }

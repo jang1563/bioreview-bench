@@ -1,0 +1,133 @@
+name: Periodic Dataset Update
+
+on:
+  schedule:
+    # Run on the 1st and 15th of each month at 06:00 UTC
+    - cron: '0 6 1,15 * *'
+
+  workflow_dispatch:
+    inputs:
+      max_articles:
+        description: 'Max new articles per source'
+        required: false
+        default: '200'
+      dry_run:
+        description: 'Dry run (no LLM, $0 cost)'
+        required: false
+        type: boolean
+        default: false
+      version_bump:
+        description: 'Version bump type'
+        required: false
+        type: choice
+        options:
+          - minor
+          - major
+          - none
+        default: 'minor'
+      source:
+        description: 'Source to collect from'
+        required: false
+        type: choice
+        options:
+          - all
+          - elife
+          - plos
+          - f1000
+        default: 'all'
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: '3.12'
+  UV_VERSION: '0.6'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: uv sync --extra hub
+
+      - name: Restore data cache
+        id: cache-data
+        uses: actions/cache/restore@v4
+        with:
+          path: data/update_state.json
+          key: update-state-${{ hashFiles('data/update_state.json') }}
+          restore-keys: |
+            update-state-
+
+      - name: Restore state from HF (cache miss fallback)
+        if: steps.cache-data.outputs.cache-hit != 'true'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          echo "Cache miss — attempting HF fallback"
+          mkdir -p data
+          uv run python -c "
+          from huggingface_hub import hf_hub_download
+          import shutil
+          try:
+              path = hf_hub_download(
+                  'jang1563/bioreview-bench',
+                  'metadata/update_state.json',
+                  repo_type='dataset',
+              )
+              shutil.copy2(path, 'data/update_state.json')
+              print(f'Restored state from HF → data/update_state.json')
+          except Exception as e:
+              print(f'HF fallback failed (will bootstrap): {e}')
+          "
+
+      - name: Run update pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # Determine parameters
+          MAX_ARTICLES="${{ github.event.inputs.max_articles || '200' }}"
+          DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
+          VERSION_BUMP="${{ github.event.inputs.version_bump || 'minor' }}"
+          SOURCE="${{ github.event.inputs.source || 'all' }}"
+
+          CMD="uv run bioreview-update --source ${SOURCE} -n ${MAX_ARTICLES} --version-bump ${VERSION_BUMP}"
+
+          if [ "${DRY_RUN}" = "true" ]; then
+            CMD="${CMD} --dry-run"
+          else
+            CMD="${CMD} --update-splits --push-hf"
+          fi
+
+          mkdir -p data/logs
+          echo "Running: ${CMD}"
+          ${CMD} 2>&1 | tee data/logs/update_$(date +%Y%m%d_%H%M%S).log
+
+      - name: Save data cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/update_state.json
+          key: update-state-${{ hashFiles('data/update_state.json') }}
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: update-logs-${{ github.run_id }}
+          path: data/logs/
+          retention-days: 30
