@@ -33,7 +33,7 @@ log = logging.getLogger(__name__)
 _SPLIT_NAMES = ("train", "validation", "test")
 
 # Source-specific configs to generate
-_SOURCE_CONFIGS = ("elife", "plos", "f1000")
+_SOURCE_CONFIGS = ("elife", "plos", "f1000", "peerj", "nature")
 
 
 # ── I/O helpers ────────────────────────────────────────────────────

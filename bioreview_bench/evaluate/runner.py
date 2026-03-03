@@ -173,8 +173,8 @@ def bootstrap_ci(
 ) -> dict[str, ConfidenceInterval]:
     """Compute bootstrap 95% CI for recall and precision.
 
-    Samples articles with replacement and computes macro-average metrics
-    for each resample.
+    Samples articles with replacement and computes micro-averaged metrics
+    (count-weighted) for each resample.
 
     Returns:
         Dict with keys 'recall' and 'precision', each a ConfidenceInterval.
@@ -190,8 +190,11 @@ def bootstrap_ci(
 
     for _ in range(n_bootstrap):
         sample = [rng.choice(article_results) for _ in range(n)]
-        recall_samples.append(sum(r.recall for r in sample) / n)
-        precision_samples.append(sum(r.precision for r in sample) / n)
+        total_matched = sum(r.n_matched for r in sample)
+        total_gt = sum(r.n_gt_total for r in sample)
+        total_tool = sum(r.n_tool_total for r in sample)
+        recall_samples.append(total_matched / total_gt if total_gt > 0 else 0.0)
+        precision_samples.append(total_matched / total_tool if total_tool > 0 else 0.0)
 
     recall_samples.sort()
     precision_samples.sort()
@@ -250,10 +253,22 @@ def aggregate_results(
             notes=notes,
         )
 
-    recall = sum(r.recall for r in article_results) / n
-    precision = sum(r.precision for r in article_results) / n
+    total_matched = sum(r.n_matched for r in article_results)
+    total_gt = sum(r.n_gt_total for r in article_results)
+    total_tool = sum(r.n_tool_total for r in article_results)
+
+    # Primary overall metrics are micro-averaged (count-weighted).
+    recall = total_matched / total_gt if total_gt > 0 else 0.0
+    precision = total_matched / total_tool if total_tool > 0 else 0.0
     f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
     recall_major = sum(r.recall_major for r in article_results) / n
+    soft_recall = sum(r.soft_recall for r in article_results) / n
+    soft_precision = sum(r.soft_precision for r in article_results) / n
+    soft_f1 = (
+        (2 * soft_precision * soft_recall / (soft_precision + soft_recall))
+        if (soft_precision + soft_recall) > 0
+        else 0.0
+    )
 
     # Per-category aggregation
     from bioreview_bench.evaluate.metrics import CategoryMetrics as EvalCategoryMetrics  # noqa: F811
@@ -282,12 +297,13 @@ def aggregate_results(
         )
 
     # Matching stats
+    algo = article_results[0].algorithm if article_results else "hungarian"
     matching_stats = MatchingStats(
         n_tool_concerns=n_tool_concerns,
         n_human_concerns=n_human_concerns,
         n_matched_pairs=sum(r.n_matched for r in article_results),
         threshold=article_results[0].threshold if article_results else 0.65,
-        algorithm="bipartite",
+        algorithm=algo,
     )
 
     # Bootstrap CI
@@ -309,6 +325,9 @@ def aggregate_results(
         precision_overall=precision,
         f1_micro=f1,
         recall_major=recall_major,
+        soft_recall_overall=soft_recall,
+        soft_precision_overall=soft_precision,
+        soft_f1=soft_f1,
         ci_recall=ci_recall,
         ci_precision=ci_precision,
         bootstrap_n=n_bootstrap,
@@ -360,6 +379,10 @@ def print_report(result: BenchmarkResult, coverage_log: list[dict]) -> None:
     print(f"  {'Precision (overall)':<22}  {result.precision_overall:>8.3f}  {_ci_str(result.ci_precision):>16}")
     print(f"  {'F1 (micro)':<22}  {result.f1_micro:>8.3f}")
     print(f"  {'Recall (major only)':<22}  {result.recall_major:>8.3f}")
+    if result.soft_f1 > 0:
+        print(f"  {'Soft Recall':<22}  {result.soft_recall_overall:>8.3f}")
+        print(f"  {'Soft Precision':<22}  {result.soft_precision_overall:>8.3f}")
+        print(f"  {'Soft F1':<22}  {result.soft_f1:>8.3f}")
     print()
 
     if result.per_category:
@@ -396,6 +419,7 @@ def run_evaluation(
     threshold: float = 0.65,
     exclude_figure: bool = True,
     use_embedding: bool = True,
+    algorithm: str = "hungarian",
     bootstrap_n: int = 0,
     tool_name: str = "",
     tool_version: str = "unknown",
@@ -436,6 +460,7 @@ def run_evaluation(
         threshold=threshold,
         exclude_figure=exclude_figure,
         use_embedding=use_embedding,
+        algorithm=algorithm,  # type: ignore[arg-type]
     )
 
     print("Running per-article evaluation ...", flush=True)

@@ -27,6 +27,9 @@ def test_collect_cli_passes_start_date_and_dry_run(monkeypatch, tmp_path: Path) 
         manifest_path: Path,
         model: str,
         dry_run: bool,
+        no_extract: bool = False,
+        append: bool = False,
+        known_ids: set | None = None,
     ) -> None:
         captured["subjects"] = subjects
         captured["start_date"] = start_date

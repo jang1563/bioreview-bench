@@ -79,6 +79,26 @@ SOURCE_REGISTRY: dict[str, SourceConfig] = {
             "journals": ["F1000Research"],
         },
     ),
+    "nature": SourceConfig(
+        name="nature",
+        collector_module="bioreview_bench.collect.nature",
+        collector_class="NatureCollector",
+        source_literal="nature",
+        id_prefix="nature:",
+        default_start_date="2022-01-01",
+        default_subjects=[],
+        output_filename="nature_v1.jsonl",
+    ),
+    "peerj": SourceConfig(
+        name="peerj",
+        collector_module="bioreview_bench.collect.peerj",
+        collector_class="PeerJCollector",
+        source_literal="peerj",
+        id_prefix="peerj:",
+        default_start_date="2013-01-01",
+        default_subjects=[],
+        output_filename="peerj_v1.jsonl",
+    ),
 }
 
 

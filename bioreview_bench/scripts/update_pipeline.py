@@ -207,6 +207,37 @@ async def _run_source_update(
             append=True,
             known_ids=known_ids,
         )
+    elif source_name == "nature":
+        from .collect_nature import _run as _run_nature
+
+        manifest_path = manifest_dir / "em-nature-v1.0.json"
+        stats = await _run_nature(
+            journals=config.collector_kwargs.get("journals", []),
+            start_date=start_date,
+            end_date=None,
+            max_articles=max_new_articles,
+            output=output_path,
+            manifest_path=manifest_path,
+            model=model,
+            dry_run=dry_run,
+            append=True,
+            known_ids=known_ids,
+        )
+    elif source_name == "peerj":
+        from .collect_peerj import _run as _run_peerj
+
+        manifest_path = manifest_dir / "em-peerj-v1.0.json"
+        stats = await _run_peerj(
+            start_date=start_date,
+            end_date=None,
+            max_articles=max_new_articles,
+            output=output_path,
+            manifest_path=manifest_path,
+            model=model,
+            dry_run=dry_run,
+            append=True,
+            known_ids=known_ids,
+        )
     else:
         console.print(f"  [yellow]Source '{source_name}' collection not yet implemented")
         stats = {"total_fetched": 0, "skipped": 0, "xml_ok": 0, "xml_fail": 0}
@@ -247,7 +278,7 @@ async def _run_source_update(
         trigger=_detect_trigger(),
         new_articles=stats["xml_ok"],
         skipped_duplicates=stats.get("skipped", 0),
-        cost_usd_est=stats["xml_ok"] * 0.002 if not dry_run else 0.0,
+        cost_usd_est=stats["xml_ok"] * 0.009 if not dry_run else 0.0,
         dry_run=dry_run,
     )
     state.add_run(run)
@@ -266,7 +297,7 @@ def _run_update_splits(data_dir: Path) -> None:
 
     cmd = [
         sys.executable, str(script),
-        "-s", "elife", "-s", "plos", "-s", "f1000",
+        "-s", "elife", "-s", "plos", "-s", "f1000", "-s", "nature", "-s", "peerj",
         "--input-dir", str(data_dir / "processed"),
         "--output-dir", str(splits_dir / "v2"),
     ]
@@ -304,7 +335,7 @@ def _run_push_hf(data_dir: Path, version_tag: str | None = None) -> None:
 @click.command()
 @click.option(
     "--source", "-s",
-    type=click.Choice(["elife", "plos", "f1000", "all"]),
+    type=click.Choice(["elife", "plos", "f1000", "nature", "peerj", "all"]),
     default="elife",
     show_default=True,
     help="Source to collect from (or 'all' for all sources)",

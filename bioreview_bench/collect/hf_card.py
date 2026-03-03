@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-_CONFIGS = ("default", "benchmark", "concerns_flat", "elife", "plos", "f1000")
+_CONFIGS = ("default", "benchmark", "concerns_flat", "elife", "plos", "f1000", "peerj", "nature")
 
 
 def generate_dataset_card(stats: dict[str, Any]) -> str:
@@ -40,6 +40,10 @@ def _build_yaml(stats: dict[str, Any]) -> str:
         "  - benchmark",
         "  - scientific-review",
         "  - elife",
+        "  - plos",
+        "  - f1000research",
+        "  - peerj",
+        "  - nature",
         "  - rebuttal",
         "  - open-peer-review",
         'pretty_name: "BioReview-Bench"',
@@ -161,7 +165,7 @@ def _section_configs(configs: dict[str, Any]) -> str:
 - **`concerns_flat`**: One row per concern with article context. Ideal for rebuttal
   generation training and stance classification. PLOS entries included (filter with
   `author_stance != "no_response"` for rebuttal tasks).
-- **`elife`** / **`plos`** / **`f1000`**: Source-specific subsets of `default`."""
+- **`elife`** / **`plos`** / **`f1000`** / **`peerj`** / **`nature`**: Source-specific subsets of `default`."""
 
 
 def _section_usage() -> str:
@@ -204,7 +208,7 @@ def _section_schema() -> str:
 | Field | Type | Description |
 |-------|------|-------------|
 | `id` | string | Article ID (e.g. `elife:84798`) |
-| `source` | string | Journal source (`elife`, `plos`, `f1000`) |
+| `source` | string | Journal source (`elife`, `plos`, `f1000`, `peerj`, `nature`) |
 | `doi` | string | Article DOI |
 | `title` | string | Article title |
 | `abstract` | string | Abstract text |
@@ -239,7 +243,7 @@ def _section_license() -> str:
     return """## License
 
 - **Dataset** (JSONL data files): CC-BY-4.0. All source articles and reviews are
-  published under CC-BY by their respective journals (eLife, PLOS, F1000Research).
+  published under CC-BY by their respective journals (eLife, PLOS, F1000Research, PeerJ, Nature).
 - **Code** (Python package, evaluation harness): Apache-2.0.
 
 See the [GitHub repository](https://github.com/jang1563/bioreview-bench) for

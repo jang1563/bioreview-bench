@@ -1,11 +1,12 @@
-# bioreview-bench Leaderboard (val split)
+# bioreview-bench Leaderboard (test split)
 
-*Last updated: 2026-03-01. Ranked by F1.*
+*Last updated: 2026-03-02. Ranked by F1.*
 
-| Rank | Tool | Version | Recall | Precision | F1 | Major Recall | Articles | Date |
-|------|------|---------|--------|-----------|-----|--------------|----------|------|
-| 1 | DummyTool | 0.1 | 0.015 | 0.027 | 0.019 | 0.015 | 149 | 2026-03-01 |
+| Rank | Tool | Recall | Precision | F1 | Major Recall | Articles | Date |
+|------|------|--------|-----------|----|--------------|----------|------|
+| 1 | Claude Haiku 4.5 (baseline) | 0.857 [0.844, 0.870] | 0.659 [0.639, 0.678] | 0.745 | 0.858 | 982 | 2026-03-02 |
 
-> Matching: SPECTER2 cosine similarity, threshold=0.65, greedy bipartite matching.
+> Matching: SPECTER2 cosine similarity, threshold=0.85, bipartite matching (1,000 bootstrap iterations).
 > Figure-issue concerns excluded from ground truth (require visual inspection).
-> [bioreview-bench v1.0](https://github.com/jang1563/bioreview-bench)
+> Test split: 982 articles, 13,720 non-figure concerns from 5 sources.
+> [bioreview-bench v2.0](https://github.com/jang1563/bioreview-bench)

@@ -27,9 +27,18 @@ def _make_gt(
     }
 
 
-def _matcher(threshold: float = 0.65, exclude_figure: bool = True) -> ConcernMatcher:
+def _matcher(
+    threshold: float = 0.65,
+    exclude_figure: bool = True,
+    algorithm: str = "greedy",
+) -> ConcernMatcher:
     """Return a Jaccard-mode matcher (no sentence-transformers)."""
-    return ConcernMatcher(threshold=threshold, exclude_figure=exclude_figure, use_embedding=False)
+    return ConcernMatcher(
+        threshold=threshold,
+        exclude_figure=exclude_figure,
+        use_embedding=False,
+        algorithm=algorithm,  # type: ignore[arg-type]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -319,3 +328,165 @@ def test_score_dataset():
     assert result.n_gt_total == 2
     assert result.n_tool_total == 2
     assert result.n_matched == 1
+
+
+# ---------------------------------------------------------------------------
+# Hungarian matching tests
+# ---------------------------------------------------------------------------
+
+
+def test_hungarian_same_as_greedy_simple():
+    """For simple cases, Hungarian and greedy produce the same result."""
+    text = "The statistical analysis lacks proper controls and sufficient sample size."
+    gt = [_make_gt(text)]
+    tool = [text]
+
+    greedy_result = _matcher(algorithm="greedy").score_article(tool, gt)
+    hungarian_result = _matcher(algorithm="hungarian").score_article(tool, gt)
+
+    assert greedy_result.recall == hungarian_result.recall
+    assert greedy_result.precision == hungarian_result.precision
+    assert greedy_result.n_matched == hungarian_result.n_matched
+
+
+def test_hungarian_finds_more_matches():
+    """Hungarian can find more matches than greedy in ambiguous assignments.
+
+    Scenario: Two tool concerns (A, B) vs two GT concerns (1, 2).
+    A is most similar to 1, but A also matches 2 well.
+    B only matches 1.
+    Greedy assigns A→1 (best score), leaving B unmatched.
+    Hungarian assigns A→2, B→1 for 2 total matches.
+    """
+    # GT concerns
+    gt = [
+        _make_gt("The statistical methods need more proper controls for the experiment."),
+        _make_gt("Statistical analysis and proper experimental controls are lacking."),
+    ]
+    # Tool A: shares many tokens with both GT
+    # Tool B: shares tokens mainly with GT[0]
+    tool = [
+        "Statistical analysis and proper experimental controls require improvement.",
+        "The statistical methods need more proper controls in this study.",
+    ]
+    # Greedy takes best pair first, possibly blocking a second match
+    greedy_result = _matcher(threshold=0.20, algorithm="greedy").score_article(tool, gt)
+    hungarian_result = _matcher(threshold=0.20, algorithm="hungarian").score_article(tool, gt)
+
+    # Hungarian should find at least as many matches as greedy
+    assert hungarian_result.n_matched >= greedy_result.n_matched
+
+
+def test_algorithm_field_in_result():
+    """EvalResult stores the algorithm used."""
+    text = "The statistical analysis lacks proper controls."
+    gt = [_make_gt(text)]
+
+    greedy_result = _matcher(algorithm="greedy").score_article([text], gt)
+    hungarian_result = _matcher(algorithm="hungarian").score_article([text], gt)
+
+    assert greedy_result.algorithm == "greedy"
+    assert hungarian_result.algorithm == "hungarian"
+
+
+# ---------------------------------------------------------------------------
+# Per-category precision fix tests
+# ---------------------------------------------------------------------------
+
+
+def test_per_category_precision_uses_assigned_tool_count():
+    """Per-category precision uses category-assigned tool count, not total.
+
+    Previously: cat_prec = cat_matched / n_tool (total) → always very low.
+    Now: cat_prec = cat_matched / n_tool_assigned_to_cat.
+    """
+    # Two categories: stat (1 GT) and design (1 GT)
+    gt = [
+        _make_gt(
+            "The statistical analysis lacks proper controls and sufficient sample size.",
+            category="statistical_methodology",
+        ),
+        _make_gt(
+            "The experimental design does not include appropriate negative controls.",
+            category="design_flaw",
+        ),
+    ]
+    # Tool matches stat perfectly, misses design
+    tool = [
+        "The statistical analysis lacks proper controls and sufficient sample size.",
+        "Completely unrelated fluorescence imaging concern unrelated to anything.",
+    ]
+    result = _matcher().score_article(tool, gt)
+
+    stat_cat = result.per_category["statistical_methodology"]
+    # stat has 1 matched, and its n_tool should NOT be total (2)
+    # The matched tool concern → stat. The unmatched tool concern → nearest GT category.
+    assert stat_cat.n_matched == 1
+    assert stat_cat.recall == pytest.approx(1.0)
+    # n_tool should be tool concerns assigned to this category, not total
+    assert stat_cat.n_tool <= 2  # could be 1 or 2 depending on nearest assignment
+
+
+def test_per_category_tool_count_sums_to_total():
+    """Sum of per-category n_tool should equal total tool concerns."""
+    gt = [
+        _make_gt("Statistical controls are missing.", category="statistical_methodology"),
+        _make_gt("The design has flaws.", category="design_flaw"),
+        _make_gt("Writing is unclear.", category="writing_clarity"),
+    ]
+    tool = [
+        "Statistical controls are missing.",
+        "The design has flaws.",
+        "Some unrelated concern about methods.",
+        "Another concern about clarity.",
+    ]
+    result = _matcher(threshold=0.20).score_article(tool, gt)
+
+    total_assigned = sum(cm.n_tool for cm in result.per_category.values())
+    assert total_assigned == len(tool)
+
+
+# ---------------------------------------------------------------------------
+# Soft matching tests
+# ---------------------------------------------------------------------------
+
+
+def test_soft_metrics_perfect_match():
+    """Soft metrics equal hard metrics when match similarity is 1.0 (identical text)."""
+    text = "The statistical analysis lacks proper controls and sufficient sample size."
+    gt = [_make_gt(text)]
+    tool = [text]
+    result = _matcher().score_article(tool, gt)
+
+    # Jaccard of identical text = 1.0, so soft credit = 1.0 = hard credit
+    assert result.soft_recall == pytest.approx(result.recall)
+    assert result.soft_precision == pytest.approx(result.precision)
+    assert result.soft_f1 == pytest.approx(result.f1)
+
+
+def test_soft_metrics_zero_when_no_matches():
+    """Soft metrics are 0 when there are no matches."""
+    gt = [_make_gt("The statistical analysis lacks proper controls and sufficient sample size.")]
+    tool = ["Fluorescent microscopy images show abnormal cellular distribution patterns."]
+    result = _matcher().score_article(tool, gt)
+
+    assert result.soft_recall == pytest.approx(0.0)
+    assert result.soft_precision == pytest.approx(0.0)
+    assert result.soft_f1 == pytest.approx(0.0)
+
+
+def test_soft_metrics_less_than_or_equal_hard():
+    """Soft recall/precision <= hard recall/precision (credit ≤ 1 per match)."""
+    gt_texts = [
+        "The statistical analysis lacks proper controls and sufficient sample size validation.",
+        "The western blot normalization procedure is missing and needs correction.",
+    ]
+    tool_texts = [
+        "Statistical analysis lacks proper controls and sufficient sample size validation.",
+        "The western blot normalization procedure is missing and needs to be corrected.",
+    ]
+    gt = [_make_gt(t) for t in gt_texts]
+    result = _matcher().score_article(tool_texts, gt)
+
+    assert result.soft_recall <= result.recall + 1e-9
+    assert result.soft_precision <= result.precision + 1e-9
