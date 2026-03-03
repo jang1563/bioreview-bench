@@ -11,51 +11,30 @@ Usage:
 from __future__ import annotations
 
 import asyncio
-import datetime as _dt
-import json
 import os
 import sys
-from datetime import datetime
 from pathlib import Path
 
 import click
 from rich.console import Console
-from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 from rich.table import Table
 
 from ..collect.plos import PLOSCollector
+from ..collect.postprocess import (
+    finalize_manifest,
+    load_known_ids_with_log,
+    load_or_create_manifest,
+    make_progress_bar,
+    normalize_date,
+    print_collection_summary,
+    write_entry,
+)
 from ..models.entry import OpenPeerReviewEntry
-from ..models.manifest import ExtractionManifest
 from ..parse.concern_extractor import ConcernExtractor
 from ..parse.jats import JATSParser
 
 console = Console()
 ROOT = Path(__file__).resolve().parents[2]
-
-
-def _load_or_create_manifest(manifest_path: Path, model: str) -> ExtractionManifest:
-    if manifest_path.exists():
-        data = json.loads(manifest_path.read_text())
-        return ExtractionManifest(**data)
-
-    import hashlib
-
-    from ..parse.concern_extractor import CONCERN_EXTRACTION_SYSTEM, RESOLUTION_SYSTEM
-
-    manifest = ExtractionManifest(
-        manifest_id="em-plos-v1.0",
-        model_id=model,
-        model_date=datetime.now(_dt.UTC).strftime("%Y-%m-%d"),
-        prompt_hash="sha256:"
-        + hashlib.sha256(
-            (CONCERN_EXTRACTION_SYSTEM + RESOLUTION_SYSTEM).encode()
-        ).hexdigest()[:16],
-        parsing_rule_hash="sha256:placeholder",
-        cost_per_article_usd=0.002,
-    )
-    manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    manifest_path.write_text(manifest.model_dump_json(indent=2))
-    return manifest
 
 
 async def _run(
@@ -67,14 +46,15 @@ async def _run(
     manifest_path: Path,
     model: str,
     dry_run: bool,
+    no_extract: bool = False,
     append: bool = False,
     known_ids: set[str] | None = None,
 ) -> dict:
-    manifest = _load_or_create_manifest(manifest_path, model)
+    manifest = load_or_create_manifest(manifest_path, model, manifest_id="em-plos-v1.0")
     parser = JATSParser()
     extractor = (
         ConcernExtractor(model=model, manifest_id=manifest.manifest_id)
-        if not dry_run
+        if not dry_run and not no_extract
         else None
     )
 
@@ -97,15 +77,10 @@ async def _run(
     summary_table.add_column("Concerns")
     summary_table.add_column("Status", style="green")
 
+    # dry_run never writes output — open in append mode to avoid truncating existing data
     with (
-        output.open("a" if append else "w", encoding="utf-8") as fout,
-        Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TaskProgressColumn(),
-            console=console,
-        ) as progress,
+        output.open("a" if (append or dry_run) else "w", encoding="utf-8") as fout,
+        make_progress_bar(console) as progress,
     ):
         task = progress.add_task(
             f"Collecting PLOS ({'dry-run' if dry_run else 'full'})...",
@@ -174,10 +149,7 @@ async def _run(
                 stats["total_concerns"] += len(all_concerns)
                 stats["figure_concerns"] += fig_count
 
-                raw_date = parsed.published_date or meta.published or "2020-01-01"
-                pub_date = raw_date.split("T")[0] if "T" in raw_date else raw_date
-                if len(pub_date) == 4:
-                    pub_date = f"{pub_date}-01-01"
+                pub_date = normalize_date(parsed.published_date, meta.published)
 
                 entry = OpenPeerReviewEntry(
                     id=article_id,
@@ -198,8 +170,7 @@ async def _run(
                     extraction_manifest_id=manifest.manifest_id,
                 )
 
-                fout.write(entry.model_dump_json() + "\n")
-                fout.flush()
+                write_entry(fout, entry, progress, task)
 
                 summary_table.add_row(
                     article_id,
@@ -208,23 +179,9 @@ async def _run(
                     f"{len(all_concerns) - fig_count} (+{fig_count} fig)",
                     f"[green]{status}",
                 )
-                progress.advance(task)
 
-    console.print()
-    console.print(summary_table)
-    console.print()
-    console.print("[bold]Collection complete[/bold]")
-    console.print(f"  Total articles: {stats['total_fetched']}")
-    console.print(f"  XML success:    {stats['xml_ok']}")
-    console.print(f"  XML failed:     {stats['xml_fail']}")
-    console.print(f"  No review:      {stats['no_review']}")
-    if not dry_run:
-        console.print(f"  Total concerns: {stats['total_concerns']}")
-        console.print(f"  Figure concerns:{stats['figure_concerns']}")
-    console.print(f"  Output: {output}")
-
-    manifest.n_articles_processed = (manifest.n_articles_processed or 0) + stats["xml_ok"]
-    manifest_path.write_text(manifest.model_dump_json(indent=2))
+    print_collection_summary(console, summary_table, stats, output, dry_run)
+    finalize_manifest(manifest, manifest_path, stats["xml_ok"])
 
     return stats
 
@@ -279,6 +236,19 @@ async def _run(
     default=False,
     help="Collection + parsing only, no LLM ($0 cost)",
 )
+@click.option(
+    "--no-extract",
+    is_flag=True,
+    default=False,
+    help="Collect & parse XML but skip LLM concern extraction ($0 API cost). "
+    "Entries saved with concerns=[]. Use scripts/backfill_concerns.py to extract later.",
+)
+@click.option(
+    "--append",
+    is_flag=True,
+    default=False,
+    help="Append to existing output file, skipping already-collected article IDs",
+)
 def main(
     journals: tuple[str, ...],
     start_date: str,
@@ -288,6 +258,8 @@ def main(
     manifest: str | None,
     model: str,
     dry_run: bool,
+    no_extract: bool,
+    append: bool,
 ) -> None:
     """PLOS article collection pipeline."""
     output_path = Path(output) if output else ROOT / "data" / "processed" / "plos_v1.jsonl"
@@ -295,12 +267,16 @@ def main(
         Path(manifest) if manifest else ROOT / "data" / "manifests" / "em-plos-v1.0.json"
     )
 
+    known_ids = load_known_ids_with_log(output_path, append, console)
+
     console.print("[bold cyan]bioreview-bench PLOS Collector[/bold cyan]")
     console.print(f"  journals : {list(journals) or '(all 5)'}")
     console.print(f"  start    : {start_date}")
     console.print(f"  end      : {end_date or '(none)'}")
     console.print(f"  max      : {max_articles}")
     console.print(f"  dry-run  : {dry_run}")
+    console.print(f"  no-extract: {no_extract}")
+    console.print(f"  append   : {append}")
     console.print(f"  output   : {output_path}")
     console.print()
 
@@ -315,6 +291,9 @@ def main(
                 manifest_path=manifest_path,
                 model=model,
                 dry_run=dry_run,
+                no_extract=no_extract,
+                append=append,
+                known_ids=known_ids,
             )
         )
     except KeyboardInterrupt:

@@ -74,6 +74,10 @@ class JATSParser:
     - sub-article[@article-type="decision-letter"]           → editor decision + all reviewer comments
     - sub-article[@article-type="reply"]                     → author response
 
+    eLife very old format (pre-2016, GitHub XML):
+    - sub-article[@article-type="article-commentary"]        → decision letter (equiv. to decision-letter)
+    - sub-article[@article-type="reply"]                     → author response
+
     PLOS Biology/Genetics/etc.:
     - sub-article[@article-type="editor-report"]             → editor decision letters (multiple rounds)
     - sub-article[@article-type="aggregated-review-documents"] → combined editor letter + all reviewer comments
@@ -208,6 +212,14 @@ class JATSParser:
                 article.decision_letter_raw = full_text
                 article.editorial_decision = self._infer_decision(full_text)
                 self._split_legacy_decision_letter(full_text, reviews_by_num)
+
+            # ── eLife very old format (pre-2016, GitHub XML) ─────────────────
+            elif article_type == "article-commentary":
+                if not article.decision_letter_raw:
+                    full_text = self._extract_body_text(sub)
+                    article.decision_letter_raw = full_text
+                    article.editorial_decision = self._infer_decision(full_text)
+                    self._split_legacy_decision_letter(full_text, reviews_by_num)
 
             elif article_type == "reply":
                 article.author_response_raw = self._extract_body_text(sub)

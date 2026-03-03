@@ -458,7 +458,7 @@ class TestExportAllConfigs:
         stats = export_all_configs(realistic_splits_dir, output)
 
         assert "error" not in stats
-        expected_configs = {"default", "benchmark", "concerns_flat", "elife", "plos", "f1000"}
+        expected_configs = {"default", "benchmark", "concerns_flat", "elife", "plos", "f1000", "peerj", "nature"}
         assert set(stats["configs"].keys()) == expected_configs
 
     def test_generates_all_splits_per_config(self, realistic_splits_dir, tmp_path):
@@ -466,7 +466,7 @@ class TestExportAllConfigs:
         output = tmp_path / "output"
         export_all_configs(realistic_splits_dir, output)
 
-        for config in ["default", "benchmark", "concerns_flat", "elife", "plos", "f1000"]:
+        for config in ["default", "benchmark", "concerns_flat", "elife", "plos", "f1000", "peerj", "nature"]:
             for split in ["train", "validation", "test"]:
                 path = output / config / f"{split}.jsonl"
                 assert path.exists(), f"Missing: {config}/{split}.jsonl"

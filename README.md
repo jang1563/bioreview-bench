@@ -7,11 +7,11 @@
 [![License: CC-BY-4.0](https://img.shields.io/badge/Data-CC--BY--4.0-green)](https://creativecommons.org/licenses/by/4.0/)
 [![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-blue)](https://www.python.org/)
 
-- **978 articles** from 3 journals (eLife, PLOS, F1000Research)
-- **9,394 reviewer concerns** with category, severity, and author stance labels
+- **6,527 articles** from 5 journals (eLife, PLOS, F1000Research, PeerJ, Nature)
+- **95,670 reviewer concerns** with category, severity, and author stance labels
 - Outcome-anchored ground truth: each concern is annotated with how the authors responded
 - Integrated evaluation harness with SPECTER2 semantic matching
-- [GitHub](https://github.com/jang1563/bioreview-bench) | [HuggingFace](https://huggingface.co/datasets/jang1563/bioreview-bench) | [Demo](https://jang1563.github.io/bioreview-bench/)
+- [GitHub](https://github.com/jang1563/bioreview-bench) | [HuggingFace](https://huggingface.co/datasets/jang1563/bioreview-bench)
 
 ---
 
@@ -23,8 +23,8 @@ What makes bioreview-bench different:
 
 - **Concern-level granularity.** Reviews are decomposed into individual concern units, not treated as monolithic blocks.
 - **Author stance labels.** Each concern carries an outcome-anchored label (`conceded`, `rebutted`, `partial`, `unclear`, `no_response`) based on what the authors actually did in their revision.
-- **Multi-source.** Three journals with different review cultures and editorial philosophies.
-- **Evaluation harness.** Standardised metrics with SPECTER2 semantic matching and reproducible scoring.
+- **Multi-source.** Five journals with different review cultures and editorial philosophies.
+- **Evaluation harness.** Standardised metrics with SPECTER2 semantic matching, bipartite concern matching, and bootstrap confidence intervals.
 
 ---
 
@@ -38,9 +38,9 @@ from datasets import load_dataset
 # Default config: all sources, all fields
 dataset = load_dataset("jang1563/bioreview-bench")
 
-train = dataset["train"]       # 680 articles, 6,444 concerns
-val   = dataset["validation"]  # 149 articles, 1,435 concerns
-test  = dataset["test"]        # 149 articles, 1,515 concerns
+train = dataset["train"]       # 4,563 articles, 66,648 concerns
+val   = dataset["validation"]  # 982 articles, 14,677 concerns
+test  = dataset["test"]        # 982 articles, 14,345 concerns
 
 # Inspect an article
 article = val[0]
@@ -55,10 +55,12 @@ for c in article["concerns"]:
 |--------|-------------|
 | `default` | All sources, full article + concern records |
 | `benchmark` | Test split with `concerns=[]` (no label leakage) |
-| `concerns_flat` | One row per concern (9,394 rows) |
-| `elife` | eLife articles only (730) |
-| `plos` | PLOS articles only (163) |
-| `f1000` | F1000Research articles only (85) |
+| `concerns_flat` | One row per concern (95,670 rows) |
+| `elife` | eLife articles only (1,810) |
+| `plos` | PLOS articles only (1,737) |
+| `f1000` | F1000Research articles only (2,679) |
+| `peerj` | PeerJ articles only (244) |
+| `nature` | Nature articles only (57) |
 
 ```python
 # Load a specific config
@@ -82,8 +84,11 @@ pip install bioreview-bench[evaluate]
 ### Running evaluation
 
 ```bash
-# Validate and score predictions
-bioreview-run --predictions predictions.json
+# Generate predictions (your tool produces a JSONL of concerns per article)
+bioreview-run --predictions predictions.jsonl --split test
+
+# Run the built-in baseline reviewer
+bioreview-baseline --split val --model claude-haiku-4-5-20251001
 ```
 
 ### Quick evaluation API
@@ -107,7 +112,7 @@ print(f"Recall: {result.recall:.2f}, Precision: {result.precision:.2f}")
 | Field | Type | Description |
 |-------|------|-------------|
 | `id` | string | Unique identifier (e.g., `elife:84798`) |
-| `source` | string | Journal source (`elife`, `plos`, `f1000`) |
+| `source` | string | Journal source (`elife`, `plos`, `f1000`, `peerj`, `nature`) |
 | `doi` | string | Digital Object Identifier |
 | `title` | string | Article title |
 | `abstract` | string | Article abstract |
@@ -126,6 +131,9 @@ print(f"Recall: {result.recall:.2f}, Precision: {result.precision:.2f}")
 | `category` | string | One of 9 categories (see below) |
 | `severity` | string | `major`, `minor`, or `optional` |
 | `author_stance` | string | `conceded`, `rebutted`, `partial`, `unclear`, `no_response` |
+| `author_response_text` | string | Author's response to this concern |
+| `evidence_of_change` | bool? | Whether author made revisions |
+| `resolution_confidence` | float | LLM extraction confidence (0.0-1.0) |
 
 ---
 
@@ -153,42 +161,58 @@ print(f"Recall: {result.recall:.2f}, Precision: {result.precision:.2f}")
 
 | Split | Articles | Concerns | Avg concerns/article |
 |-------|----------|----------|---------------------|
-| train | 680 | 6,444 | 9.5 |
-| validation | 149 | 1,435 | 9.6 |
-| test | 149 | 1,515 | 10.2 |
-| **Total** | **978** | **9,394** | **9.6** |
+| train | 4,563 | 66,648 | 14.6 |
+| validation | 982 | 14,677 | 14.9 |
+| test | 982 | 14,345 | 14.6 |
+| **Total** | **6,527** | **95,670** | **14.7** |
 
 ### Source distribution
 
 | Source | Articles | Notes |
 |--------|----------|-------|
-| eLife | 730 | 2019-2024; journal and reviewed_preprint formats |
-| PLOS | 163 | PLOS ONE and PLOS Biology |
-| F1000Research | 85 | Open peer review with named reviewers |
+| F1000Research | 2,679 | Open peer review with named reviewers, 2013-present |
+| eLife | 1,810 | 2019-2026; journal and reviewed_preprint formats |
+| PLOS | 1,737 | PLOS ONE, PLOS Biology, and other PLOS journals |
+| PeerJ | 244 | Open peer review, 2018-present |
+| Nature | 57 | Nature Communications and Nature journals, PDF-based |
 
 ### Severity distribution
 
 | Severity | Count | % |
 |----------|-------|---|
-| major | 6,677 | 71.1% |
-| minor | 2,538 | 27.0% |
-| optional | 179 | 1.9% |
+| major | 59,659 | 62.4% |
+| minor | 33,747 | 35.3% |
+| optional | 2,264 | 2.4% |
 
 ### Author stance distribution
 
 | Stance | Count | % |
 |--------|-------|---|
-| no_response | 6,615 | 70.4% |
-| partial | 1,618 | 17.2% |
-| conceded | 992 | 10.6% |
-| rebutted | 144 | 1.5% |
-| unclear | 25 | 0.3% |
+| no_response | 88,925 | 93.0% |
+| partial | 4,397 | 4.6% |
+| conceded | 1,882 | 2.0% |
+| rebutted | 410 | 0.4% |
+| unclear | 56 | 0.1% |
+
+### Category distribution
+
+| Category | Count | % |
+|----------|-------|---|
+| writing_clarity | 33,484 | 35.0% |
+| missing_experiment | 14,340 | 15.0% |
+| interpretation | 14,325 | 15.0% |
+| design_flaw | 9,923 | 10.4% |
+| prior_art_novelty | 7,133 | 7.5% |
+| reagent_method_specificity | 6,911 | 7.2% |
+| statistical_methodology | 4,836 | 5.1% |
+| figure_issue | 4,464 | 4.7% |
+| other | 254 | 0.3% |
 
 ---
 
 ## Evaluation Protocol
 
-Concerns are matched using cosine similarity of SPECTER2 embeddings with greedy bipartite matching (threshold >= 0.65). See [EVALUATION_PROTOCOL.md](EVALUATION_PROTOCOL.md) for the full specification.
+Concerns are matched using cosine similarity of SPECTER2 embeddings with bipartite matching (threshold >= 0.85). See [EVALUATION_PROTOCOL.md](EVALUATION_PROTOCOL.md) for the full specification.
 
 **Primary metrics:**
 
@@ -199,17 +223,20 @@ Concerns are matched using cosine similarity of SPECTER2 embeddings with greedy 
 | `f1` | Harmonic mean of recall and precision |
 | `recall_major` | Recall restricted to major-severity concerns |
 
-The matching threshold (0.65) was validated on 20 held-out articles (148 concerns) with Cohen's kappa = 1.000 between automated matching and human judgement.
+All metrics include bootstrap 95% confidence intervals (1,000 iterations, document-level resampling).
 
 ---
 
 ## Leaderboard
 
-Results on the **validation split** (149 articles, 1,435 concerns, figure concerns excluded). To submit results, open an issue or pull request.
+Results on the **test split** (982 articles, 13,720 non-figure concerns). To submit results, open an issue or pull request.
 
-| Rank | Tool | Version | Recall | Precision | F1 | Major Recall | Date |
-|------|------|---------|--------|-----------|----|--------------|------|
-| — | *(submit your results)* | — | — | — | — | — | — |
+| Rank | Tool | Recall | Precision | F1 | Major Recall | Date |
+|------|------|--------|-----------|----|--------------|------|
+| 1 | Claude Haiku 4.5 (baseline) | 0.857 [0.844, 0.870] | 0.659 [0.639, 0.678] | 0.745 | 0.858 | 2026-03-02 |
+
+> Matching: SPECTER2 cosine similarity, threshold=0.85, bipartite matching.
+> Figure-issue concerns excluded from ground truth (require visual inspection).
 
 ---
 
@@ -217,29 +244,36 @@ Results on the **validation split** (149 articles, 1,435 concerns, figure concer
 
 See [TASK_DEFINITION.md](TASK_DEFINITION.md) for the complete task specification including input/output formats, scoring rules, and submission requirements.
 
+**Input**: Full manuscript text (abstract + body sections). Peer review text and author response are NOT provided at test time.
+
+**Output**: JSON list of concerns:
+```json
+{"article_id": "elife:12345", "concerns": ["concern text 1", "concern text 2", ...]}
+```
+
 ---
 
 ## Related Work
 
 | Dataset / Benchmark | Domain | Granularity | Author stance | Multi-journal | Eval harness |
 |---------------------|--------|-------------|---------------|---------------|--------------|
-| **bioreview-bench** | Biomedical | Concern-level | Yes | Yes (3) | Yes |
+| **bioreview-bench** | Biomedical | Concern-level | Yes | Yes (5) | Yes |
 | PeerRead | General | Review-level | No | Yes | No |
 | OpenEval | General | Claim-level | No | Yes | Partial |
 | NLPeer | Multi-domain | Sentence-level | No | Yes | Partial |
+| MOPRD | Multi-domain | Review-level | No | Yes | No |
 
 ---
 
 ## Citation
 
 ```bibtex
-@dataset{bioreview-bench,
-  author    = {Kim, JangKeun},
-  title     = {bioreview-bench: A Benchmark Dataset for Evaluating AI Biomedical Peer Review Tools},
-  year      = {2026},
-  publisher = {HuggingFace},
-  url       = {https://huggingface.co/datasets/jang1563/bioreview-bench},
-  note      = {Version 1.0}
+@misc{bioreview-bench,
+  title   = {BioReview-Bench: A Benchmark for AI-Assisted Biomedical Peer Review},
+  author  = {Kim, JangKeun},
+  year    = {2026},
+  url     = {https://huggingface.co/datasets/jang1563/bioreview-bench},
+  note    = {Version 2.0}
 }
 ```
 
@@ -249,7 +283,7 @@ See [TASK_DEFINITION.md](TASK_DEFINITION.md) for the complete task specification
 
 This project uses a dual license:
 
-- **Dataset** (JSONL data files on HuggingFace): [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). The underlying peer review content from eLife, PLOS, and F1000Research is published under CC-BY 4.0 by the respective publishers.
+- **Dataset** (JSONL data files on HuggingFace): [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). The underlying peer review content from eLife, PLOS, F1000Research, PeerJ, and Nature is published under CC-BY 4.0 by the respective publishers.
 - **Code** (Python package, evaluation harness, scripts): [Apache-2.0](LICENSE).
 
 Users who redistribute or build upon the dataset must provide appropriate attribution to both bioreview-bench and the original source articles (via DOIs included in the dataset).

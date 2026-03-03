@@ -227,8 +227,7 @@ def _check_source_balance(split: list[dict], split_name: str) -> None:
     help="Fraction of data for test set",
 )
 @click.option(
-    "--usable-only",
-    is_flag=True,
+    "--usable-only/--no-usable-only",
     default=True,
     show_default=True,
     help="Only include entries with ≥ 1 extracted concern",

@@ -16,6 +16,9 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 ELIFE_API_BASE = "https://api.elifesciences.org"
 ELIFE_XML_BASE = "https://elifesciences.org/articles"
+ELIFE_GITHUB_XML_BASE = (
+    "https://raw.githubusercontent.com/elifesciences/elife-article-xml/master/articles"
+)
 
 # eLife subject area → API parameter mapping
 SUBJECT_MAP = {
@@ -23,9 +26,13 @@ SUBJECT_MAP = {
     "cell-biology": "cell-biology",
     "neuroscience": "neuroscience",
     "biochemistry": "biochemistry-and-chemical-biology",
+    "biochemistry-chemical-biology": "biochemistry-and-chemical-biology",
     "microbiology": "microbiology-and-infectious-disease",
+    "microbiology-infectious-disease": "microbiology-and-infectious-disease",
     "immunology": "immunology-and-inflammation",
+    "immunology-inflammation": "immunology-and-inflammation",
     "computational": "computational-and-systems-biology",
+    "computational-systems-biology": "computational-and-systems-biology",
 }
 
 
@@ -276,8 +283,13 @@ class ELifeCollector:
         wait=wait_exponential(multiplier=1, min=2, max=10),
         reraise=True,
     )
-    async def fetch_xml(self, article_id: str) -> bytes:
-        """Download JATS XML. eLife XML is publicly accessible via direct URL."""
+    async def fetch_xml(self, article_id: str) -> bytes | None:
+        """Download JATS XML. eLife XML is publicly accessible via direct URL.
+
+        Falls back to GitHub (elifesciences/elife-article-xml) when the primary
+        URL returns HTML (old articles pre-2016 redirect to the article page).
+        Returns None only when neither source has the XML.
+        """
         client = self._require_client()
         await self._throttle()
 
@@ -287,7 +299,26 @@ class ELifeCollector:
             headers={"Accept": "application/xml, text/xml"},
         )
         resp.raise_for_status()
-        return resp.content
+        content_type = resp.headers.get("content-type", "")
+        if "html" not in content_type:
+            return resp.content
+
+        # Primary URL returned HTML — try GitHub repo as fallback.
+        # Old articles have IDs like "8505" → pad to 5 digits for filename.
+        try:
+            padded = f"{int(article_id):05d}"
+        except ValueError:
+            return None
+
+        for version in ("v2", "v1", "v3", "v4"):
+            gh_url = f"{ELIFE_GITHUB_XML_BASE}/elife-{padded}-{version}.xml"
+            gh_resp = await client.get(gh_url)
+            if gh_resp.status_code == 200:
+                ct = gh_resp.headers.get("content-type", "")
+                if "html" not in ct:
+                    return gh_resp.content
+
+        return None
 
     async def iter_articles(
         self,

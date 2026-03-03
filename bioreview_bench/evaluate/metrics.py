@@ -74,7 +74,7 @@ class CategoryMetrics:
     precision: float
     f1: float
     n_gt: int           # number of ground truth concerns in this category
-    n_tool: int         # number of tool concerns (total, not category-specific)
+    n_tool: int         # number of tool concerns assigned to this category
     n_matched: int      # number of matched concerns
 
 
@@ -101,9 +101,15 @@ class EvalResult:
     # Figure concern handling
     n_gt_figure_excluded: int = 0   # figure concerns excluded from GT
 
+    # Soft matching metrics (similarity-weighted credit for matched pairs)
+    soft_recall: float = 0.0
+    soft_precision: float = 0.0
+    soft_f1: float = 0.0
+
     # Metadata
     matching_method: Literal["embedding", "jaccard"] = "jaccard"
     threshold: float = 0.65
+    algorithm: Literal["hungarian", "greedy"] = "hungarian"
 
 
 # --- Core matcher ------------------------------------------------------------
@@ -119,6 +125,8 @@ class ConcernMatcher:
             before scoring (they require viewing actual figures to assess).
         use_embedding: If True, attempt to use SPECTER2 embeddings first.
             Falls back to Jaccard if sentence-transformers is not installed.
+        algorithm: Matching algorithm. "hungarian" (optimal, default) or
+            "greedy" (legacy, faster but suboptimal).
     """
 
     # Jaccard threshold is scaled down from embedding threshold
@@ -130,10 +138,12 @@ class ConcernMatcher:
         threshold: float = 0.65,
         exclude_figure: bool = True,
         use_embedding: bool = True,
+        algorithm: Literal["hungarian", "greedy"] = "hungarian",
     ) -> None:
         self.threshold = threshold
         self.exclude_figure = exclude_figure
         self.use_embedding = use_embedding
+        self._algorithm = algorithm
 
     # -- Text preprocessing --------------------------------------------------
 
@@ -213,6 +223,49 @@ class ConcernMatcher:
 
         return results
 
+    # -- Hungarian bipartite matching ----------------------------------------
+
+    @staticmethod
+    def _hungarian_match(scores: PairwiseScores) -> list[MatchResult]:
+        """Optimal 1:1 bipartite matching via the Hungarian algorithm.
+
+        Uses ``scipy.optimize.linear_sum_assignment`` to find the assignment
+        that maximises total similarity while respecting the threshold.
+        """
+        matrix = scores.matrix
+        threshold = scores.threshold
+        if not matrix or not matrix[0]:
+            return []
+
+        import numpy as np
+        from scipy.optimize import linear_sum_assignment
+
+        sim = np.array(matrix, dtype=np.float64)
+        cost = 1.0 - sim
+        # Penalise below-threshold pairs so they are only used as last resort
+        cost[sim < threshold] = 1e6
+
+        row_ind, col_ind = linear_sum_assignment(cost)
+
+        results = []
+        for i, j in zip(row_ind, col_ind):
+            if matrix[i][j] >= threshold:
+                results.append(
+                    MatchResult(int(i), int(j), float(matrix[i][j]), scores.method)
+                )
+        return results
+
+    # -- Matching dispatch ---------------------------------------------------
+
+    def _match(self, scores: PairwiseScores) -> list[MatchResult]:
+        """Dispatch to the configured matching algorithm."""
+        if self._algorithm == "hungarian":
+            try:
+                return self._hungarian_match(scores)
+            except ImportError:
+                pass  # fall back to greedy if scipy missing
+        return self._greedy_match(scores)
+
     # -- Public API ----------------------------------------------------------
 
     def score_article(
@@ -252,8 +305,9 @@ class ConcernMatcher:
             )
 
         scores = self._compute_scores(tool_concerns, gt_texts)
-        matches = self._greedy_match(scores)
+        matches = self._match(scores)
         matched_gt_idxs = {m.gt_idx for m in matches}
+        matched_tool_idxs = {m.tool_idx for m in matches}
 
         n_gt = len(gt_texts)
         n_tool = len(tool_concerns)
@@ -262,6 +316,16 @@ class ConcernMatcher:
         recall = n_matched / n_gt if n_gt > 0 else 0.0
         precision = n_matched / n_tool if n_tool > 0 else 0.0
         f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
+
+        # Soft matching: use similarity scores as fractional credit
+        soft_credit = sum(m.score for m in matches)
+        soft_recall = soft_credit / n_gt if n_gt > 0 else 0.0
+        soft_precision = soft_credit / n_tool if n_tool > 0 else 0.0
+        soft_f1 = (
+            (2 * soft_precision * soft_recall / (soft_precision + soft_recall))
+            if (soft_precision + soft_recall) > 0
+            else 0.0
+        )
 
         # Recall by severity
         major_gt = [c for c in active_gt if c.get("severity") == "major"]
@@ -279,17 +343,34 @@ class ConcernMatcher:
         recall_minor = minor_matched / len(minor_gt) if minor_gt else 0.0
 
         # Per-category metrics
+        # Assign each tool concern to a category:
+        #   - Matched tool concerns inherit the category of their GT match
+        #   - Unmatched tool concerns are assigned to the category of their
+        #     most similar GT concern (nearest neighbour by similarity)
         per_category: dict[str, CategoryMetrics] = {}
         cat_gt: dict[str, list[int]] = defaultdict(list)
         for i, c in enumerate(active_gt):
             cat_gt[c.get("category", "other")].append(i)
 
+        tool_cat_count: dict[str, int] = defaultdict(int)
+        for m in matches:
+            cat = active_gt[m.gt_idx].get("category", "other")
+            tool_cat_count[cat] += 1
+
+        if scores.matrix:
+            for i in range(n_tool):
+                if i not in matched_tool_idxs:
+                    row = scores.matrix[i]
+                    best_j = max(range(len(row)), key=lambda j: row[j])
+                    cat = active_gt[best_j].get("category", "other")
+                    tool_cat_count[cat] += 1
+
         for cat, gt_idxs in cat_gt.items():
             cat_matched = sum(1 for idx in gt_idxs if idx in matched_gt_idxs)
             cat_gt_n = len(gt_idxs)
             cat_recall = cat_matched / cat_gt_n if cat_gt_n > 0 else 0.0
-            # Category-level precision is approximated since tool outputs lack category labels
-            cat_prec = cat_matched / max(n_tool, 1)
+            cat_tool_n = tool_cat_count.get(cat, 0)
+            cat_prec = cat_matched / max(cat_tool_n, 1)
             cat_f1 = (
                 2 * cat_prec * cat_recall / (cat_prec + cat_recall)
                 if (cat_prec + cat_recall) > 0
@@ -300,7 +381,7 @@ class ConcernMatcher:
                 precision=cat_prec,
                 f1=cat_f1,
                 n_gt=cat_gt_n,
-                n_tool=n_tool,
+                n_tool=cat_tool_n,
                 n_matched=cat_matched,
             )
 
@@ -315,8 +396,12 @@ class ConcernMatcher:
             recall_minor=recall_minor,
             per_category=per_category,
             n_gt_figure_excluded=n_excluded,
+            soft_recall=soft_recall,
+            soft_precision=soft_precision,
+            soft_f1=soft_f1,
             matching_method=scores.method,
             threshold=self.threshold,
+            algorithm=self._algorithm,
         )
 
     def score_dataset(
@@ -360,6 +445,13 @@ class ConcernMatcher:
         f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
         recall_major = sum(r.recall_major for r in article_results) / n
         recall_minor = sum(r.recall_minor for r in article_results) / n
+        soft_recall = sum(r.soft_recall for r in article_results) / n
+        soft_precision = sum(r.soft_precision for r in article_results) / n
+        soft_f1 = (
+            (2 * soft_precision * soft_recall / (soft_precision + soft_recall))
+            if (soft_precision + soft_recall) > 0
+            else 0.0
+        )
 
         agg_cat: dict[str, list[CategoryMetrics]] = defaultdict(list)
         for r in article_results:
@@ -389,8 +481,12 @@ class ConcernMatcher:
             recall_minor=recall_minor,
             per_category=per_category,
             n_gt_figure_excluded=sum(r.n_gt_figure_excluded for r in article_results),
+            soft_recall=soft_recall,
+            soft_precision=soft_precision,
+            soft_f1=soft_f1,
             matching_method=article_results[0].matching_method,
             threshold=article_results[0].threshold,
+            algorithm=article_results[0].algorithm,
         )
 
 

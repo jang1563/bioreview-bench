@@ -88,6 +88,12 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Skip SPECTER2 embeddings and use Jaccard fallback.",
     )
     p.add_argument(
+        "--algorithm",
+        choices=["hungarian", "greedy"],
+        default="hungarian",
+        help="Matching algorithm: 'hungarian' (optimal, default) or 'greedy' (legacy).",
+    )
+    p.add_argument(
         "--include-figure",
         action="store_true",
         help="Include figure_issue concerns in GT (excluded by default).",
@@ -137,6 +143,7 @@ def main(argv: list[str] | None = None) -> int:
             threshold=args.threshold,
             exclude_figure=not args.include_figure,
             use_embedding=not args.no_embedding,
+            algorithm=args.algorithm,
             bootstrap_n=args.bootstrap,
             tool_name=args.tool_name,
             tool_version=args.tool_version,

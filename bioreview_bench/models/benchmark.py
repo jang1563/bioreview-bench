@@ -13,7 +13,7 @@ class MatchingStats(BaseModel):
     n_human_concerns: int
     n_matched_pairs: int
     threshold: float
-    algorithm: Literal["bipartite", "greedy"] = "bipartite"
+    algorithm: str = "hungarian"
 
     @property
     def recall(self) -> float:
@@ -65,6 +65,11 @@ class BenchmarkResult(BaseModel):
     f1_micro: float
     recall_major: float = 0.0
     f1_macro: float = 0.0
+
+    # ── Soft matching (similarity-weighted) ────────────────
+    soft_recall_overall: float = 0.0
+    soft_precision_overall: float = 0.0
+    soft_f1: float = 0.0
 
     # ── Bootstrap CI (CRITICAL_REVIEW B4) ────────────────
     ci_recall: ConfidenceInterval | None = None
