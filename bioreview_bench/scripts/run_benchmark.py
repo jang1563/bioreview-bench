@@ -18,7 +18,7 @@ from rich.console import Console
 
 console = Console()
 
-_DEFAULT_SPLITS_DIR = Path("data/splits/v2")
+_DEFAULT_SPLITS_DIR = Path("data/splits/v3")
 _DEFAULT_RESULTS_DIR = Path("results")
 
 

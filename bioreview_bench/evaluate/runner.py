@@ -9,7 +9,7 @@ Usage::
 
     result, coverage = run_evaluation(
         tool_output=Path("tool_outputs/haiku_val.jsonl"),
-        splits_dir=Path("data/splits/v2"),
+        splits_dir=Path("data/splits/v3"),
         split="val",
         tool_name="Haiku-Baseline",
     )

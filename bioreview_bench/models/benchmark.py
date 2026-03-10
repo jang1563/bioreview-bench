@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal
 from pydantic import BaseModel, Field
 
@@ -57,7 +57,7 @@ class BenchmarkResult(BaseModel):
         description="ExtractionManifest ID used to extract human concerns"
     )
     split: Literal["train", "val", "test"] = "val"
-    run_date: datetime = Field(default_factory=datetime.utcnow)
+    run_date: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # ── Overall metrics ───────────────────────────────────
     recall_overall: float

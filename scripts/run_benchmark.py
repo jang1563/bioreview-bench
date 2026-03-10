@@ -73,8 +73,23 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--splits-dir",
         type=Path,
-        default=_REPO_ROOT / "data" / "splits" / "v2",
+        default=_REPO_ROOT / "data" / "splits" / "v3",
         help="Directory containing split JSONL files.",
+*** Add File: /Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/SESSION_2026-03-10.md
+# Session 2026-03-10
+
+Follow-up from repository review:
+
+- Fixed `ConcernMatcher.score_dataset()` so dataset evaluation iterates over all GT articles and penalizes missing prediction rows.
+- Fixed `score_article([], [])` to return `precision=0.0`, matching the evaluation protocol convention.
+- Updated evaluation CLI defaults from `data/splits/v2` to `data/splits/v3`.
+- Updated leaderboard rendering to derive matching metadata from result files instead of hardcoding stale footer text.
+- Added regression tests for missing-article dataset scoring, empty/empty article scoring, and leaderboard footer metadata.
+
+Open follow-up items:
+
+- README and published leaderboard artifacts still contain mixed threshold text (`0.65` vs `0.85`) and should be reconciled separately.
+- `run_evaluation()` docstring/examples still mention older split paths in a few places and could use a documentation cleanup pass.
     )
     p.add_argument(
         "--threshold",

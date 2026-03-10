@@ -1,12 +1,14 @@
 # bioreview-bench Leaderboard (test split)
 
-*Last updated: 2026-03-02. Ranked by F1.*
+*Last updated: 2026-03-10. Ranked by F1.*
 
-| Rank | Tool | Recall | Precision | F1 | Major Recall | Articles | Date |
-|------|------|--------|-----------|----|--------------|----------|------|
-| 1 | Claude Haiku 4.5 (baseline) | 0.857 [0.844, 0.870] | 0.659 [0.639, 0.678] | 0.745 | 0.858 | 982 | 2026-03-02 |
+| Rank | Tool | Version | Recall | Precision | F1 | Major Recall | Articles | Date |
+|------|------|---------|--------|-----------|-----|--------------|----------|------|
+| 1 | Haiku-4.5 | claude-haiku-4-5-20251001 | 0.721 | 0.678 | 0.699 | 0.866 | 981 | 2026-03-10 |
+| 2 | Gemini-2.5-Flash | gemini-2.5-flash | 0.658 | 0.715 | 0.686 | 0.831 | 981 | 2026-03-10 |
+| 3 | GPT-4o-mini | gpt-4o-mini | 0.630 | 0.735 | 0.679 | 0.810 | 981 | 2026-03-10 |
+| 4 | Llama-3.3-70B | llama-3.3-70b-versatile | 0.547 | 0.799 | 0.650 | 0.751 | 981 | 2026-03-10 |
 
-> Matching: SPECTER2 cosine similarity, threshold=0.85, bipartite matching (1,000 bootstrap iterations).
+> Matching: SPECTER2 cosine similarity, threshold=0.65, hungarian bipartite matching.
 > Figure-issue concerns excluded from ground truth (require visual inspection).
-> Test split: 982 articles, 13,720 non-figure concerns from 5 sources.
-> [bioreview-bench v2.0](https://github.com/jang1563/bioreview-bench)
+> [bioreview-bench v1.0](https://github.com/jang1563/bioreview-bench)
