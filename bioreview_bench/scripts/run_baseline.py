@@ -83,7 +83,7 @@ def _safe_model_name(model: str) -> str:
     "--splits-dir",
     type=click.Path(path_type=Path),
     default=None,
-    help="Splits directory (default: data/splits/v2).",
+    help="Splits directory (default: data/splits/v3).",
 )
 @click.option(
     "--max-input-chars",

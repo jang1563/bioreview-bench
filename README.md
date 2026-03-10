@@ -212,7 +212,7 @@ print(f"Recall: {result.recall:.2f}, Precision: {result.precision:.2f}")
 
 ## Evaluation Protocol
 
-Concerns are matched using cosine similarity of SPECTER2 embeddings with bipartite matching (threshold >= 0.85). See [EVALUATION_PROTOCOL.md](EVALUATION_PROTOCOL.md) for the full specification.
+Concerns are matched using cosine similarity of SPECTER2 embeddings with bipartite (Hungarian) matching (threshold = 0.65). See [EVALUATION_PROTOCOL.md](EVALUATION_PROTOCOL.md) for the full specification.
 
 **Primary metrics:**
 
@@ -231,12 +231,36 @@ All metrics include bootstrap 95% confidence intervals (1,000 iterations, docume
 
 Results on the **test split** (982 articles, 13,720 non-figure concerns). To submit results, open an issue or pull request.
 
+Leaderboard inclusion policy:
+
+- Default public rankings use only `split="test"` result files from `results/v3/`.
+- Experimental `dedup_gt=true` runs are excluded from the default ranking.
+- If multiple result files exist for the same `(tool_name, tool_version)`, only the strongest run by `f1_micro` is retained.
+- `tool_version` should record the exact model or release identifier (for example, `claude-haiku-4-5-20251001`), not `unknown`.
+
 | Rank | Tool | Recall | Precision | F1 | Major Recall | Date |
 |------|------|--------|-----------|----|--------------|------|
 | 1 | Claude Haiku 4.5 (baseline) | 0.857 [0.844, 0.870] | 0.659 [0.639, 0.678] | 0.745 | 0.858 | 2026-03-02 |
 
-> Matching: SPECTER2 cosine similarity, threshold=0.85, bipartite matching.
+> Matching: SPECTER2 cosine similarity, threshold=0.65, bipartite (Hungarian) matching.
 > Figure-issue concerns excluded from ground truth (require visual inspection).
+
+Official release artifacts are rebuilt from raw result JSON files with:
+
+```bash
+./.venv/bin/python scripts/rebuild_release_artifacts.py \
+  --results-dir results/v3 \
+  --output-dir results \
+  --split test
+```
+
+This regenerates `results/leaderboard.md`, `results/leaderboard.json`, and
+`results/release_manifest.json`. The manifest freezes the included result files
+and matching settings for the public release.
+
+Release operators should also consult [RELEASE_V3.md](RELEASE_V3.md), which
+defines the current public `v3` release reference, included result files, and
+publication checklist.
 
 ---
 

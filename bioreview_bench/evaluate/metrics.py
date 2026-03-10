@@ -296,7 +296,7 @@ class ConcernMatcher:
         if not gt_texts:
             return EvalResult(
                 recall=0.0,
-                precision=1.0 if not tool_concerns else 0.0,
+                precision=0.0,
                 f1=0.0,
                 n_gt_total=0,
                 n_tool_total=len(tool_concerns),
@@ -409,7 +409,7 @@ class ConcernMatcher:
         tool_results: list[dict],
         ground_truth: list[dict],
     ) -> EvalResult:
-        """Evaluate tool outputs across a full dataset (macro-average).
+        """Evaluate tool outputs across a full dataset.
 
         Args:
             tool_results: List of dicts with keys 'article_id' (or 'id')
@@ -417,7 +417,7 @@ class ConcernMatcher:
             ground_truth: List of OpenPeerReviewEntry dicts (JSONL rows).
 
         Returns:
-            Macro-averaged EvalResult across all articles.
+            Micro-averaged EvalResult across all ground-truth articles.
         """
         gt_by_id: dict[str, list[dict]] = {}
         for entry in ground_truth:
@@ -425,15 +425,18 @@ class ConcernMatcher:
             gt_by_id[art_id] = entry.get("concerns", [])
 
         article_results = []
+        tool_by_id: dict[str, list[str]] = {}
         for tool_row in tool_results:
             art_id = tool_row.get("article_id", tool_row.get("id", ""))
+            if not art_id:
+                continue
             tool_texts = tool_row.get("concerns", [])
-            # Accept both string lists and dict lists
             if tool_texts and isinstance(tool_texts[0], dict):
                 tool_texts = [c.get("text", c.get("concern_text", "")) for c in tool_texts]
+            tool_by_id[art_id] = tool_texts
 
-            gt = gt_by_id.get(art_id, [])
-            result = self.score_article(tool_texts, gt)
+        for art_id, gt in gt_by_id.items():
+            result = self.score_article(tool_by_id.get(art_id, []), gt)
             article_results.append(result)
 
         if not article_results:

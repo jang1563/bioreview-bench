@@ -72,5 +72,6 @@ python_version = "3.12"
 strict = true
 
 [tool.pytest.ini_options]
+addopts = "-p no:anyio"
 asyncio_mode = "auto"
 testpaths = ["tests"]

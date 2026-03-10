@@ -158,6 +158,15 @@ def test_empty_gt_concerns():
     assert result.n_tool_total == 1
 
 
+def test_empty_tool_and_empty_gt_concerns():
+    """Empty tool and empty GT should still use precision=0.0 by convention."""
+    result = _matcher().score_article([], [])
+    assert result.recall == pytest.approx(0.0)
+    assert result.precision == pytest.approx(0.0)
+    assert result.n_gt_total == 0
+    assert result.n_tool_total == 0
+
+
 # ---------------------------------------------------------------------------
 # Figure exclusion tests
 # ---------------------------------------------------------------------------
@@ -285,7 +294,7 @@ def test_no_double_matching():
 
 
 def test_score_dataset():
-    """score_dataset aggregates results across multiple articles correctly."""
+    """score_dataset aggregates results across all GT articles correctly."""
     text_a = "The statistical analysis lacks proper controls and sufficient sample size."
     text_b = "The western blot normalization procedure is missing and needs correction."
 
@@ -323,10 +332,54 @@ def test_score_dataset():
     matcher = _matcher()
     result = matcher.score_dataset(tool_results, ground_truth)
 
-    # Macro average: article-1 recall=1.0, article-2 recall=0.0 → mean=0.5
+    # Micro average: 1 matched concern out of 2 GT concerns.
     assert result.recall == pytest.approx(0.5)
     assert result.n_gt_total == 2
     assert result.n_tool_total == 2
+    assert result.n_matched == 1
+
+
+def test_score_dataset_counts_missing_articles_as_zero_recall():
+    """Missing prediction rows must still count against dataset recall."""
+    text_a = "The statistical analysis lacks proper controls and sufficient sample size."
+    text_b = "The western blot normalization procedure is missing and needs correction."
+
+    ground_truth = [
+        {
+            "id": "article-1",
+            "concerns": [
+                {
+                    "concern_text": text_a,
+                    "category": "statistical_methodology",
+                    "severity": "major",
+                    "requires_figure_reading": False,
+                }
+            ],
+        },
+        {
+            "id": "article-2",
+            "concerns": [
+                {
+                    "concern_text": text_b,
+                    "category": "reagent_method_specificity",
+                    "severity": "minor",
+                    "requires_figure_reading": False,
+                }
+            ],
+        },
+    ]
+
+    tool_results = [
+        {"article_id": "article-1", "concerns": [text_a]},
+    ]
+
+    matcher = _matcher()
+    result = matcher.score_dataset(tool_results, ground_truth)
+
+    assert result.recall == pytest.approx(0.5)
+    assert result.precision == pytest.approx(1.0)
+    assert result.n_gt_total == 2
+    assert result.n_tool_total == 1
     assert result.n_matched == 1
 
 

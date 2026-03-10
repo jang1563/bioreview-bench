@@ -40,15 +40,6 @@ class LeaderboardEntry:
 # Leaderboard
 # ---------------------------------------------------------------------------
 
-_FOOTER = (
-    "> Matching: SPECTER2 cosine similarity, threshold=0.65, "
-    "greedy bipartite matching.\n"
-    "> Figure-issue concerns excluded from ground truth "
-    "(require visual inspection).\n"
-    "> [bioreview-bench v1.0](https://github.com/jang1563/bioreview-bench)"
-)
-
-
 class Leaderboard:
     """Load, rank, and render benchmark results from a results directory."""
 
@@ -63,6 +54,8 @@ class Leaderboard:
         """
         self._split = split
         self._entries: list[LeaderboardEntry] = []
+        self._matching_thresholds: set[float] = set()
+        self._matching_algorithms: set[str] = set()
         self._load(Path(results_dir))
 
     # ------------------------------------------------------------------
@@ -107,8 +100,7 @@ class Leaderboard:
                 f"| {e.run_date} |"
             )
 
-        lines.append("")
-        lines.append(_FOOTER)
+        lines.extend(self._footer_lines())
         return "\n".join(lines)
 
     def to_json(self) -> str:
@@ -136,6 +128,28 @@ class Leaderboard:
         json_path = output_dir / "leaderboard.json"
         json_path.write_text(self.to_json(), encoding="utf-8")
 
+    def _footer_lines(self) -> list[str]:
+        if len(self._matching_thresholds) == 1 and len(self._matching_algorithms) == 1:
+            threshold = next(iter(self._matching_thresholds))
+            algorithm = next(iter(self._matching_algorithms))
+            matching_line = (
+                f"> Matching: SPECTER2 cosine similarity, threshold={threshold:.2f}, "
+                f"{algorithm} bipartite matching."
+            )
+        else:
+            matching_line = (
+                "> Matching settings vary across result files. "
+                "See each result JSON for exact threshold and algorithm."
+            )
+
+        return [
+            "",
+            matching_line,
+            "> Figure-issue concerns excluded from ground truth "
+            "(require visual inspection).",
+            "> [bioreview-bench v1.0](https://github.com/jang1563/bioreview-bench)",
+        ]
+
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
@@ -159,8 +173,31 @@ class Leaderboard:
 
             if result.split != self._split:
                 continue
+            if result.dedup_gt:
+                continue
+
+            if result.matching_stats is not None:
+                self._matching_thresholds.add(result.matching_stats.threshold)
+                self._matching_algorithms.add(result.matching_stats.algorithm)
 
             raw.append((result, str(json_file.resolve())))
+
+        # Keep the strongest non-dedup result for each tool/version pair.
+        best_by_tool: dict[tuple[str, str], tuple[BenchmarkResult, str]] = {}
+        for result, file_path in raw:
+            key = (result.tool_name, result.tool_version)
+            existing = best_by_tool.get(key)
+            if existing is None:
+                best_by_tool[key] = (result, file_path)
+                continue
+
+            prev, _ = existing
+            prev_key = (prev.f1_micro, prev.recall_overall, prev.run_date)
+            curr_key = (result.f1_micro, result.recall_overall, result.run_date)
+            if curr_key > prev_key:
+                best_by_tool[key] = (result, file_path)
+
+        raw = list(best_by_tool.values())
 
         # Sort: primary = f1_micro descending, secondary = recall_overall descending
         raw.sort(key=lambda pair: (pair[0].f1_micro, pair[0].recall_overall), reverse=True)
@@ -184,12 +221,6 @@ class Leaderboard:
                     result_file=file_path,
                 )
             )
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 
 def _format_date(dt: datetime) -> str:
     """Return an ISO-8601 date string (YYYY-MM-DD) from a datetime."""

@@ -1,0 +1,158 @@
+{
+  "tool_name": "Gemini-2.5-Flash",
+  "tool_version": "gemini-2.5-flash",
+  "git_hash": "",
+  "benchmark_version": "1.0",
+  "extraction_manifest_id": "em-v1.0",
+  "split": "test",
+  "run_date": "2026-03-10T18:31:23.270744",
+  "recall_overall": 0.6583494658349466,
+  "precision_overall": 0.7153318790900592,
+  "f1_micro": 0.6856588134264272,
+  "recall_major": 0.8308986698078094,
+  "f1_macro": 0.0,
+  "soft_recall_overall": 0.7582842635221377,
+  "soft_precision_overall": 0.6572513684011773,
+  "soft_f1": 0.7041622387983848,
+  "ci_recall": null,
+  "ci_precision": null,
+  "bootstrap_n": 0,
+  "per_category": {
+    "statistical_methodology": {
+      "recall": 0.6832460732984293,
+      "precision": 0.8043143297380585,
+      "f1_micro": 0.7388535031847133,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 764,
+      "n_matched": 522,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "prior_art_novelty": {
+      "recall": 0.6469002695417789,
+      "precision": 0.7324516785350966,
+      "f1_micro": 0.6870229007633588,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 1113,
+      "n_matched": 720,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "writing_clarity": {
+      "recall": 0.5651585460170147,
+      "precision": 0.8194561255957388,
+      "f1_micro": 0.6689552580386772,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 5172,
+      "n_matched": 2923,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "reagent_method_specificity": {
+      "recall": 0.5806142034548945,
+      "precision": 0.8414464534075105,
+      "f1_micro": 0.6871095968199886,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 1042,
+      "n_matched": 605,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "interpretation": {
+      "recall": 0.7325892857142857,
+      "precision": 0.6857501044713749,
+      "f1_micro": 0.708396287502698,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 2240,
+      "n_matched": 1641,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "design_flaw": {
+      "recall": 0.7596086652690426,
+      "precision": 0.6897208121827412,
+      "f1_micro": 0.7229797140006652,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 1431,
+      "n_matched": 1087,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "missing_experiment": {
+      "recall": 0.7712022367194781,
+      "precision": 0.5780649668180231,
+      "f1_micro": 0.6608105410261529,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 2146,
+      "n_matched": 1655,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "other": {
+      "recall": 0.7435897435897436,
+      "precision": 0.6744186046511628,
+      "f1_micro": 0.7073170731707318,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 39,
+      "n_matched": 29,
+      "ci_recall": null,
+      "ci_precision": null
+    }
+  },
+  "per_stance": {
+    "no_response": {
+      "recall": 0.6382571406692702,
+      "n_gt": 13059,
+      "n_matched": 8335
+    },
+    "conceded": {
+      "recall": 0.9409090909090909,
+      "n_gt": 220,
+      "n_matched": 207
+    },
+    "partial": {
+      "recall": 0.962171052631579,
+      "n_gt": 608,
+      "n_matched": 585
+    },
+    "rebutted": {
+      "recall": 0.9107142857142857,
+      "n_gt": 56,
+      "n_matched": 51
+    },
+    "unclear": {
+      "recall": 1.0,
+      "n_gt": 4,
+      "n_matched": 4
+    }
+  },
+  "matching_stats": {
+    "n_tool_concerns": 12836,
+    "n_human_concerns": 13947,
+    "n_matched_pairs": 9182,
+    "threshold": 0.65,
+    "algorithm": "hungarian"
+  },
+  "n_articles": 981,
+  "n_human_concerns": 13947,
+  "n_tool_concerns": 12836,
+  "excluded_figure_concerns": 736,
+  "dedup_gt": false,
+  "notes": ""
+}
