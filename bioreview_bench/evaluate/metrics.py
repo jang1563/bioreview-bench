@@ -443,8 +443,11 @@ class ConcernMatcher:
             return EvalResult(0.0, 0.0, 0.0, 0, 0, 0)
 
         n = len(article_results)
-        recall = sum(r.recall for r in article_results) / n
-        precision = sum(r.precision for r in article_results) / n
+        total_matched = sum(r.n_matched for r in article_results)
+        total_gt = sum(r.n_gt_total for r in article_results)
+        total_tool = sum(r.n_tool_total for r in article_results)
+        recall = total_matched / total_gt if total_gt > 0 else 0.0
+        precision = total_matched / total_tool if total_tool > 0 else 0.0
         f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
         recall_major = sum(r.recall_major for r in article_results) / n
         recall_minor = sum(r.recall_minor for r in article_results) / n

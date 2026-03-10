@@ -43,6 +43,13 @@ class CategoryMetrics(BaseModel):
     ci_precision: ConfidenceInterval | None = None
 
 
+class StanceMetrics(BaseModel):
+    """Per-stance recall metrics (precision is undefined for stance)."""
+    recall: float
+    n_gt: int
+    n_matched: int
+
+
 class BenchmarkResult(BaseModel):
     """Complete benchmark evaluation result for a single tool."""
 
@@ -79,6 +86,9 @@ class BenchmarkResult(BaseModel):
     # ── Per-category metrics ──────────────────────────────
     per_category: dict[str, CategoryMetrics] = Field(default_factory=dict)
 
+    # ── Per-stance recall (version alignment analysis) ────
+    per_stance: dict[str, StanceMetrics] = Field(default_factory=dict)
+
     # ── Bipartite matching stats (CRITICAL_REVIEW B3) ─────
     matching_stats: MatchingStats | None = None
 
@@ -87,5 +97,7 @@ class BenchmarkResult(BaseModel):
     n_human_concerns: int
     n_tool_concerns: int
     excluded_figure_concerns: int = 0
+
+    dedup_gt: bool = False
 
     notes: str = ""
