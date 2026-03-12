@@ -292,14 +292,14 @@ def _run_update_splits(data_dir: Path) -> None:
     import subprocess
 
     splits_dir = data_dir / "splits"
-    frozen_path = splits_dir / "test_ids_frozen_v2.json"
+    frozen_path = splits_dir / "test_ids_frozen_v3.json"
     script = ROOT / "scripts" / "rebuild_splits.py"
 
     cmd = [
         sys.executable, str(script),
         "-s", "elife", "-s", "plos", "-s", "f1000", "-s", "nature", "-s", "peerj",
         "--input-dir", str(data_dir / "processed"),
-        "--output-dir", str(splits_dir / "v2"),
+        "--output-dir", str(splits_dir / "v3"),
     ]
 
     if frozen_path.exists():

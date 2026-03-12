@@ -713,17 +713,17 @@ class TestPushDryRun:
         """Create complete data directory structure for push testing."""
         data = tmp_path / "data"
 
-        # v2 splits
-        splits_v2 = data / "splits" / "v2"
-        splits_v2.mkdir(parents=True)
+        # v3 splits
+        splits_v3 = data / "splits" / "v3"
+        splits_v3.mkdir(parents=True)
 
         entries = [
             _make_entry("elife:1", source="elife", n_concerns=2),
             _make_entry("elife:2", source="elife", n_concerns=1),
         ]
-        _write_jsonl(splits_v2 / "train.jsonl", entries)
-        _write_jsonl(splits_v2 / "val.jsonl", [entries[0]])
-        _write_jsonl(splits_v2 / "test.jsonl", [entries[1]])
+        _write_jsonl(splits_v3 / "train.jsonl", entries)
+        _write_jsonl(splits_v3 / "val.jsonl", [entries[0]])
+        _write_jsonl(splits_v3 / "test.jsonl", [entries[1]])
 
         # Manifests
         manifests = data / "manifests"
@@ -732,10 +732,11 @@ class TestPushDryRun:
 
         # Frozen test IDs
         splits_root = data / "splits"
-        (splits_root / "test_ids_frozen_v2.json").write_text('{"ids": ["elife:2"]}')
+        (splits_root / "test_ids_frozen_v3.json").write_text('{"ids": ["elife:2"]}')
+        (splits_root / "val_ids_frozen_v3.json").write_text('{"ids": ["elife:1"]}')
 
         # Split metadata
-        (splits_v2 / "split_meta_v2.json").write_text('{"seed": 42}')
+        (splits_v3 / "split_meta_v3.json").write_text('{"seed": 42}')
 
         return data
 
@@ -775,8 +776,9 @@ class TestPushDryRun:
         uploaded_str = " ".join(result["uploaded"])
 
         assert "manifests/" in uploaded_str
-        assert "metadata/test_ids_frozen_v2.json" in uploaded_str
-        assert "metadata/split_meta_v2.json" in uploaded_str
+        assert "metadata/test_ids_frozen_v3.json" in uploaded_str
+        assert "metadata/val_ids_frozen_v3.json" in uploaded_str
+        assert "metadata/split_meta_v3.json" in uploaded_str
 
     def test_dry_run_preserves_staging_dir(self, data_dir_with_splits):
         """Dry run preserves staging directory for inspection."""
@@ -792,7 +794,7 @@ class TestPushDryRun:
         from bioreview_bench.collect.hf_push import push_to_hub
 
         data = tmp_path / "empty_data"
-        (data / "splits" / "v2").mkdir(parents=True)
+        (data / "splits" / "v3").mkdir(parents=True)
 
         result = push_to_hub(data_dir=data, dry_run=True)
         assert result["uploaded"] == []

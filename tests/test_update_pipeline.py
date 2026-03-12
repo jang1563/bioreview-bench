@@ -966,10 +966,10 @@ from bioreview_bench.collect.hf_push import push_to_hub
 class TestHfPush:
 
     def _setup_data_dir(self, tmp_path: Path) -> Path:
-        """Create a data directory with v2 splits for push testing."""
+        """Create a data directory with v3 splits for push testing."""
         data = tmp_path / "data"
-        splits_v2 = data / "splits" / "v2"
-        splits_v2.mkdir(parents=True)
+        splits_v3 = data / "splits" / "v3"
+        splits_v3.mkdir(parents=True)
         (data / "manifests").mkdir(parents=True)
 
         # Minimal entries for split files
@@ -984,13 +984,13 @@ class TestHfPush:
                           "concern_text": "Issue", "category": "other",
                           "severity": "minor", "author_stance": "conceded"}],
         })
-        (splits_v2 / "train.jsonl").write_text(entry + "\n")
-        (splits_v2 / "val.jsonl").write_text(entry + "\n")
-        (splits_v2 / "test.jsonl").write_text(entry + "\n")
+        (splits_v3 / "train.jsonl").write_text(entry + "\n")
+        (splits_v3 / "val.jsonl").write_text(entry + "\n")
+        (splits_v3 / "test.jsonl").write_text(entry + "\n")
 
         # Metadata files
-        (data / "splits" / "test_ids_frozen_v2.json").write_text('{"ids": ["elife:100"]}')
-        (splits_v2 / "split_meta_v2.json").write_text('{"seed": 42}')
+        (data / "splits" / "test_ids_frozen_v3.json").write_text('{"ids": ["elife:100"]}')
+        (splits_v3 / "split_meta_v3.json").write_text('{"seed": 42}')
         (data / "manifests" / "em-v1.0.json").write_text('{"version": "1.0"}')
         return data
 
@@ -1013,7 +1013,7 @@ class TestHfPush:
     def test_empty_splits_returns_error(self, tmp_path: Path):
         """Empty splits directory returns error without crash."""
         data = tmp_path / "empty_data"
-        (data / "splits" / "v2").mkdir(parents=True)
+        (data / "splits" / "v3").mkdir(parents=True)
         result = push_to_hub(data_dir=data, dry_run=True)
         assert result["uploaded"] == []
         assert "error" in result["stats"]
@@ -1143,8 +1143,8 @@ class TestDatasetVersioning:
     def test_hf_push_upload_includes_update_state(self, tmp_path: Path):
         """update_state.json is included in HF upload plan."""
         data = tmp_path / "data"
-        splits_v2 = data / "splits" / "v2"
-        splits_v2.mkdir(parents=True)
+        splits_v3 = data / "splits" / "v3"
+        splits_v3.mkdir(parents=True)
         (data / "manifests").mkdir(parents=True)
 
         entry = json.dumps({
@@ -1158,9 +1158,9 @@ class TestDatasetVersioning:
                           "concern_text": "Issue", "category": "other",
                           "severity": "minor", "author_stance": "conceded"}],
         })
-        (splits_v2 / "train.jsonl").write_text(entry + "\n")
-        (splits_v2 / "val.jsonl").write_text(entry + "\n")
-        (splits_v2 / "test.jsonl").write_text(entry + "\n")
+        (splits_v3 / "train.jsonl").write_text(entry + "\n")
+        (splits_v3 / "val.jsonl").write_text(entry + "\n")
+        (splits_v3 / "test.jsonl").write_text(entry + "\n")
 
         # Add update_state.json
         (data / "update_state.json").write_text('{"dataset_version": "1.0"}')
