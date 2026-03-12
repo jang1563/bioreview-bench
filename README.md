@@ -267,6 +267,8 @@ and matching settings for the public release.
 Release operators should also consult [RELEASE_V3.md](RELEASE_V3.md), which
 defines the current public `v3` release reference, included result files, and
 publication checklist.
+For a GitHub-release-ready summary of the tagged snapshot, see
+[RELEASE_NOTES_v3.0.md](RELEASE_NOTES_v3.0.md).
 
 ---
 

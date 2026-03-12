@@ -27,6 +27,7 @@ Authoritative details remain in:
 - `EVALUATION_PROTOCOL.md`
 - `TASK_DEFINITION.md`
 - `results/release_manifest.json`
+- `RELEASE_NOTES_v3.0.md`
 
 ## Public Leaderboard Policy
 
