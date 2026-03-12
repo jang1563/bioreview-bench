@@ -19,7 +19,7 @@ from rich.console import Console
 
 console = Console()
 
-_DEFAULT_SPLITS_DIR = Path("data/splits/v2")
+_DEFAULT_SPLITS_DIR = Path("data/splits/v3")
 
 
 def _safe_model_name(model: str) -> str:

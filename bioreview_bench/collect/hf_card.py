@@ -30,7 +30,7 @@ def _build_yaml(stats: dict[str, Any]) -> str:
     lines.extend([
         "language:",
         "  - en",
-        "license: cc-by-4.0",
+        "license: other",
         "task_categories:",
         "  - text-classification",
         "  - text-generation",
@@ -130,7 +130,7 @@ A benchmark and training dataset for AI-assisted biomedical peer review.
 - **{total:,} articles** with **{total_concerns:,} reviewer concerns**
 - Sources: {source_line}
 - Concern-level labels: 9 categories, 3 severity levels, 5 author stance types
-- License: Data CC-BY-4.0 | Code Apache-2.0
+- License: benchmark metadata CC-BY-4.0 | source content follows per-source terms | code Apache-2.0
 
 ## What makes this dataset unique
 
@@ -242,8 +242,10 @@ def _section_schema() -> str:
 def _section_license() -> str:
     return """## License
 
-- **Dataset** (JSONL data files): CC-BY-4.0. All source articles and reviews are
-  published under CC-BY by their respective journals (eLife, PLOS, F1000Research, PeerJ, Nature).
+- **Benchmark annotations and packaging metadata**: CC-BY-4.0.
+- **Underlying article, review, and author-response content**: source-specific.
+  Redistribution is not uniform across all sources; follow `LICENSE_MATRIX.md`
+  in the GitHub repository and the original publisher terms.
 - **Code** (Python package, evaluation harness): Apache-2.0.
 
 See the [GitHub repository](https://github.com/jang1563/bioreview-bench) for

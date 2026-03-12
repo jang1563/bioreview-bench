@@ -33,7 +33,7 @@ def embed(texts: list[str]) -> np.ndarray:
 
 ## 2. Concern Matching Algorithm
 
-### 2.1 Greedy Bipartite Matching (default)
+### 2.1 Hungarian Bipartite Matching (default)
 
 Tool concern set T = {t1, t2, ..., tm}
 Human concern set H = {h1, h2, ..., hn} (figure_issue concerns excluded)
@@ -71,6 +71,9 @@ def match_concerns(
 
     return len(matched_pairs), matched_pairs
 ```
+
+The official public release uses `algorithm="hungarian"` throughout. The repository
+retains a legacy greedy matcher only for ablation or compatibility checks.
 
 **Rationale**: Optimal bipartite matching guarantees the maximum-weight assignment.
 Complexity is O(n^3) but negligible for typical concern counts (<= 50 per article).
@@ -115,7 +118,8 @@ Base metrics are computed on `non_figure` concerns only.
   "threshold": 0.65,
   "threshold_method": "val_20article_148concern_spotcheck",
   "threshold_locked_date": "2026-03-01",
-  "matching_algorithm": "bipartite_linear_sum_assignment"
+  "matching_algorithm": "hungarian",
+  "ranking_metric": "f1_micro"
 }
 ```
 
@@ -168,6 +172,9 @@ def aggregate_metrics(article_metrics: list[dict]) -> dict[str, float]:
         "f1": f1,
     }
 ```
+
+The official public leaderboard and release manifest rank systems by micro-averaged
+F1 (`f1_micro`) computed from these dataset-level totals.
 
 ### 4.3 Category-level macro F1
 

@@ -532,3 +532,8 @@ class TestCLI:
         assert result.exit_code == 0
         assert "Dry run" in result.output
         assert "Cost estimate" in result.output
+
+    def test_cli_default_splits_dir_tracks_v3(self):
+        from bioreview_bench.scripts.run_baseline import _DEFAULT_SPLITS_DIR
+
+        assert _DEFAULT_SPLITS_DIR == Path("data/splits/v3")

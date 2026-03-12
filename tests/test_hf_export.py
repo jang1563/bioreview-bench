@@ -690,11 +690,12 @@ class TestDatasetCard:
         assert "elife" in card
         assert "plos" in card
 
-    def test_license_cc_by(self, sample_stats):
-        """License is CC-BY-4.0."""
+    def test_license_is_source_specific(self, sample_stats):
+        """Card reflects source-specific licensing instead of blanket CC-BY."""
         card = generate_dataset_card(sample_stats)
-        assert "cc-by-4.0" in card
-        assert "CC-BY-4.0" in card
+        assert "license: other" in card
+        assert "source content follows per-source terms" in card
+        assert "LICENSE_MATRIX.md" in card
 
     def test_size_category_small(self, sample_stats):
         """Size category is n<1K for 100 articles."""

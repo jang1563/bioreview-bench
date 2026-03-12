@@ -4,7 +4,7 @@
 
 [![HuggingFace Dataset](https://img.shields.io/badge/HuggingFace-bioreview--bench-yellow)](https://huggingface.co/datasets/jang1563/bioreview-bench)
 [![License: Apache-2.0](https://img.shields.io/badge/Code-Apache--2.0-blue)](LICENSE)
-[![License: CC-BY-4.0](https://img.shields.io/badge/Data-CC--BY--4.0-green)](https://creativecommons.org/licenses/by/4.0/)
+[![License: Source-specific](https://img.shields.io/badge/Data-source--specific-lightgrey)](LICENSE_MATRIX.md)
 [![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-blue)](https://www.python.org/)
 
 - **6,527 articles** from 5 journals (eLife, PLOS, F1000Research, PeerJ, Nature)
@@ -229,7 +229,9 @@ All metrics include bootstrap 95% confidence intervals (1,000 iterations, docume
 
 ## Leaderboard
 
-Results on the **test split** (982 articles, 13,720 non-figure concerns). To submit results, open an issue or pull request.
+The current official public leaderboard snapshot (`v3.0-release`) covers **981 scored test articles**.
+The full test split contains 982 articles; the rankings below follow the frozen release
+manifest in `results/release_manifest.json`. To submit results, open an issue or pull request.
 
 Leaderboard inclusion policy:
 
@@ -238,11 +240,15 @@ Leaderboard inclusion policy:
 - If multiple result files exist for the same `(tool_name, tool_version)`, only the strongest run by `f1_micro` is retained.
 - `tool_version` should record the exact model or release identifier (for example, `claude-haiku-4-5-20251001`), not `unknown`.
 
-| Rank | Tool | Recall | Precision | F1 | Major Recall | Date |
-|------|------|--------|-----------|----|--------------|------|
-| 1 | Claude Haiku 4.5 (baseline) | 0.857 [0.844, 0.870] | 0.659 [0.639, 0.678] | 0.745 | 0.858 | 2026-03-02 |
+| Rank | Tool | Version | Recall | Precision | F1 | Major Recall | Articles | Date |
+|------|------|---------|--------|-----------|----|--------------|----------|------|
+| 1 | Haiku-4.5 | `claude-haiku-4-5-20251001` | 0.721 | 0.678 | 0.699 | 0.866 | 981 | 2026-03-10 |
+| 2 | Gemini-2.5-Flash | `gemini-2.5-flash` | 0.658 | 0.715 | 0.686 | 0.831 | 981 | 2026-03-10 |
+| 3 | GPT-4o-mini | `gpt-4o-mini` | 0.630 | 0.735 | 0.679 | 0.810 | 981 | 2026-03-10 |
+| 4 | Llama-3.3-70B | `llama-3.3-70b-versatile` | 0.547 | 0.799 | 0.650 | 0.751 | 981 | 2026-03-10 |
 
-> Matching: SPECTER2 cosine similarity, threshold=0.65, bipartite (Hungarian) matching.
+> Ranking metric: micro-averaged F1 (`f1_micro`).
+> Matching: SPECTER2 cosine similarity, threshold=0.65, hungarian bipartite matching.
 > Figure-issue concerns excluded from ground truth (require visual inspection).
 
 Official release artifacts are rebuilt from raw result JSON files with:
@@ -297,7 +303,7 @@ See [TASK_DEFINITION.md](TASK_DEFINITION.md) for the complete task specification
   author  = {Kim, JangKeun},
   year    = {2026},
   url     = {https://huggingface.co/datasets/jang1563/bioreview-bench},
-  note    = {Version 2.0}
+  note    = {Version 3.0 (v3.0-release)}
 }
 ```
 
@@ -307,7 +313,8 @@ See [TASK_DEFINITION.md](TASK_DEFINITION.md) for the complete task specification
 
 This project uses a dual license:
 
-- **Dataset** (JSONL data files on HuggingFace): [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). The underlying peer review content from eLife, PLOS, F1000Research, PeerJ, and Nature is published under CC-BY 4.0 by the respective publishers.
+- **Benchmark annotations and packaging metadata**: [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+- **Underlying article, review, and author-response content**: source-specific. Redistribution rights are not uniform across eLife, PLOS, F1000Research, PeerJ, Nature Portfolio, and other future sources; see [LICENSE_MATRIX.md](LICENSE_MATRIX.md).
 - **Code** (Python package, evaluation harness, scripts): [Apache-2.0](LICENSE).
 
-Users who redistribute or build upon the dataset must provide appropriate attribution to both bioreview-bench and the original source articles (via DOIs included in the dataset).
+Users who redistribute or build upon the benchmark must provide appropriate attribution to both bioreview-bench and the original source articles (via DOIs included in the dataset), and must follow the per-source redistribution rules in [LICENSE_MATRIX.md](LICENSE_MATRIX.md).
