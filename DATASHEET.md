@@ -1,12 +1,12 @@
 # Datasheet for bioreview-bench
 
 **Dataset name:** bioreview-bench
-**Version:** 1.0
+**Version:** 3.0
 **Schema version:** 1.1
-**Date of this document:** 2026-02-28
+**Date of this document:** 2026-03-11
 **GitHub:** [github.com/jang1563/bioreview-bench](https://github.com/jang1563/bioreview-bench)
 **HuggingFace:** [huggingface.co/datasets/jang1563/bioreview-bench](https://huggingface.co/datasets/jang1563/bioreview-bench)
-**License:** Data: CC-BY 4.0 | Code: Apache-2.0
+**License:** Benchmark annotations and packaging metadata: CC-BY 4.0 | Underlying source content: source-specific | Code: Apache-2.0
 
 This document follows the Datasheets for Datasets framework (Gebru et al., 2018) and provides structured documentation of bioreview-bench for dataset consumers, downstream researchers, and auditors.
 
@@ -42,18 +42,24 @@ Each instance represents one published biomedical research article together with
 
 **How many instances are there in total, and per split?**
 
-The dataset contains 978 articles (instances) and 9,394 concern records across all splits.
+The current repository snapshot contains 6,527 articles (instances) and 95,670
+concern records across all splits.
 
 | Split      | Articles | Concerns |
 |------------|----------|----------|
-| train      | 680      | 6,444    |
-| validation | 149      | 1,435    |
-| test       | 149      | 1,515    |
-| **Total**  | **978**  | **9,394**|
+| train      | 4,563    | 66,648   |
+| validation | 982      | 14,677   |
+| test       | 982      | 14,345   |
+| **Total**  | **6,527**| **95,670**|
 
 **Does the dataset contain all possible instances, or is it a sample?**
 
-The dataset is a sample. v1.0 contains articles from eLife (published 2019-2024), PLOS (PLOS ONE and PLOS Biology), and F1000Research that met inclusion criteria (open peer review materials publicly available, at least one round of revision with a published author response, full article text accessible). Not all articles published by these journals in the collection period are included; articles without publicly available revision materials were excluded.
+The dataset is a sample. The current repository snapshot spans eLife, PLOS,
+F1000Research, PeerJ, and Nature Portfolio articles that met source-specific
+collection and packaging criteria. Not all articles published by these journals
+in the collection period are included; articles without usable public review
+materials, adequate text access, or release-compatible packaging status may be
+excluded.
 
 **What data does each instance consist of?**
 
@@ -119,11 +125,20 @@ Several sources of noise should be noted:
 
 **Is the dataset self-contained?**
 
-The concern records and metadata are self-contained within the dataset. The full article body text is not included; users must retrieve it from public sources using the provided DOIs. All source articles are open-access and publicly available.
+The concern records and metadata are self-contained within the dataset. Access to
+full article body text depends on the exported config and the source-specific
+release policy. Users should not assume that every source article can be
+redistributed under identical terms.
 
 **Does the dataset contain data that might be considered confidential?**
 
-No. All source content (decision letters, author response letters, eLife Assessments, PLOS review reports, and F1000Research referee reports) was published openly under CC-BY 4.0 by the respective publishers at the time of collection. No unpublished manuscript content, private reviewer identities, or confidential correspondence is included. Reviewer names, where they appeared in the published review materials (particularly F1000Research, which uses named review), may appear within extracted concern text but were not specifically sought or catalogued.
+No unpublished manuscript content, private reviewer identities, or confidential
+correspondence are intended to be included. However, source materials are not
+uniformly licensed across all journals. Some review and response materials are
+article-specific or optional-publication artifacts. Reviewer names, where they
+appeared in publicly released source materials (particularly F1000Research), may
+appear within extracted concern text but were not specifically sought or
+catalogued.
 
 **Does the dataset contain data that might be considered offensive or harmful?**
 
@@ -135,7 +150,10 @@ The dataset consists of scientific peer review commentary on biomedical research
 
 **How was the data associated with each instance acquired?**
 
-Article metadata (title, abstract, DOI) and peer review materials (decision letters, author response letters, eLife Assessments, PLOS review reports, F1000Research referee reports) were retrieved from the respective journal APIs and publicly available open peer review archives. All materials were published under CC-BY 4.0 by the respective publishers and were publicly accessible at the time of collection.
+Article metadata (title, abstract, DOI) and peer review materials were
+retrieved from source-specific public APIs, article pages, or public peer review
+archives. The repository treats redistribution rights as source-specific rather
+than uniform; see `LICENSE_MATRIX.md` for the current packaging policy.
 
 Concern records were derived from peer review materials using the following pipeline:
 
@@ -148,15 +166,20 @@ Concern records were derived from peer review materials using the following pipe
 
 **What mechanisms or procedures were used to collect data?**
 
-Data collection used public REST APIs from eLife, PLOS, and F1000Research, Python scripting for data retrieval and normalisation, and LLM API calls for concern extraction, categorisation, and stance labelling. All collection scripts are available in the `scripts/` directory of the GitHub repository.
+Data collection used public APIs and public article/review pages from the
+supported sources, Python scripting for data retrieval and normalisation, and
+LLM API calls for concern extraction, categorisation, and stance labelling. All
+collection scripts are available in the `scripts/` directory of the GitHub
+repository.
 
 **If the dataset is a sample, what was the sampling strategy?**
 
 Articles were included if they met all of the following criteria:
-- Published in eLife (2019-2024), PLOS (PLOS ONE, PLOS Biology), or F1000Research.
-- Peer review materials were publicly available at the time of collection under CC-BY 4.0.
-- At least one revision round occurred with a published author response.
-- Full article text was accessible via the respective journal API.
+- Published in one of the currently supported benchmark sources.
+- Peer review materials were publicly available at the time of collection.
+- The article could be normalized into the benchmark schema.
+- The article satisfied the source-specific packaging policy for the intended
+  release footprint.
 
 No random subsampling was applied; the dataset represents the population of articles from these journals satisfying the inclusion criteria during the collection period.
 
@@ -178,21 +201,33 @@ No. Data were collected from publicly available journal archives and APIs, not d
 
 **Were the individuals notified about the data collection?**
 
-No. The peer reviewers and authors whose published communications appear in the dataset were not individually notified. Their peer review materials were already public under CC-BY 4.0 at the time of collection.
+No. The peer reviewers and authors whose published communications appear in the
+dataset were not individually notified. The repository relies on already public
+source materials and applies a source-specific redistribution policy.
 
 **Did the individuals in question consent to the collection and use of their data?**
 
-Reviewers and authors consented to the publication of their peer review communications under CC-BY 4.0 as a condition of the respective journal's open peer review process. This licence permits redistribution and adaptation with attribution. No additional individual consent was sought or required for inclusion in this dataset.
+Reviewers and authors participated in source journals whose public-review
+workflows publish some or all peer review materials. Consent and redistribution
+conditions are therefore mediated by the source journal's publication policy,
+not by a single uniform benchmark-wide license.
 
 **If consent was obtained, were the consenting individuals provided with a mechanism to revoke their consent?**
 
-Consent was provided at the level of journal publication under CC-BY 4.0, not at the level of dataset inclusion. The CC-BY 4.0 licence is irrevocable once granted. No dataset-specific consent revocation mechanism exists. Individuals who believe their content has been included incorrectly or harmfully may contact the dataset maintainers via the GitHub repository.
+Consent, where applicable, was provided at the level of source-journal
+publication rather than at the level of benchmark inclusion. No
+dataset-specific consent revocation mechanism exists. Individuals who believe
+their content has been included incorrectly or harmfully may contact the
+dataset maintainers via the GitHub repository.
 
 **Has an analysis of the potential impact of the dataset and its use on data subjects been conducted?**
 
 The dataset contains commentary by peer reviewers (who are typically anonymous in the published eLife format) and responses by article authors (who are identified by name in the published article). The potential impact on data subjects was considered as follows:
 
-- **Reviewers:** eLife and PLOS open peer review policies publish reviews alongside articles, typically without disclosing reviewer identities. F1000Research uses named review, where reviewer identities are public. The dataset inherits these policies from the respective sources.
+- **Reviewers:** identity and review-publication policies vary by source.
+  eLife, PLOS, PeerJ, Nature Portfolio, and F1000Research do not expose review
+  materials under one uniform rule, and F1000Research may expose reviewer names
+  publicly.
 - **Authors:** Authors are identified by DOI and article title. The dataset records concerns raised about their work and their responses. This information is already public. No new reputational risk beyond what is present in the published record is introduced by the dataset.
 - **AI-generated analysis:** LLM-based concern extraction may introduce errors that misrepresent the original peer review. Downstream users should treat concern records as silver-standard data and consult the original published review materials for authoritative content.
 
@@ -288,13 +323,21 @@ v1.0 is available at the time of this document (2026). Subsequent versions (v1.1
 
 **Will the dataset be distributed under a copyright or other IP license?**
 
-The project uses a dual license. The dataset (JSONL data files) is released under CC-BY 4.0. The code (Python package, evaluation harness, scripts) is released under Apache-2.0. Users may share, adapt, and build upon the dataset for any purpose, including commercial use, provided they give appropriate credit to bioreview-bench and the original source articles.
+The project uses a dual-license-plus-source-policy model. Benchmark annotations
+and packaging metadata are released under CC-BY 4.0. Code (Python package,
+evaluation harness, scripts) is released under Apache-2.0. Underlying article,
+review, and author-response materials remain subject to source-specific terms.
 
-The underlying peer review content from eLife, PLOS, and F1000Research is published under CC-BY 4.0 by the respective publishers. Distribution of derived concern records is consistent with those upstream terms.
+For source-specific redistribution rules, see `LICENSE_MATRIX.md`. Users should
+not assume that all source content in the benchmark can be republished under one
+uniform content license.
 
 **Have any third parties imposed IP-based or other restrictions on the data?**
 
-No. Peer review materials from eLife, PLOS, and F1000Research are published under CC-BY 4.0 without additional restrictions. No third party has imposed restrictions that would prevent redistribution of the derived dataset under compatible terms.
+Potential restrictions vary by source and by article. Optional-publication
+review histories, non-OA article text, or source-specific terms may constrain
+redistribution of some materials. The repository therefore uses a conservative
+packaging policy rather than assuming no third-party restrictions.
 
 **Do any export controls or other regulatory restrictions apply?**
 

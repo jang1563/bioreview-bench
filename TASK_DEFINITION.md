@@ -125,7 +125,7 @@ Maximum-weight bipartite matching between tool concerns and human concerns:
 1. Embed all tool concern texts using SPECTER2
 2. Embed all human concern texts using SPECTER2
 3. Compute N x M cosine similarity matrix
-4. Greedy bipartite matching (highest-similarity pairs first; each concern matched at most once)
+4. Hungarian bipartite matching (maximum-total-similarity assignment; each concern matched at most once)
 5. Matched pairs with similarity >= threshold = "matched"
 6. Recall = matched / |human concerns|
 7. Precision = matched / |tool concerns|
@@ -159,6 +159,9 @@ Major-only recall is reported separately as a secondary metric.
 | `f1` | Concern-level harmonic mean | **Primary** |
 | `f1_macro` | Category-level macro F1 | Secondary |
 | Bootstrap 95% CI (n=1000) for all primary metrics | | Required |
+
+The public leaderboard ranks systems by dataset-level micro-averaged F1
+(`f1_micro`) as defined in `EVALUATION_PROTOCOL.md`.
 
 ---
 
