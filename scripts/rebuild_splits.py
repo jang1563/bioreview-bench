@@ -15,17 +15,17 @@ Constraints:
   - Seed 42 for reproducibility.
 
 Output:
-  data/splits/v2/train.jsonl
-  data/splits/v2/val.jsonl
-  data/splits/v2/test.jsonl
-  data/splits/v2/split_meta_v2.json
+  data/splits/v3/train.jsonl
+  data/splits/v3/val.jsonl
+  data/splits/v3/test.jsonl
+  data/splits/v3/split_meta_v3.json
 
 Usage:
     python scripts/rebuild_splits.py
     python scripts/rebuild_splits.py \\
         --sources elife plos f1000 nature \\
         --input-dir data/processed \\
-        --output-dir data/splits/v2 \\
+        --output-dir data/splits/v3 \\
         --seed 42 --val-ratio 0.15 --test-ratio 0.15
 """
 
@@ -206,7 +206,7 @@ def _check_source_balance(split: list[dict], split_name: str) -> None:
 @click.option(
     "--output-dir",
     default=None,
-    help="Output directory for split files (default: data/splits/v2/)",
+    help="Output directory for split files (default: data/splits/v3/)",
 )
 @click.option(
     "--seed",
@@ -249,7 +249,7 @@ def main(
 ) -> None:
     """Rebuild multi-source stratified train/val/test splits."""
     in_dir = Path(input_dir) if input_dir else ROOT / "data" / "processed"
-    out_dir = Path(output_dir) if output_dir else ROOT / "data" / "splits" / "v2"
+    out_dir = Path(output_dir) if output_dir else ROOT / "data" / "splits" / "v3"
 
     click.echo(f"Input dir : {in_dir}")
     click.echo(f"Output dir: {out_dir}")
@@ -339,7 +339,7 @@ def main(
 
     # Save split metadata
     meta = {
-        "version": "v2",
+        "version": "v3",
         "seed": seed,
         "val_ratio": val_ratio,
         "test_ratio": "frozen" if frozen_test else test_ratio,
@@ -358,7 +358,7 @@ def main(
             for split_name, split_data in [("train", train), ("val", val), ("test", test)]
         },
     }
-    meta_path = out_dir / "split_meta_v2.json"
+    meta_path = out_dir / "split_meta_v3.json"
     meta_path.write_text(json.dumps(meta, indent=2, ensure_ascii=False))
 
     # Print summary

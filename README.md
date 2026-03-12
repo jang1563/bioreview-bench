@@ -7,8 +7,8 @@
 [![License: Source-specific](https://img.shields.io/badge/Data-source--specific-lightgrey)](LICENSE_MATRIX.md)
 [![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-blue)](https://www.python.org/)
 
-- **6,527 articles** from 5 journals (eLife, PLOS, F1000Research, PeerJ, Nature)
-- **95,670 reviewer concerns** with category, severity, and author stance labels
+- **6,559 articles** from 5 journals (eLife, PLOS, F1000Research, PeerJ, Nature)
+- **97,365 reviewer concerns** with category, severity, and author stance labels
 - Outcome-anchored ground truth: each concern is annotated with how the authors responded
 - Integrated evaluation harness with SPECTER2 semantic matching
 - [GitHub](https://github.com/jang1563/bioreview-bench) | [HuggingFace](https://huggingface.co/datasets/jang1563/bioreview-bench)
@@ -38,9 +38,9 @@ from datasets import load_dataset
 # Default config: all sources, all fields
 dataset = load_dataset("jang1563/bioreview-bench")
 
-train = dataset["train"]       # 4,563 articles, 66,648 concerns
-val   = dataset["validation"]  # 982 articles, 14,677 concerns
-test  = dataset["test"]        # 982 articles, 14,345 concerns
+train = dataset["train"]       # 4,740 articles, 70,147 concerns
+val   = dataset["validation"]  # 838 articles, 12,535 concerns
+test  = dataset["test"]        # 981 articles, 14,683 concerns
 
 # Inspect an article
 article = val[0]
@@ -55,12 +55,12 @@ for c in article["concerns"]:
 |--------|-------------|
 | `default` | All sources, full article + concern records |
 | `benchmark` | Test split with `concerns=[]` (no label leakage) |
-| `concerns_flat` | One row per concern (95,670 rows) |
+| `concerns_flat` | One row per concern (97,365 rows) |
 | `elife` | eLife articles only (1,810) |
 | `plos` | PLOS articles only (1,737) |
 | `f1000` | F1000Research articles only (2,679) |
 | `peerj` | PeerJ articles only (244) |
-| `nature` | Nature articles only (57) |
+| `nature` | Nature articles only (89) |
 
 ```python
 # Load a specific config
@@ -161,10 +161,10 @@ print(f"Recall: {result.recall:.2f}, Precision: {result.precision:.2f}")
 
 | Split | Articles | Concerns | Avg concerns/article |
 |-------|----------|----------|---------------------|
-| train | 4,563 | 66,648 | 14.6 |
-| validation | 982 | 14,677 | 14.9 |
-| test | 982 | 14,345 | 14.6 |
-| **Total** | **6,527** | **95,670** | **14.7** |
+| train | 4,740 | 70,147 | 14.8 |
+| validation | 838 | 12,535 | 15.0 |
+| test | 981 | 14,683 | 15.0 |
+| **Total** | **6,559** | **97,365** | **14.8** |
 
 ### Source distribution
 
@@ -174,39 +174,39 @@ print(f"Recall: {result.recall:.2f}, Precision: {result.precision:.2f}")
 | eLife | 1,810 | 2019-2026; journal and reviewed_preprint formats |
 | PLOS | 1,737 | PLOS ONE, PLOS Biology, and other PLOS journals |
 | PeerJ | 244 | Open peer review, 2018-present |
-| Nature | 57 | Nature Communications and Nature journals, PDF-based |
+| Nature | 89 | Nature Communications and Nature journals, PDF-based |
 
 ### Severity distribution
 
 | Severity | Count | % |
 |----------|-------|---|
-| major | 59,659 | 62.4% |
-| minor | 33,747 | 35.3% |
-| optional | 2,264 | 2.4% |
+| major | 60,763 | 62.4% |
+| minor | 34,315 | 35.2% |
+| optional | 2,287 | 2.3% |
 
 ### Author stance distribution
 
 | Stance | Count | % |
 |--------|-------|---|
-| no_response | 88,925 | 93.0% |
-| partial | 4,397 | 4.6% |
-| conceded | 1,882 | 2.0% |
-| rebutted | 410 | 0.4% |
-| unclear | 56 | 0.1% |
+| no_response | 90,222 | 92.7% |
+| partial | 4,615 | 4.7% |
+| conceded | 2,048 | 2.1% |
+| rebutted | 423 | 0.4% |
+| unclear | 57 | 0.1% |
 
 ### Category distribution
 
 | Category | Count | % |
 |----------|-------|---|
-| writing_clarity | 33,484 | 35.0% |
-| missing_experiment | 14,340 | 15.0% |
-| interpretation | 14,325 | 15.0% |
-| design_flaw | 9,923 | 10.4% |
-| prior_art_novelty | 7,133 | 7.5% |
-| reagent_method_specificity | 6,911 | 7.2% |
-| statistical_methodology | 4,836 | 5.1% |
-| figure_issue | 4,464 | 4.7% |
-| other | 254 | 0.3% |
+| writing_clarity | 33,954 | 34.9% |
+| missing_experiment | 14,743 | 15.1% |
+| interpretation | 14,611 | 15.0% |
+| design_flaw | 10,050 | 10.3% |
+| prior_art_novelty | 7,250 | 7.4% |
+| reagent_method_specificity | 6,987 | 7.2% |
+| statistical_methodology | 4,898 | 5.0% |
+| figure_issue | 4,619 | 4.7% |
+| other | 253 | 0.3% |
 
 ---
 
@@ -230,7 +230,7 @@ All metrics include bootstrap 95% confidence intervals (1,000 iterations, docume
 ## Leaderboard
 
 The current official public leaderboard snapshot (`v3.0-release`) covers **981 scored test articles**.
-The full test split contains 982 articles; the rankings below follow the frozen release
+The full test split contains 981 articles; the rankings below follow the frozen release
 manifest in `results/release_manifest.json`. To submit results, open an issue or pull request.
 
 Leaderboard inclusion policy:

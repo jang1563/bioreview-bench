@@ -31,13 +31,13 @@ def push_to_hub(
     data_dir: Path,
     repo_id: str = _DEFAULT_REPO_ID,
     dry_run: bool = False,
-    splits_subdir: str = "splits/v2",
+    splits_subdir: str = "splits/v3",
     version_tag: str | None = None,
 ) -> dict[str, Any]:
     """Export multi-config JSONL files and push to HuggingFace Hub.
 
     Steps:
-        1. Export all 6 configs as JSONL into a staging directory.
+        1. Export all configs as JSONL into a staging directory.
         2. Generate the DatasetCard README.md.
         3. Upload via ``huggingface_hub`` in a single commit.
         4. Clean up the staging directory.
@@ -87,7 +87,7 @@ def push_to_hub(
     upload_plan.append((readme_path, "README.md"))
 
     # Auxiliary files from data dir
-    _add_auxiliary_files(data_dir, upload_plan)
+    _add_auxiliary_files(data_dir, upload_plan, splits_subdir)
 
     log.info("Upload plan: %d files", len(upload_plan))
 
@@ -161,9 +161,12 @@ def push_to_hub(
 def _add_auxiliary_files(
     data_dir: Path,
     upload_plan: list[tuple[Path, str]],
+    splits_subdir: str,
 ) -> None:
     """Add manifest and frozen-test metadata files to the upload plan."""
     initial_count = len(upload_plan)
+    version_name = Path(splits_subdir).name
+    splits_root = data_dir / "splits"
 
     # Manifests
     manifests_dir = data_dir / "manifests"
@@ -171,15 +174,24 @@ def _add_auxiliary_files(
         for f in sorted(manifests_dir.glob("*.json")):
             upload_plan.append((f, f"manifests/{f.name}"))
 
-    # Frozen test IDs (v2 = multi-source)
-    frozen_test = data_dir / "splits" / "test_ids_frozen_v2.json"
-    if frozen_test.exists():
-        upload_plan.append((frozen_test, "metadata/test_ids_frozen_v2.json"))
+    # Frozen split IDs for the selected split version.
+    seen_metadata: set[str] = set()
+    for frozen_name in (
+        f"test_ids_frozen_{version_name}.json",
+        f"val_ids_frozen_{version_name}.json",
+    ):
+        for frozen_path in (
+            splits_root / frozen_name,
+            splits_root / version_name / frozen_name,
+        ):
+            if frozen_path.exists() and frozen_name not in seen_metadata:
+                upload_plan.append((frozen_path, f"metadata/{frozen_name}"))
+                seen_metadata.add(frozen_name)
 
     # Split metadata
-    split_meta = data_dir / "splits" / "v2" / "split_meta_v2.json"
+    split_meta = splits_root / version_name / f"split_meta_{version_name}.json"
     if split_meta.exists():
-        upload_plan.append((split_meta, "metadata/split_meta_v2.json"))
+        upload_plan.append((split_meta, f"metadata/split_meta_{version_name}.json"))
 
     # Update state (collection tracking)
     update_state = data_dir / "update_state.json"
@@ -188,7 +200,7 @@ def _add_auxiliary_files(
 
     # Leaderboard files (from results/ directory, sibling of data/)
     results_dir = data_dir.parent / "results"
-    for lb_file in ["leaderboard.md", "leaderboard.json"]:
+    for lb_file in ["leaderboard.md", "leaderboard.json", "release_manifest.json"]:
         lb_path = results_dir / lb_file
         if lb_path.exists():
             upload_plan.append((lb_path, f"results/{lb_file}"))

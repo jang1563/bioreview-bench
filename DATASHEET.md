@@ -42,15 +42,15 @@ Each instance represents one published biomedical research article together with
 
 **How many instances are there in total, and per split?**
 
-The current repository snapshot contains 6,527 articles (instances) and 95,670
+The current repository snapshot contains 6,559 articles (instances) and 97,365
 concern records across all splits.
 
 | Split      | Articles | Concerns |
 |------------|----------|----------|
-| train      | 4,563    | 66,648   |
-| validation | 982      | 14,677   |
-| test       | 982      | 14,345   |
-| **Total**  | **6,527**| **95,670**|
+| train      | 4,740    | 70,147   |
+| validation | 838      | 12,535   |
+| test       | 981      | 14,683   |
+| **Total**  | **6,559**| **97,365**|
 
 **Does the dataset contain all possible instances, or is it a sample?**
 
@@ -250,7 +250,7 @@ Yes. Substantial preprocessing, cleaning, and labelling were applied:
 
 - Category and severity labels are silver standard, not gold standard. Users relying on these labels for training or analysis should be aware that a non-trivial fraction may be incorrect.
 - Author stance labels reflect LLM interpretation of author response letters, which may not always accurately capture the nuance of the authors' actual position.
-- The matching threshold (SPECTER2 cosine >= 0.65) for the benchmark evaluation harness was validated on a sample of 148 concerns from 20 articles; generalisation to all 9,394 concerns has not been exhaustively verified.
+- The matching threshold (SPECTER2 cosine >= 0.65) for the benchmark evaluation harness was validated on a sample of 148 concerns from 20 articles; generalisation to all 97,365 concerns has not been exhaustively verified.
 - LLM-based processing may reflect the biases of the underlying LLM (e.g., systematic tendencies to classify certain concern types differently across subfields of biomedicine).
 
 **Was the "raw" data saved in addition to the preprocessed data?**
@@ -267,7 +267,10 @@ Yes. Collection and preprocessing scripts are available in the `scripts/` direct
 
 **Has the dataset been used for any tasks already?**
 
-At the time of this document (v1.0 release), bioreview-bench has been used internally to evaluate prototype AI peer review tools during dataset development. No published results using the public dataset exist yet. The leaderboard in the README will be updated as external results are submitted.
+At the time of this document (current repository snapshot), bioreview-bench has
+been used internally to evaluate prototype AI peer review tools during dataset
+development and to publish the current public leaderboard. Additional external
+results may be added through the documented release process.
 
 **Is there a repository that links to any or all papers or systems that use the dataset?**
 
@@ -288,7 +291,11 @@ Beyond the primary benchmark task (concern detection), the dataset is suitable f
 
 Yes. Several factors should be considered:
 
-- **Source composition.** v1.0 contains articles from three journals (eLife 730, PLOS 163, F1000Research 85). eLife articles represent 75% of the dataset. Each journal has distinct editorial philosophy and reviewer culture. Models trained on bioreview-bench may not generalise to journals with significantly different practices. Future versions may add additional sources.
+- **Source composition.** The current repository snapshot contains five sources
+  (F1000Research 2,679, eLife 1,810, PLOS 1,737, PeerJ 244, Nature 89). Each
+  journal has distinct editorial philosophy and reviewer culture. Models trained
+  on bioreview-bench may not generalise to journals with significantly different
+  practices.
 - **Silver-standard labels.** Category, severity, and author stance labels are not exhaustively human-validated. Models trained on these labels may learn the biases of the extraction pipeline in addition to genuine signal.
 - **Temporal distribution.** The 2019-2024 collection period includes the COVID-19 pandemic (2020-2022), during which peer review practices and research topics changed in ways that may affect model generalisability to other periods.
 - **eLife format change.** The shift from the journal format to the reviewed_preprint format in 2023 introduced structural differences in review materials. Models trained on the combined dataset may perform differently on the two subsets.
@@ -319,7 +326,9 @@ The dataset is distributed via:
 
 **When will the dataset be distributed?**
 
-v1.0 is available at the time of this document (2026). Subsequent versions (v1.1 and later) will be distributed via the same channels as they become available.
+The current repository snapshot is available at the time of this document
+(2026). Subsequent versions will be distributed via the same channels as they
+become available.
 
 **Will the dataset be distributed under a copyright or other IP license?**
 
@@ -357,7 +366,9 @@ The preferred contact mechanism is via GitHub Issues at [github.com/jang1563/bio
 
 **Is there an erratum?**
 
-No erratum has been issued for v1.0 at the time of this document. Any corrections to data or documentation will be logged in the GitHub repository changelog and reflected in incremented schema or dataset versions.
+No erratum has been issued for the current snapshot at the time of this
+document. Any corrections to data or documentation will be logged in the GitHub
+repository changelog and reflected in incremented schema or dataset versions.
 
 **Will the dataset be updated?**
 
