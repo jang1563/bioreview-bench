@@ -43,7 +43,7 @@ def _safe_model_name(model: str) -> str:
 )
 @click.option(
     "--provider",
-    type=click.Choice(["anthropic", "openai"]),
+    type=click.Choice(["anthropic", "openai", "google", "groq"]),
     default="anthropic",
     show_default=True,
     help="LLM provider.",
@@ -99,6 +99,18 @@ def _safe_model_name(model: str) -> str:
     show_default=True,
     help="LLM sampling temperature.",
 )
+@click.option(
+    "--input-price-per-mtok",
+    type=float,
+    default=None,
+    help="Override input price per 1M tokens for cost estimation.",
+)
+@click.option(
+    "--output-price-per-mtok",
+    type=float,
+    default=None,
+    help="Override output price per 1M tokens for cost estimation.",
+)
 def main(
     split: str,
     model: str,
@@ -111,6 +123,8 @@ def main(
     splits_dir: Path | None,
     max_input_chars: int,
     temperature: float,
+    input_price_per_mtok: float | None,
+    output_price_per_mtok: float | None,
 ) -> None:
     """Run the baseline LLM reviewer on a dataset split."""
     splits_dir = splits_dir or _DEFAULT_SPLITS_DIR
@@ -140,11 +154,22 @@ def main(
     # Cost estimate
     from bioreview_bench.baseline.runner import estimate_cost
 
-    cost = estimate_cost(usable, model, provider, max_input_chars)
+    cost = estimate_cost(
+        usable,
+        model,
+        provider,
+        max_input_chars,
+        input_price_per_mtok=input_price_per_mtok,
+        output_price_per_mtok=output_price_per_mtok,
+    )
     console.print(f"\n[bold]Cost estimate:[/bold]")
     console.print(f"  Articles:      {cost['n_articles']}")
     console.print(f"  Input tokens:  ~{cost['est_input_tokens']:,}")
     console.print(f"  Output tokens: ~{cost['est_output_tokens']:,}")
+    console.print(
+        f"  Pricing:       ${cost['pricing_input_per_mtok']:.2f} in / "
+        f"${cost['pricing_output_per_mtok']:.2f} out per 1M"
+    )
     console.print(f"  Est. cost:     ${cost['est_cost_usd']:.2f}")
 
     if dry_run:

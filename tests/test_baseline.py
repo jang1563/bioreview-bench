@@ -130,6 +130,30 @@ class TestParseConcerns:
         result = BaselineReviewer._parse_concerns(text)
         assert result == ["concern one", "concern two"]
 
+    def test_numbered_list_with_categories(self):
+        text = (
+            "Here are the concerns:\n\n"
+            "1. **design_flaw:** The study lacks a negative control.\n"
+            "2. **writing_clarity:** The methods section is difficult to follow.\n"
+        )
+        result = BaselineReviewer._parse_concerns(text)
+        assert result == [
+            "The study lacks a negative control.",
+            "The methods section is difficult to follow.",
+        ]
+
+    def test_bulleted_list_with_continuation_line(self):
+        text = (
+            "- interpretation: The conclusion overstates causality.\n"
+            "  Additional longitudinal data would be needed.\n"
+            "- prior_art_novelty: The manuscript does not compare against prior work.\n"
+        )
+        result = BaselineReviewer._parse_concerns(text)
+        assert result == [
+            "The conclusion overstates causality. Additional longitudinal data would be needed.",
+            "The manuscript does not compare against prior work.",
+        ]
+
 
 class TestTryParseStringArray:
     """Test the helper directly."""
@@ -261,6 +285,32 @@ class TestReviewArticle:
 
         assert concerns == ["concern X", "concern Y"]
 
+    def test_google_provider(self, sample_entry):
+        mock_response = MagicMock()
+        mock_response.text = '["concern G1", "concern G2"]'
+
+        reviewer = BaselineReviewer(model="gemini-2.5-flash-lite", provider="google")
+        with patch.object(reviewer, "_get_client") as mock_client:
+            mock_client.return_value.models.generate_content.return_value = mock_response
+            concerns = reviewer.review_article(sample_entry)
+
+        assert concerns == ["concern G1", "concern G2"]
+
+    def test_groq_provider(self, sample_entry):
+        mock_message = MagicMock()
+        mock_message.content = '["concern Q1", "concern Q2"]'
+        mock_choice = MagicMock()
+        mock_choice.message = mock_message
+        mock_response = MagicMock()
+        mock_response.choices = [mock_choice]
+
+        reviewer = BaselineReviewer(model="llama-3.3-70b-versatile", provider="groq")
+        with patch.object(reviewer, "_get_client") as mock_client:
+            mock_client.return_value.chat.completions.create.return_value = mock_response
+            concerns = reviewer.review_article(sample_entry)
+
+        assert concerns == ["concern Q1", "concern Q2"]
+
     def test_empty_input_returns_empty(self):
         reviewer = BaselineReviewer()
         concerns = reviewer.review_article({})
@@ -347,6 +397,16 @@ class TestEstimateCost:
         # With 1000 char cap, input tokens should be ~250
         assert cost["est_input_tokens"] <= 300
 
+    def test_allows_price_override(self, sample_entry):
+        cost = estimate_cost(
+            [sample_entry],
+            "claude-haiku-4-5-20251001",
+            input_price_per_mtok=9.0,
+            output_price_per_mtok=11.0,
+        )
+        assert cost["pricing_input_per_mtok"] == 9.0
+        assert cost["pricing_output_per_mtok"] == 11.0
+
 
 class TestGetPricing:
     """Test pricing lookup."""
@@ -360,6 +420,14 @@ class TestGetPricing:
         p = _get_pricing("gpt-4o-mini", "openai")
         assert p["input"] == 0.15
 
+    def test_google_model(self):
+        p = _get_pricing("gemini-2.5-flash-lite", "google")
+        assert p["input"] == 0.10
+
+    def test_groq_model(self):
+        p = _get_pricing("llama-3.3-70b-versatile", "groq")
+        assert p["output"] == 0.79
+
     def test_unknown_model_fallback(self):
         p = _get_pricing("unknown-model", "anthropic")
         assert "input" in p
@@ -368,6 +436,10 @@ class TestGetPricing:
     def test_unknown_openai_fallback(self):
         p = _get_pricing("unknown-model", "openai")
         assert p["input"] == 0.50
+
+    def test_unknown_google_fallback(self):
+        p = _get_pricing("unknown-model", "google")
+        assert p["input"] == 0.20
 
 
 class TestGetId:
@@ -495,6 +567,7 @@ class TestCLI:
         assert result.exit_code == 0
         assert "--split" in result.output
         assert "--model" in result.output
+        assert "--provider" in result.output
         assert "--dry-run" in result.output
 
     def test_cli_missing_split_file(self, tmp_path):
@@ -528,10 +601,13 @@ class TestCLI:
             "--splits-dir", str(tmp_path),
             "--split", "val",
             "--dry-run",
+            "--input-price-per-mtok", "1.25",
+            "--output-price-per-mtok", "3.50",
         ])
         assert result.exit_code == 0
         assert "Dry run" in result.output
         assert "Cost estimate" in result.output
+        assert "$1.25 in / $3.50 out per 1M" in result.output
 
     def test_cli_default_splits_dir_tracks_v3(self):
         from bioreview_bench.scripts.run_baseline import _DEFAULT_SPLITS_DIR
