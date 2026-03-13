@@ -84,11 +84,23 @@ pip install bioreview-bench[evaluate]
 ### Running evaluation
 
 ```bash
-# Generate predictions (your tool produces a JSONL of concerns per article)
-bioreview-run --predictions predictions.jsonl --split test
+# Evaluate a prediction file (your tool produces {article_id, concerns:[...]} JSONL)
+bioreview-run --tool-output predictions.jsonl --tool-name "MyTool" --split test
 
 # Run the built-in baseline reviewer
 bioreview-baseline --split val --model claude-haiku-4-5-20251001
+
+# Or use another supported provider
+bioreview-baseline --split val --provider google --model gemini-2.5-flash-lite
+
+# Run the zero-cost lexical baseline
+bioreview-bm25 --split val
+
+# Regenerate split stats and verify docs stay in sync
+bioreview-stats --check-docs
+
+# Freeze a human-review pilot subset
+bioreview-human-subset --n 100
 ```
 
 ### Quick evaluation API

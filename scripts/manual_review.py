@@ -35,6 +35,8 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from bioreview_bench.validate.agreement import compute_label_agreement
+
 ROOT = Path(__file__).resolve().parents[1]
 console = Console()
 
@@ -147,51 +149,47 @@ def interactive_review(entry: dict, out_rows: list[dict]) -> None:
 
 def compute_agreement(rows: list[dict]) -> None:
     """Compute LLM vs human agreement statistics from validated CSV rows."""
-    if not rows:
+    summary = compute_label_agreement(rows)
+    if summary.n_rows == 0:
         console.print("[red]No review data found.[/red]")
         return
 
-    cat_agree = sum(1 for r in rows if r["llm_category"] == r["human_category"])
-    stance_agree = sum(1 for r in rows if r["llm_stance"] == r["human_stance"])
-    n = len(rows)
-
-    console.print(f"\n[bold]=== Agreement Statistics (n={n}) ===[/bold]")
-    console.print(f"  Category agreement: {cat_agree}/{n} = {cat_agree/n*100:.1f}%")
-    console.print(f"  Stance agreement:   {stance_agree}/{n} = {stance_agree/n*100:.1f}%")
-
-    from collections import Counter
-    llm_dist = Counter(r["llm_stance"] for r in rows)
-    human_dist = Counter(r["human_stance"] for r in rows)
-
-    p_agree = stance_agree / n
-    p_chance = sum(
-        (llm_dist.get(s, 0) / n) * (human_dist.get(s, 0) / n)
-        for s in VALID_STANCES
+    console.print(f"\n[bold]=== Agreement Statistics (n={summary.n_rows}) ===[/bold]")
+    console.print(
+        f"  Category agreement: {summary.category_agreement * 100:.1f}%"
     )
-    kappa = (p_agree - p_chance) / (1 - p_chance) if p_chance < 1 else 0.0
-    console.print(f"  Cohen's kappa (stance): {kappa:.3f}")
-
-    quality_label = (
-        "Poor" if kappa < 0.2 else
-        "Fair" if kappa < 0.4 else
-        "Moderate" if kappa < 0.6 else
-        "Substantial" if kappa < 0.8 else
-        "Almost perfect"
+    console.print(
+        f"  Stance agreement:   {summary.stance_agreement * 100:.1f}%"
     )
-    console.print(f"  -> {quality_label} agreement")
+    console.print(f"  Cohen's kappa (stance): {summary.kappa:.3f}")
+    console.print(f"  -> {summary.quality_label} agreement")
 
-    if kappa >= 0.6:
+    if summary.kappa >= 0.6:
         console.print("[green]  OK: Phase 2 quality threshold met (kappa >= 0.6)[/green]")
     else:
         console.print("[yellow]  WARNING: Below threshold — review extraction prompts[/yellow]")
 
+    category_table = Table(title="Per-category agreement")
+    category_table.add_column("Category")
+    category_table.add_column("Rows", justify="right")
+    category_table.add_column("Category", justify="right")
+    category_table.add_column("Stance", justify="right")
+    for bucket in summary.per_category:
+        category_table.add_row(
+            bucket.category,
+            str(bucket.n_rows),
+            f"{bucket.category_agreement * 100:.1f}%",
+            f"{bucket.stance_agreement * 100:.1f}%",
+        )
+    console.print()
+    console.print(category_table)
+
     console.print("\n  [bold]Stance disagreements:[/bold]")
-    for r in rows:
-        if r["llm_stance"] != r["human_stance"]:
-            console.print(
-                f"    LLM:{r['llm_stance']} -> Human:{r['human_stance']}  "
-                f"{r['concern_text'][:80]}"
-            )
+    for row in summary.stance_disagreements:
+        console.print(
+            f"    LLM:{row['llm_stance']} -> Human:{row['human_stance']}  "
+            f"{row['concern_text'][:80]}"
+        )
 
 
 @click.command()
@@ -207,6 +205,10 @@ def compute_agreement(rows: list[dict]) -> None:
               help="Path to existing review CSV (use with --stats)")
 @click.option("--stats", is_flag=True, default=False,
               help="Compute agreement stats from existing CSV only")
+@click.option("--input-jsonl", default=None,
+              help="Review entries from this JSONL file instead of sampling a split")
+@click.option("--splits-dir", default=None,
+              help="Directory containing split JSONL files (default: data/splits/v3)")
 @click.option("--format-filter",
               type=click.Choice(["journal", "reviewed_preprint", "all"]),
               default="all", help="Filter by review_format")
@@ -218,6 +220,8 @@ def main(
     interactive: bool,
     review_csv: str | None,
     stats: bool,
+    input_jsonl: str | None,
+    splits_dir: str | None,
     format_filter: str,
 ) -> None:
     """Manual annotation quality checker for bioreview-bench concerns."""
@@ -233,10 +237,14 @@ def main(
         return
 
     # Load split data
-    splits_dir = ROOT / "data" / "splits"
-    split_path = splits_dir / f"{split}.jsonl"
+    if input_jsonl:
+        split_path = Path(input_jsonl)
+    else:
+        resolved_splits_dir = Path(splits_dir) if splits_dir else ROOT / "data" / "splits" / "v3"
+        split_path = resolved_splits_dir / f"{split}.jsonl"
+
     if not split_path.exists():
-        console.print(f"[red]{split_path} not found. Run create_splits.py first.[/red]")
+        console.print(f"[red]{split_path} not found.[/red]")
         sys.exit(1)
 
     entries = load_entries(split_path)
