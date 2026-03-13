@@ -31,6 +31,7 @@ from typing import Literal
 
 _EMBED_MODEL: object | None = None
 _EMBED_AVAILABLE: bool | None = None
+_EMBED_CACHE: dict[str, list[float]] = {}  # text → embedding vector cache
 
 
 def _get_embed_model() -> object | None:
@@ -46,6 +47,30 @@ def _get_embed_model() -> object | None:
         _EMBED_MODEL = None
         _EMBED_AVAILABLE = False
     return _EMBED_MODEL
+
+
+def _encode_with_cache(model: object, texts: list[str]) -> "numpy.ndarray":
+    """Encode texts with module-level cache. Uncached texts are batch-encoded."""
+    import numpy as np
+
+    cached_indices: list[int] = []
+    uncached_indices: list[int] = []
+    for i, t in enumerate(texts):
+        if t in _EMBED_CACHE:
+            cached_indices.append(i)
+        else:
+            uncached_indices.append(i)
+
+    # Batch-encode uncached texts
+    if uncached_indices:
+        uncached_texts = [texts[i] for i in uncached_indices]
+        new_embs = model.encode(uncached_texts, normalize_embeddings=True)  # type: ignore
+        for j, idx in enumerate(uncached_indices):
+            _EMBED_CACHE[texts[idx]] = new_embs[j].tolist()
+
+    # Assemble result in original order
+    result = np.array([_EMBED_CACHE[t] for t in texts], dtype=np.float32)
+    return result
 
 
 # --- Data classes ------------------------------------------------------------
@@ -139,11 +164,15 @@ class ConcernMatcher:
         exclude_figure: bool = True,
         use_embedding: bool = True,
         algorithm: Literal["hungarian", "greedy"] = "hungarian",
+        dedup_gt: bool = False,
+        dedup_threshold: float = 0.90,
     ) -> None:
         self.threshold = threshold
         self.exclude_figure = exclude_figure
         self.use_embedding = use_embedding
         self._algorithm = algorithm
+        self.dedup_gt = dedup_gt
+        self.dedup_threshold = dedup_threshold
 
     # -- Text preprocessing --------------------------------------------------
 
@@ -174,10 +203,8 @@ class ConcernMatcher:
 
         if model is not None:
             try:
-                all_texts = tool_texts + gt_texts
-                embeddings = model.encode(all_texts, normalize_embeddings=True)  # type: ignore
-                tool_emb = embeddings[:len(tool_texts)]
-                gt_emb = embeddings[len(tool_texts):]
+                tool_emb = _encode_with_cache(model, tool_texts)
+                gt_emb = _encode_with_cache(model, gt_texts)
                 sim_matrix = (tool_emb @ gt_emb.T).tolist()
                 return PairwiseScores(sim_matrix, "embedding", self.threshold)
             except Exception:
@@ -266,6 +293,35 @@ class ConcernMatcher:
                 pass  # fall back to greedy if scipy missing
         return self._greedy_match(scores)
 
+    # -- GT dedup ------------------------------------------------------------
+
+    def _dedup_concerns(
+        self, concerns: list[dict], threshold: float
+    ) -> list[dict]:
+        """Remove near-duplicate GT concerns (greedy, intra-article).
+
+        Keeps the first occurrence; removes later concerns whose cosine
+        similarity to any earlier kept concern is >= *threshold*.
+        """
+        texts = [c["concern_text"] for c in concerns]
+        model = _get_embed_model() if self.use_embedding else None
+        if model is None or len(texts) < 2:
+            return concerns
+
+        embs = _encode_with_cache(model, texts)
+        sim = embs @ embs.T  # (n, n) cosine similarity
+
+        keep = [True] * len(concerns)
+        for i in range(len(concerns)):
+            if not keep[i]:
+                continue
+            for j in range(i + 1, len(concerns)):
+                if not keep[j]:
+                    continue
+                if sim[i, j] >= threshold:
+                    keep[j] = False
+        return [c for c, k in zip(concerns, keep) if k]
+
     # -- Public API ----------------------------------------------------------
 
     def score_article(
@@ -290,6 +346,9 @@ class ConcernMatcher:
         else:
             active_gt = gt_concerns
             n_excluded = 0
+
+        if self.dedup_gt and len(active_gt) > 1:
+            active_gt = self._dedup_concerns(active_gt, self.dedup_threshold)
 
         gt_texts = [c["concern_text"] for c in active_gt]
 

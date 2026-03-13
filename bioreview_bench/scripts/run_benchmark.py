@@ -125,6 +125,12 @@ _DEFAULT_RESULTS_DIR = Path("results")
     default=False,
     help="Push leaderboard to HuggingFace Hub (requires --update-leaderboard).",
 )
+@click.option(
+    "--dedup-gt/--no-dedup-gt",
+    default=False,
+    show_default=True,
+    help="Remove near-duplicate GT concerns (cosine sim >= 0.90) before matching.",
+)
 def main(
     tool_output: Path,
     tool_name: str,
@@ -143,6 +149,7 @@ def main(
     update_leaderboard: bool,
     results_dir: Path | None,
     push_hf: bool,
+    dedup_gt: bool,
 ) -> None:
     """Evaluate AI tool concern outputs against bioreview-bench ground truth."""
     from bioreview_bench.evaluate.runner import run_evaluation
@@ -164,6 +171,7 @@ def main(
             git_hash=git_hash,
             extraction_manifest_id=extraction_manifest_id,
             notes=notes,
+            dedup_gt=dedup_gt,
         )
     except FileNotFoundError as exc:
         console.print(f"[red]Error:[/red] {exc}")
