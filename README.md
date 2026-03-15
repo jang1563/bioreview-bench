@@ -252,16 +252,16 @@ Leaderboard inclusion policy:
 - If multiple result files exist for the same `(tool_name, tool_version)`, only the strongest run by `f1_micro` is retained.
 - `tool_version` should record the exact model or release identifier (for example, `claude-haiku-4-5-20251001`), not `unknown`.
 
-| Rank | Tool | Version | Recall | Precision | F1 | Major Recall | Articles | Date |
-|------|------|---------|--------|-----------|----|--------------|----------|------|
-| 1 | Haiku-4.5 | `claude-haiku-4-5-20251001` | 0.721 | 0.678 | 0.699 | 0.866 | 981 | 2026-03-10 |
-| 2 | GPT-4o-mini | `gpt-4o-mini` | 0.678 | 0.709 | 0.693 | 0.839 | 981 | 2026-03-13 |
-| 3 | Gemini-2.5-Flash | `gemini-2.5-flash` | 0.658 | 0.715 | 0.686 | 0.831 | 981 | 2026-03-10 |
-| 4 | BM25 | `lexical-v1` | 0.631 | 0.747 | 0.684 | 0.790 | 981 | 2026-03-12 |
-| 5 | Gemini-2.5-Flash-Lite | `gemini-2.5-flash-lite` | 0.610 | 0.715 | 0.659 | 0.780 | 981 | 2026-03-13 |
-| 6 | Llama-3.3-70B | `llama-3.3-70b-versatile` | 0.547 | 0.799 | 0.650 | 0.751 | 981 | 2026-03-10 |
+| Rank | Tool | Version | Recall | 95% CI | Precision | 95% CI | F1 | Major Recall | Articles |
+|------|------|---------|--------|--------|-----------|--------|----|--------------|----------|
+| 1 | Haiku-4.5 | `claude-haiku-4-5-20251001` | 0.721 | [0.693, 0.752] | 0.678 | [0.658, 0.699] | 0.699 | 0.866 | 981 |
+| 2 | GPT-4o-mini | `gpt-4o-mini` | 0.678 | [0.650, 0.708] | 0.709 | [0.689, 0.729] | 0.693 | 0.839 | 981 |
+| 3 | Gemini-2.5-Flash | `gemini-2.5-flash` | 0.658 | [0.631, 0.687] | 0.715 | [0.695, 0.736] | 0.686 | 0.831 | 981 |
+| 4 | BM25 | `lexical-v1` | 0.631 | [0.604, 0.659] | 0.747 | [0.728, 0.767] | 0.684 | 0.790 | 981 |
+| 5 | Gemini-2.5-Flash-Lite | `gemini-2.5-flash-lite` | 0.610 | [0.583, 0.639] | 0.715 | [0.694, 0.737] | 0.659 | 0.780 | 981 |
+| 6 | Llama-3.3-70B | `llama-3.3-70b-versatile` | 0.547 | [0.524, 0.574] | 0.799 | [0.781, 0.817] | 0.650 | 0.751 | 981 |
 
-> Ranking metric: micro-averaged F1 (`f1_micro`).
+> Ranking metric: micro-averaged F1 (`f1_micro`). 95% CI from 1,000 article-level bootstrap resamples.
 > Matching: SPECTER2 cosine similarity, threshold=0.65, hungarian bipartite matching.
 > Figure-issue concerns excluded from ground truth (require visual inspection).
 

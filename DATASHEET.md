@@ -3,7 +3,7 @@
 **Dataset name:** bioreview-bench
 **Version:** 3.0
 **Schema version:** 1.1
-**Date of this document:** 2026-03-11
+**Date of this document:** 2026-03-13
 **GitHub:** [github.com/jang1563/bioreview-bench](https://github.com/jang1563/bioreview-bench)
 **HuggingFace:** [huggingface.co/datasets/jang1563/bioreview-bench](https://huggingface.co/datasets/jang1563/bioreview-bench)
 **License:** Benchmark annotations and packaging metadata: CC-BY 4.0 | Underlying source content: source-specific | Code: Apache-2.0
@@ -157,7 +157,7 @@ than uniform; see `LICENSE_MATRIX.md` for the current packaging policy.
 
 Concern records were derived from peer review materials using the following pipeline:
 
-1. **Retrieval.** Decision letters and author response letters (journal format) or eLife Assessment and public review blocks (reviewed_preprint format) were fetched programmatically via the eLife API.
+1. **Retrieval.** Peer review materials were fetched programmatically from source-specific APIs and pages: eLife API (JATS XML sub-articles), PLOS JATS XML (aggregated-review-documents), F1000Research JATS XML (reviewer-report), PeerJ HTML scraping (/reviews/ pages), and Nature HTML scraping followed by PDF extraction (pdfplumber).
 2. **Segmentation.** Review text was segmented into candidate concern units using a combination of sentence boundary detection and LLM-based paragraph-level analysis.
 3. **Extraction.** An LLM was prompted to identify and extract substantive reviewer concerns from each segment, discarding complimentary remarks, general framing sentences, and concerns that were purely editorial.
 4. **Categorisation.** Each extracted concern was assigned a category and severity label by the LLM, with rule-based post-processing to enforce label validity and handle edge cases.
@@ -189,7 +189,7 @@ Automated data collection was performed using scripts developed by the project t
 
 **Over what timeframe was the data collected?**
 
-Source articles were published between 2019 and 2024. Data collection (API retrieval, LLM processing, and schema normalisation) was conducted in 2024-2025.
+Source articles were published between 2013 and 2026, with the majority from 2019-2025. Data collection (API retrieval, LLM processing, and schema normalisation) was conducted in 2025-2026.
 
 **Were any ethical review processes conducted?**
 
@@ -297,9 +297,9 @@ Yes. Several factors should be considered:
   on bioreview-bench may not generalise to journals with significantly different
   practices.
 - **Silver-standard labels.** Category, severity, and author stance labels are not exhaustively human-validated. Models trained on these labels may learn the biases of the extraction pipeline in addition to genuine signal.
-- **Temporal distribution.** The 2019-2024 collection period includes the COVID-19 pandemic (2020-2022), during which peer review practices and research topics changed in ways that may affect model generalisability to other periods.
+- **Temporal distribution.** The 2013-2026 collection period includes the COVID-19 pandemic (2020-2022), during which peer review practices and research topics changed in ways that may affect model generalisability to other periods.
 - **eLife format change.** The shift from the journal format to the reviewed_preprint format in 2023 introduced structural differences in review materials. Models trained on the combined dataset may perform differently on the two subsets.
-- **LLM contamination risk.** Articles and review materials in the dataset may appear in the training corpora of LLMs used to benchmark against bioreview-bench. Test set contamination cannot be ruled out for LLMs with training data cutoffs after 2019.
+- **LLM contamination risk.** Articles and review materials in the dataset may appear in the training corpora of LLMs used to benchmark against bioreview-bench. Test set contamination cannot be ruled out for LLMs with training data cutoffs after 2013.
 
 **Are there tasks for which the dataset should not be used?**
 
@@ -374,7 +374,7 @@ repository changelog and reflected in incremented schema or dataset versions.
 
 Yes. Planned updates include:
 
-- **v1.1+:** Addition of further journal sources and additional article batches.
+- **Future:** Addition of further journal sources (e.g., Review Commons) and additional article batches.
 - **Ongoing:** Correction of identified labelling errors, schema refinements, and expansion as journals continue to publish open peer review materials.
 
 Updates will be versioned and released via the same distribution channels. Release notes will be published in the GitHub repository.

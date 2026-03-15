@@ -9,9 +9,13 @@
     "f1": 0.6989056800416884,
     "recall_major": 0.8661207126616439,
     "n_articles": 981,
-    "run_date": "2026-03-10",
+    "run_date": "2026-03-15",
     "notes": "",
-    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/haiku_test.json"
+    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/haiku_test.json",
+    "ci_recall_lo": 0.6929031374160844,
+    "ci_recall_hi": 0.7520361320894418,
+    "ci_precision_lo": 0.6577723873054376,
+    "ci_precision_hi": 0.698741672834937
   },
   {
     "rank": 2,
@@ -23,9 +27,13 @@
     "f1": 0.6931310021259438,
     "recall_major": 0.8391179977897468,
     "n_articles": 981,
-    "run_date": "2026-03-13",
+    "run_date": "2026-03-15",
     "notes": "",
-    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/gpt4omini_test_v2.json"
+    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/gpt4omini_test_v2.json",
+    "ci_recall_lo": 0.6503422482534754,
+    "ci_recall_hi": 0.7076223828328738,
+    "ci_precision_lo": 0.6891152895347966,
+    "ci_precision_hi": 0.7290603422395677
   },
   {
     "rank": 3,
@@ -37,9 +45,13 @@
     "f1": 0.6856588134264272,
     "recall_major": 0.8308986698078094,
     "n_articles": 981,
-    "run_date": "2026-03-10",
+    "run_date": "2026-03-15",
     "notes": "",
-    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/gemini25flash_test_v2.json"
+    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/gemini25flash_test_v2.json",
+    "ci_recall_lo": 0.6311190004779136,
+    "ci_recall_hi": 0.687385600976205,
+    "ci_precision_lo": 0.6950249532127262,
+    "ci_precision_hi": 0.7362406716417911
   },
   {
     "rank": 4,
@@ -51,9 +63,13 @@
     "f1": 0.683852404836891,
     "recall_major": 0.7902616811493306,
     "n_articles": 981,
-    "run_date": "2026-03-12",
+    "run_date": "2026-03-15",
     "notes": "",
-    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/bm25_test.json"
+    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/bm25_test.json",
+    "ci_recall_lo": 0.6043293601863269,
+    "ci_recall_hi": 0.6592114364768273,
+    "ci_precision_lo": 0.7279986408426775,
+    "ci_precision_hi": 0.7665647298674821
   },
   {
     "rank": 5,
@@ -65,9 +81,13 @@
     "f1": 0.6586451038805278,
     "recall_major": 0.7800699290516776,
     "n_articles": 981,
-    "run_date": "2026-03-13",
+    "run_date": "2026-03-15",
     "notes": "",
-    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/gemini_flash_lite_test.json"
+    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/gemini_flash_lite_test.json",
+    "ci_recall_lo": 0.5830255778963206,
+    "ci_recall_hi": 0.6387087264150944,
+    "ci_precision_lo": 0.6938249001331558,
+    "ci_precision_hi": 0.7372300308536167
   },
   {
     "rank": 6,
@@ -79,8 +99,12 @@
     "f1": 0.6495893791753543,
     "recall_major": 0.7508171358302403,
     "n_articles": 981,
-    "run_date": "2026-03-10",
+    "run_date": "2026-03-15",
     "notes": "",
-    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/llama33_test.json"
+    "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/llama33_test.json",
+    "ci_recall_lo": 0.523881209798823,
+    "ci_recall_hi": 0.574023199023199,
+    "ci_precision_lo": 0.7812993576919027,
+    "ci_precision_hi": 0.8169161519941379
   }
 ]
