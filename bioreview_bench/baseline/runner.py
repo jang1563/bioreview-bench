@@ -43,6 +43,8 @@ def estimate_cost(
     model: str,
     provider: str = "anthropic",
     max_input_chars: int = 80_000,
+    input_price_per_mtok: float | None = None,
+    output_price_per_mtok: float | None = None,
 ) -> dict:
     """Estimate API cost for a batch of articles.
 
@@ -63,7 +65,11 @@ def estimate_cost(
     est_input_tokens = int(total_chars / 4)
     est_output_tokens = len(articles) * 1500  # ~1500 output tokens per article
 
-    pricing = _get_pricing(model, provider)
+    pricing = (
+        {"input": input_price_per_mtok, "output": output_price_per_mtok}
+        if input_price_per_mtok is not None and output_price_per_mtok is not None
+        else _get_pricing(model, provider)
+    )
     est_cost = (
         est_input_tokens * pricing["input"] / 1_000_000
         + est_output_tokens * pricing["output"] / 1_000_000
@@ -76,11 +82,17 @@ def estimate_cost(
         "est_cost_usd": round(est_cost, 2),
         "model": model,
         "provider": provider,
+        "pricing_input_per_mtok": pricing["input"],
+        "pricing_output_per_mtok": pricing["output"],
     }
 
 
 def _get_pricing(model: str, provider: str) -> dict[str, float]:
-    """Get pricing per 1M tokens for known models."""
+    """Get pricing per 1M tokens for known models.
+
+    These values are lightweight defaults for local dry runs. Exact prices can
+    change; callers can override them via ``estimate_cost(..., *_price_per_mtok)``.
+    """
     pricing_map: dict[str, dict[str, float]] = {
         # Anthropic (as of 2026-03)
         "claude-haiku-4-5-20251001": {"input": 0.80, "output": 4.00},
@@ -91,6 +103,12 @@ def _get_pricing(model: str, provider: str) -> dict[str, float]:
         # OpenAI
         "gpt-4o-mini": {"input": 0.15, "output": 0.60},
         "gpt-4o": {"input": 2.50, "output": 10.00},
+        # Google Gemini
+        "gemini-2.5-flash": {"input": 0.30, "output": 2.50},
+        "gemini-2.5-flash-lite": {"input": 0.10, "output": 0.40},
+        # Groq
+        "llama-3.3-70b-versatile": {"input": 0.59, "output": 0.79},
+        "openai/gpt-oss-20b": {"input": 0.075, "output": 0.30},
     }
 
     if model in pricing_map:
@@ -104,6 +122,10 @@ def _get_pricing(model: str, provider: str) -> dict[str, float]:
     # Fallback
     if provider == "openai":
         return {"input": 0.50, "output": 2.00}
+    if provider == "google":
+        return {"input": 0.20, "output": 1.00}
+    if provider == "groq":
+        return {"input": 0.20, "output": 0.50}
     return {"input": 1.00, "output": 5.00}
 
 

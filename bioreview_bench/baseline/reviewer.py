@@ -34,6 +34,18 @@ _SECTION_PRIORITY = [
     "supplementary", "supplemental", "supporting",
 ]
 
+_CONCERN_CATEGORIES = (
+    "design_flaw",
+    "statistical_methodology",
+    "missing_experiment",
+    "prior_art_novelty",
+    "writing_clarity",
+    "reagent_method_specificity",
+    "interpretation",
+    "other",
+)
+_CATEGORY_RE = "|".join(_CONCERN_CATEGORIES)
+
 # ── System prompt ────────────────────────────────────────────────────────────
 
 REVIEWER_SYSTEM = """\
@@ -53,13 +65,14 @@ CONCERN CATEGORIES (for your reference — output only concern text):
 - other: Legitimate scientific concern not fitting above categories
 
 RULES:
-1. Generate 5-15 specific, actionable scientific concerns
+1. Generate 10-15 specific, actionable scientific concerns
 2. Each concern should be a clear, self-contained statement (1-3 sentences)
-3. Focus on scientific rigor: experimental design, methodology, statistics, interpretation
+3. Cover diverse concern types: experimental design, methodology, statistics, interpretation, writing clarity, and reagent/method specificity
 4. Do NOT generate concerns about figures — you cannot see them
 5. Do NOT include general praise, vague criticism, or stylistic preferences
 6. Each concern must be specific enough to be addressed by the authors
 7. Prioritize major issues over minor ones
+8. Do NOT repeat essentially the same concern for multiple figures, sections, or experiments — each concern must address a distinct scientific issue
 
 OUTPUT FORMAT: Return a JSON array of concern strings, nothing else:
 ["The study lacks a negative control for the X assay, making it impossible to ...", \
@@ -71,7 +84,7 @@ class BaselineReviewer:
 
     Args:
         model: Model identifier (e.g. "claude-haiku-4-5-20251001", "gpt-4o-mini").
-        provider: "anthropic" or "openai".
+        provider: "anthropic", "openai", "google", or "groq".
         max_tokens: Maximum output tokens for the LLM.
         max_input_chars: Maximum chars for paper text (truncated if exceeded).
         temperature: LLM sampling temperature.
@@ -103,6 +116,14 @@ class BaselineReviewer:
         elif self.provider == "openai":
             import openai
             self._client = openai.OpenAI()
+        elif self.provider == "google":
+            from google import genai
+
+            self._client = genai.Client()
+        elif self.provider == "groq":
+            from groq import Groq
+
+            self._client = Groq()
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
 
@@ -153,6 +174,39 @@ class BaselineReviewer:
                 model=self.model,
                 max_tokens=self.max_tokens,
                 temperature=self.temperature,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+            )
+            return resp.choices[0].message.content or ""
+
+        if self.provider == "google":
+            try:
+                from google.genai import types
+                config = types.GenerateContentConfig(
+                    system_instruction=system,
+                    max_output_tokens=self.max_tokens,
+                    temperature=self.temperature,
+                )
+            except ImportError:
+                config = {
+                    "system_instruction": system,
+                    "max_output_tokens": self.max_tokens,
+                    "temperature": self.temperature,
+                }
+            resp = client.models.generate_content(
+                model=self.model,
+                contents=user,
+                config=config,
+            )
+            return resp.text or ""
+
+        if self.provider == "groq":
+            resp = client.chat.completions.create(
+                model=self.model,
+                temperature=self.temperature,
+                max_completion_tokens=self.max_tokens,
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},
@@ -234,7 +288,7 @@ class BaselineReviewer:
     def _parse_concerns(text: str) -> list[str]:
         """Parse JSON array of concern strings from LLM output.
 
-        Handles: clean JSON, markdown fences, trailing text.
+        Handles: clean JSON, markdown fences, trailing text, numbered lists.
         Reuses fence -> bracket -> range pattern from concern_extractor.
         """
         # 1. Try markdown fence
@@ -260,6 +314,10 @@ class BaselineReviewer:
             result = _try_parse_string_array(text[start : end + 1])
             if result is not None:
                 return result
+
+        result = _try_parse_concern_list(text)
+        if result is not None:
+            return result
 
         return []
 
@@ -287,3 +345,54 @@ def _try_parse_string_array(text: str) -> list[str] | None:
                 results.append(s)
 
     return results
+
+
+def _try_parse_concern_list(text: str) -> list[str] | None:
+    """Try to parse numbered or bulleted concern lists from plain text."""
+    results: list[str] = []
+    current: list[str] = []
+
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+
+        item_match = re.match(r"^(?:[-*]|\d+[.)])\s+(.*)$", line)
+        if item_match:
+            if current:
+                concern = _normalize_concern_item(" ".join(current))
+                if concern:
+                    results.append(concern)
+            current = [item_match.group(1).strip()]
+            continue
+
+        if current:
+            current.append(line)
+
+    if current:
+        concern = _normalize_concern_item(" ".join(current))
+        if concern:
+            results.append(concern)
+
+    return results or None
+
+
+def _normalize_concern_item(text: str) -> str:
+    """Strip leading category labels and collapse whitespace."""
+    text = " ".join(text.split())
+    if not text:
+        return ""
+
+    text = re.sub(
+        rf"^\*\*({_CATEGORY_RE})(?::)?\*\*[:\s-]*",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        rf"^({_CATEGORY_RE})[:\s-]*",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    )
+    return text.strip()

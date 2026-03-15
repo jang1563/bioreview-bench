@@ -1,5 +1,5 @@
 {
-  "release_generated_at": "2026-03-10T22:10:41.842856+00:00",
+  "release_generated_at": "2026-03-13T20:32:19.045727+00:00",
   "split": "test",
   "source_results_dir": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3",
   "output_dir": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results",
@@ -36,6 +36,18 @@
     },
     {
       "rank": 2,
+      "tool_name": "GPT-4o-mini",
+      "tool_version": "gpt-4o-mini",
+      "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/gpt4omini_test_v2.json",
+      "run_date": "2026-03-13",
+      "recall": 0.6779235677923567,
+      "precision": 0.7090363704536933,
+      "f1": 0.6931310021259438,
+      "recall_major": 0.8391179977897468,
+      "n_articles": 981
+    },
+    {
+      "rank": 3,
       "tool_name": "Gemini-2.5-Flash",
       "tool_version": "gemini-2.5-flash",
       "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/gemini25flash_test_v2.json",
@@ -47,19 +59,31 @@
       "n_articles": 981
     },
     {
-      "rank": 3,
-      "tool_name": "GPT-4o-mini",
-      "tool_version": "gpt-4o-mini",
-      "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/gpt4omini_test.json",
-      "run_date": "2026-03-10",
-      "recall": 0.6302430630243063,
-      "precision": 0.7349498327759197,
-      "f1": 0.6785810784729996,
-      "recall_major": 0.8102463736019772,
+      "rank": 4,
+      "tool_name": "BM25",
+      "tool_version": "lexical-v1",
+      "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/bm25_test.json",
+      "run_date": "2026-03-12",
+      "recall": 0.6305298630529863,
+      "precision": 0.7470268433571186,
+      "f1": 0.683852404836891,
+      "recall_major": 0.7902616811493306,
       "n_articles": 981
     },
     {
-      "rank": 4,
+      "rank": 5,
+      "tool_name": "Gemini-2.5-Flash-Lite",
+      "tool_version": "gemini-2.5-flash-lite",
+      "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/gemini_flash_lite_test.json",
+      "run_date": "2026-03-13",
+      "recall": 0.6103104610310461,
+      "precision": 0.7152941176470589,
+      "f1": 0.6586451038805278,
+      "recall_major": 0.7800699290516776,
+      "n_articles": 981
+    },
+    {
+      "rank": 6,
       "tool_name": "Llama-3.3-70B",
       "tool_version": "llama-3.3-70b-versatile",
       "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v3/llama33_test.json",

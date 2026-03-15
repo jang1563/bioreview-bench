@@ -84,11 +84,23 @@ pip install bioreview-bench[evaluate]
 ### Running evaluation
 
 ```bash
-# Generate predictions (your tool produces a JSONL of concerns per article)
-bioreview-run --predictions predictions.jsonl --split test
+# Evaluate a prediction file (your tool produces {article_id, concerns:[...]} JSONL)
+bioreview-run --tool-output predictions.jsonl --tool-name "MyTool" --split test
 
 # Run the built-in baseline reviewer
 bioreview-baseline --split val --model claude-haiku-4-5-20251001
+
+# Or use another supported provider
+bioreview-baseline --split val --provider google --model gemini-2.5-flash-lite
+
+# Run the zero-cost lexical baseline
+bioreview-bm25 --split val
+
+# Regenerate split stats and verify docs stay in sync
+bioreview-stats --check-docs
+
+# Freeze a human-review pilot subset
+bioreview-human-subset --n 100
 ```
 
 ### Quick evaluation API
@@ -243,9 +255,11 @@ Leaderboard inclusion policy:
 | Rank | Tool | Version | Recall | Precision | F1 | Major Recall | Articles | Date |
 |------|------|---------|--------|-----------|----|--------------|----------|------|
 | 1 | Haiku-4.5 | `claude-haiku-4-5-20251001` | 0.721 | 0.678 | 0.699 | 0.866 | 981 | 2026-03-10 |
-| 2 | Gemini-2.5-Flash | `gemini-2.5-flash` | 0.658 | 0.715 | 0.686 | 0.831 | 981 | 2026-03-10 |
-| 3 | GPT-4o-mini | `gpt-4o-mini` | 0.630 | 0.735 | 0.679 | 0.810 | 981 | 2026-03-10 |
-| 4 | Llama-3.3-70B | `llama-3.3-70b-versatile` | 0.547 | 0.799 | 0.650 | 0.751 | 981 | 2026-03-10 |
+| 2 | GPT-4o-mini | `gpt-4o-mini` | 0.678 | 0.709 | 0.693 | 0.839 | 981 | 2026-03-13 |
+| 3 | Gemini-2.5-Flash | `gemini-2.5-flash` | 0.658 | 0.715 | 0.686 | 0.831 | 981 | 2026-03-10 |
+| 4 | BM25 | `lexical-v1` | 0.631 | 0.747 | 0.684 | 0.790 | 981 | 2026-03-12 |
+| 5 | Gemini-2.5-Flash-Lite | `gemini-2.5-flash-lite` | 0.610 | 0.715 | 0.659 | 0.780 | 981 | 2026-03-13 |
+| 6 | Llama-3.3-70B | `llama-3.3-70b-versatile` | 0.547 | 0.799 | 0.650 | 0.751 | 981 | 2026-03-10 |
 
 > Ranking metric: micro-averaged F1 (`f1_micro`).
 > Matching: SPECTER2 cosine similarity, threshold=0.65, hungarian bipartite matching.
