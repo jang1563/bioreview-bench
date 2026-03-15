@@ -429,6 +429,7 @@ def run_evaluation(
     extraction_manifest_id: str = "em-v1.0",
     notes: str = "",
     dedup_gt: bool = False,
+    dedup_threshold: float = 0.95,
 ) -> tuple[BenchmarkResult, list[dict]]:
     """Run full evaluation pipeline: load data, match, aggregate, report.
 
@@ -446,6 +447,7 @@ def run_evaluation(
         extraction_manifest_id: Manifest ID for ground truth extraction.
         notes: Free-text notes.
         dedup_gt: Remove near-duplicate GT concerns before matching.
+        dedup_threshold: Cosine similarity threshold for GT dedup.
 
     Returns:
         (BenchmarkResult, coverage_log)
@@ -466,6 +468,7 @@ def run_evaluation(
         use_embedding=use_embedding,
         algorithm=algorithm,  # type: ignore[arg-type]
         dedup_gt=dedup_gt,
+        dedup_threshold=dedup_threshold,
     )
 
     print("Running per-article evaluation ...", flush=True)

@@ -129,7 +129,13 @@ _DEFAULT_RESULTS_DIR = Path("results")
     "--dedup-gt/--no-dedup-gt",
     default=False,
     show_default=True,
-    help="Remove near-duplicate GT concerns (cosine sim >= 0.90) before matching.",
+    help="Remove near-duplicate GT concerns before matching.",
+)
+@click.option(
+    "--dedup-threshold",
+    default=0.95,
+    show_default=True,
+    help="Cosine similarity threshold for GT dedup (requires --dedup-gt).",
 )
 def main(
     tool_output: Path,
@@ -150,6 +156,7 @@ def main(
     results_dir: Path | None,
     push_hf: bool,
     dedup_gt: bool,
+    dedup_threshold: float,
 ) -> None:
     """Evaluate AI tool concern outputs against bioreview-bench ground truth."""
     from bioreview_bench.evaluate.runner import run_evaluation
@@ -172,6 +179,7 @@ def main(
             extraction_manifest_id=extraction_manifest_id,
             notes=notes,
             dedup_gt=dedup_gt,
+            dedup_threshold=dedup_threshold,
         )
     except FileNotFoundError as exc:
         console.print(f"[red]Error:[/red] {exc}")
