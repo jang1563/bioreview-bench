@@ -5,18 +5,26 @@
   "benchmark_version": "1.0",
   "extraction_manifest_id": "em-v1.0",
   "split": "test",
-  "run_date": "2026-03-13T15:05:16.884502Z",
+  "run_date": "2026-03-15T04:35:56.482247Z",
   "recall_overall": 0.6103104610310461,
   "precision_overall": 0.7152941176470589,
   "f1_micro": 0.6586451038805278,
   "recall_major": 0.7800699290516776,
   "f1_macro": 0.0,
-  "soft_recall_overall": 0.7131486136905646,
-  "soft_precision_overall": 0.6225601150933795,
-  "soft_f1": 0.6647824835614996,
-  "ci_recall": null,
-  "ci_precision": null,
-  "bootstrap_n": 0,
+  "soft_recall_overall": 0.7131486243510063,
+  "soft_precision_overall": 0.6225601248741582,
+  "soft_f1": 0.6647824937694617,
+  "ci_recall": {
+    "lo": 0.5830255778963206,
+    "hi": 0.6387087264150944,
+    "n_bootstrap": 1000
+  },
+  "ci_precision": {
+    "lo": 0.6938249001331558,
+    "hi": 0.7372300308536167,
+    "n_bootstrap": 1000
+  },
+  "bootstrap_n": 1000,
   "per_category": {
     "statistical_methodology": {
       "recall": 0.7194124423963133,

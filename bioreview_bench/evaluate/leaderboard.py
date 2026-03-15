@@ -34,6 +34,10 @@ class LeaderboardEntry:
     run_date: str        # ISO-formatted date string
     notes: str
     result_file: str     # absolute path of the source JSON file
+    ci_recall_lo: float | None = None
+    ci_recall_hi: float | None = None
+    ci_precision_lo: float | None = None
+    ci_precision_hi: float | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -78,27 +82,65 @@ class Leaderboard:
             Multi-line string with a header, table, and footer note.
         """
         today = date.today().isoformat()
+        has_ci = any(e.ci_recall_lo is not None for e in self._entries)
+
         lines: list[str] = [
             f"# bioreview-bench Leaderboard ({self._split} split)",
             "",
             f"*Last updated: {today}. Ranked by F1.*",
             "",
-            "| Rank | Tool | Version | Recall | Precision | F1 | Major Recall | Articles | Date |",
-            "|------|------|---------|--------|-----------|-----|--------------|----------|------|",
         ]
 
-        for e in self._entries:
+        if has_ci:
             lines.append(
-                f"| {e.rank} "
-                f"| {e.tool_name} "
-                f"| {e.tool_version} "
-                f"| {e.recall:.3f} "
-                f"| {e.precision:.3f} "
-                f"| {e.f1:.3f} "
-                f"| {e.recall_major:.3f} "
-                f"| {e.n_articles} "
-                f"| {e.run_date} |"
+                "| Rank | Tool | Version | Recall | 95% CI | Precision | 95% CI | F1 | Major Recall | Articles | Date |"
             )
+            lines.append(
+                "|------|------|---------|--------|--------|-----------|--------|----|--------------|----------|------|"
+            )
+        else:
+            lines.append(
+                "| Rank | Tool | Version | Recall | Precision | F1 | Major Recall | Articles | Date |"
+            )
+            lines.append(
+                "|------|------|---------|--------|-----------|-----|--------------|----------|------|"
+            )
+
+        for e in self._entries:
+            if has_ci:
+                ci_r = (
+                    f"[{e.ci_recall_lo:.3f}, {e.ci_recall_hi:.3f}]"
+                    if e.ci_recall_lo is not None else "—"
+                )
+                ci_p = (
+                    f"[{e.ci_precision_lo:.3f}, {e.ci_precision_hi:.3f}]"
+                    if e.ci_precision_lo is not None else "—"
+                )
+                lines.append(
+                    f"| {e.rank} "
+                    f"| {e.tool_name} "
+                    f"| {e.tool_version} "
+                    f"| {e.recall:.3f} "
+                    f"| {ci_r} "
+                    f"| {e.precision:.3f} "
+                    f"| {ci_p} "
+                    f"| {e.f1:.3f} "
+                    f"| {e.recall_major:.3f} "
+                    f"| {e.n_articles} "
+                    f"| {e.run_date} |"
+                )
+            else:
+                lines.append(
+                    f"| {e.rank} "
+                    f"| {e.tool_name} "
+                    f"| {e.tool_version} "
+                    f"| {e.recall:.3f} "
+                    f"| {e.precision:.3f} "
+                    f"| {e.f1:.3f} "
+                    f"| {e.recall_major:.3f} "
+                    f"| {e.n_articles} "
+                    f"| {e.run_date} |"
+                )
 
         lines.extend(self._footer_lines())
         return "\n".join(lines)
@@ -205,6 +247,10 @@ class Leaderboard:
         self._entries = []
         for rank, (result, file_path) in enumerate(raw, start=1):
             run_date_str = _format_date(result.run_date)
+            ci_r_lo = result.ci_recall.lo if result.ci_recall else None
+            ci_r_hi = result.ci_recall.hi if result.ci_recall else None
+            ci_p_lo = result.ci_precision.lo if result.ci_precision else None
+            ci_p_hi = result.ci_precision.hi if result.ci_precision else None
             self._entries.append(
                 LeaderboardEntry(
                     rank=rank,
@@ -219,6 +265,10 @@ class Leaderboard:
                     run_date=run_date_str,
                     notes=result.notes,
                     result_file=file_path,
+                    ci_recall_lo=ci_r_lo,
+                    ci_recall_hi=ci_r_hi,
+                    ci_precision_lo=ci_p_lo,
+                    ci_precision_hi=ci_p_hi,
                 )
             )
 
