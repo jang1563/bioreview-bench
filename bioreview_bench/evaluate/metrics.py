@@ -165,7 +165,7 @@ class ConcernMatcher:
         use_embedding: bool = True,
         algorithm: Literal["hungarian", "greedy"] = "hungarian",
         dedup_gt: bool = False,
-        dedup_threshold: float = 0.90,
+        dedup_threshold: float = 0.95,
     ) -> None:
         self.threshold = threshold
         self.exclude_figure = exclude_figure
