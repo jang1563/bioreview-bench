@@ -27,14 +27,17 @@ The release freezes:
 The default public leaderboard includes these result files:
 
 - `results/v3/haiku_test.json`
+- `results/v3/gpt4omini_test_v2.json`
 - `results/v3/gemini25flash_test_v2.json`
-- `results/v3/gpt4omini_test.json`
+- `results/v3/bm25_test.json`
+- `results/v3/gemini_flash_lite_test.json`
 - `results/v3/llama33_test.json`
 
 Excluded from the default public leaderboard but retained in-repo:
 
 - `results/v3/haiku_test_dedup.json`
 - `results/v3/gemini25flash_test.json`
+- `results/v3/gpt4omini_test.json`
 - `results/v3/auc_pr_comparison.json`
 
 ## Key Changes
@@ -50,6 +53,10 @@ Excluded from the default public leaderboard but retained in-repo:
 - Replaced naive UTC timestamps with timezone-aware UTC timestamps in
   `BenchmarkResult`.
 - Disabled unused pytest `anyio` plugin auto-loading to stabilize test runs.
+- Added BM25 lexical baseline (`bioreview-bm25` CLI) as a zero-cost reference.
+- Added GPT-4o-mini v2, Gemini-2.5-Flash-Lite test results to the leaderboard.
+- Added AUC-PR threshold sweep analysis across 6 models.
+- Added embedding cache for SPECTER2 to accelerate threshold sweeps.
 
 ## Reproducibility Artifacts
 

@@ -296,7 +296,7 @@ def paired_significance(
 ### 6.2 Stratification
 
 Stratified by:
-1. Source journal (eLife / PLOS / F1000Research)
+1. Source journal (eLife / PLOS / F1000Research / PeerJ / Nature)
 2. Subject area
 3. Resolution distribution (approximate proportion maintenance)
 
@@ -315,7 +315,7 @@ Stratified by:
 All benchmark results must include the following:
 
 Tool: MyReviewTool v1.2.3
-Benchmark: bioreview-bench v1.0 (test split)
+Benchmark: bioreview-bench v3.0 (test split)
 
 recall:        0.61 [95% CI: 0.55-0.67]
 precision:     0.48 [95% CI: 0.43-0.54]
@@ -323,8 +323,8 @@ f1:            0.54 [95% CI: 0.49-0.59]
 recall_major:  0.72 [95% CI: 0.64-0.80]
 f1_macro:      0.49 (8 categories)
 
-n_articles: 149 | n_human_concerns: 1,515 | n_excluded_figure: ...
-Matched pairs (bipartite): ... / 1,515
+n_articles: 981 | n_human_concerns: 14,683 | n_excluded_figure: ...
+Matched pairs (bipartite): ... / 14,683
 Bootstrap n=1000, seed=42
 ```
 
@@ -335,7 +335,7 @@ Bootstrap n=1000, seed=42
   "tool_name": "MyReviewTool",
   "tool_version": "1.2.3",
   "git_hash": "abc123",
-  "benchmark_version": "1.0",
+  "benchmark_version": "3.0",
   "split": "test",
   "predictions": {
     "elife:84798": [

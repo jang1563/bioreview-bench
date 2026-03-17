@@ -37,6 +37,8 @@ baseline = [
     "anthropic>=0.40",
     "tenacity>=8.3",
     "openai>=1.30",
+    "google-genai>=1.0.0",
+    "groq>=0.13.0",
     "rich>=13.7",
 ]
 hub = [
@@ -55,6 +57,9 @@ bioreview-collect = "bioreview_bench.scripts.collect_elife:main"
 bioreview-update = "bioreview_bench.scripts.update_pipeline:main"
 bioreview-run = "bioreview_bench.scripts.run_benchmark:main"
 bioreview-baseline = "bioreview_bench.scripts.run_baseline:main"
+bioreview-bm25 = "bioreview_bench.scripts.run_bm25_baseline:main"
+bioreview-human-subset = "bioreview_bench.scripts.create_human_subset:main"
+bioreview-stats = "bioreview_bench.scripts.generate_stats:main"
 
 [build-system]
 requires = ["hatchling"]
