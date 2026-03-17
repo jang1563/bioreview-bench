@@ -1,6 +1,6 @@
 # bioreview-bench Leaderboard (test split)
 
-*Last updated: 2026-03-15. Ranked by F1.*
+*Last updated: 2026-03-17. Ranked by F1.*
 
 | Rank | Tool | Version | Recall | 95% CI | Precision | 95% CI | F1 | Major Recall | Articles | Date |
 |------|------|---------|--------|--------|-----------|--------|----|--------------|----------|------|
