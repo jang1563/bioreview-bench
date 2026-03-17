@@ -233,6 +233,7 @@ def aggregate_results(
     n_tool_concerns: int,
     n_figure_excluded: int,
     notes: str,
+    dedup_gt: bool = False,
 ) -> BenchmarkResult:
     """Compute macro-averaged metrics and build BenchmarkResult."""
     n = len(article_results)
@@ -337,6 +338,7 @@ def aggregate_results(
         n_human_concerns=n_human_concerns,
         n_tool_concerns=n_tool_concerns,
         excluded_figure_concerns=n_figure_excluded,
+        dedup_gt=dedup_gt,
         notes=notes,
     )
 
@@ -426,6 +428,8 @@ def run_evaluation(
     git_hash: str = "",
     extraction_manifest_id: str = "em-v1.0",
     notes: str = "",
+    dedup_gt: bool = False,
+    dedup_threshold: float = 0.95,
 ) -> tuple[BenchmarkResult, list[dict]]:
     """Run full evaluation pipeline: load data, match, aggregate, report.
 
@@ -442,6 +446,8 @@ def run_evaluation(
         git_hash: Git commit hash of the tool.
         extraction_manifest_id: Manifest ID for ground truth extraction.
         notes: Free-text notes.
+        dedup_gt: Remove near-duplicate GT concerns before matching.
+        dedup_threshold: Cosine similarity threshold for GT dedup.
 
     Returns:
         (BenchmarkResult, coverage_log)
@@ -461,6 +467,8 @@ def run_evaluation(
         exclude_figure=exclude_figure,
         use_embedding=use_embedding,
         algorithm=algorithm,  # type: ignore[arg-type]
+        dedup_gt=dedup_gt,
+        dedup_threshold=dedup_threshold,
     )
 
     print("Running per-article evaluation ...", flush=True)
@@ -486,6 +494,7 @@ def run_evaluation(
         n_tool_concerns=n_tool,
         n_figure_excluded=n_figure,
         notes=notes,
+        dedup_gt=dedup_gt,
     )
 
     # Print report

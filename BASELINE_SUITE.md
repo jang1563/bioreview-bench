@@ -1,7 +1,7 @@
 # bioreview-bench Baseline Suite
 
-> Version: 1.0
-> Date: 2026-03-11
+> Version: 1.1
+> Date: 2026-03-13
 > Status: Current implementation and planned gaps
 
 This document defines what counts as a baseline in the repository, what is
@@ -24,28 +24,36 @@ suite should cover:
 
 ## 2. Current Repository State
 
-### 2.1 Directly runnable baseline path
+### 2.1 Directly runnable baseline paths
 
-The repository currently includes a built-in LLM reviewer baseline:
+The repository currently includes two runnable baseline paths:
 
-- implementation: `bioreview_bench/baseline/reviewer.py`
-- execution CLI: `bioreview_bench/scripts/run_baseline.py`
-- supported providers today: `anthropic`, `openai`
+- LLM reviewer baseline
+  - implementation: `bioreview_bench/baseline/reviewer.py`
+  - execution CLI: `bioreview_bench/scripts/run_baseline.py`
+  - supported providers today: `anthropic`, `openai`, `google`, `groq`
+- lexical retrieval baseline
+  - implementation: `bioreview_bench/baseline/lexical.py`
+  - execution CLI: `bioreview_bench/scripts/run_bm25_baseline.py`
+  - cost: $0 (local retrieval only)
 
 Typical command:
 
 ```bash
 uv run bioreview-baseline --split val --model claude-haiku-4-5-20251001
+uv run bioreview-bm25 --split val
 ```
 
 ### 2.2 Publicly released result files
 
 The current `v3.0-release` leaderboard is generated from result JSON files in
-`results/v3`. The default public top ranking currently includes:
+`results/v3`. The default public ranking currently includes:
 
 - Haiku-4.5
-- Gemini-2.5-Flash
 - GPT-4o-mini
+- Gemini-2.5-Flash
+- BM25 (lexical baseline)
+- Gemini-2.5-Flash-Lite
 - Llama-3.3-70B
 
 Important distinction:
@@ -63,11 +71,14 @@ Important distinction:
 |---------------|--------|-----------------|-------|
 | Anthropic zero-shot LLM | Implemented | `bioreview_bench/baseline/*` | Runnable today |
 | OpenAI zero-shot LLM | Implemented | `bioreview_bench/baseline/*` | Runnable today |
-| Gemini submission-compatible result | Published result | `results/v3/gemini25flash_test_v2.json` | Not directly runnable from current baseline CLI |
-| Llama submission-compatible result | Published result | `results/v3/llama33_test.json` | Same limitation |
-| BM25 / lexical baseline | Planned, not implemented | n/a | Still missing from original plan |
+| Google Gemini zero-shot LLM | Implemented | `bioreview_bench/baseline/*` | Runnable with `google-genai` and `GEMINI_API_KEY` |
+| Groq zero-shot LLM | Implemented | `bioreview_bench/baseline/*` | Runnable with `groq` and `GROQ_API_KEY` |
+| Gemini submission-compatible result | Published result | `results/v3/gemini25flash_test_v2.json` | Runnable via `bioreview-baseline --provider google` |
+| Gemini Flash Lite result | Published result | `results/v3/gemini_flash_lite_test.json` | Runnable via `bioreview-baseline --provider google` |
+| Llama submission-compatible result | Published result | `results/v3/llama33_test.json` | Runnable via `bioreview-baseline --provider groq` |
+| BM25 / lexical baseline | Implemented | `bioreview_bench/baseline/lexical.py` | Runnable today via `bioreview-bm25` |
 | W8 domain baseline | Planned, not implemented | n/a | Still missing from original plan |
-| Human subset reference | Planned, not implemented | n/a | Still missing from original plan |
+| Human subset reference | Scaffolding implemented | `bioreview_bench/validate/human_subset.py` | Sampling and agreement helpers are ready; annotation not yet completed |
 
 ---
 
@@ -96,20 +107,31 @@ Required metadata for result publication:
 
 ## 5. Current Limitations
 
-- The built-in baseline runner does not yet expose Gemini, Groq, or other
-  provider adapters directly.
-- The planned non-LLM lexical baseline is still missing.
-- The benchmark does not yet ship a human-reference subset with agreement and
+- All four provider paths (Anthropic, OpenAI, Google, Groq) have been exercised
+  in full test-split runs with published result files.
+- The BM25 lexical baseline has been benchmarked and published on both val and test.
+- The benchmark does not yet ship completed human-reference annotations and
   upper-bound reporting.
-- The original project plan called for four canonical baselines; today the repo
-  has one runnable baseline pathway plus several published result files.
 
 ---
 
-## 6. Recommended Next Work
+## 6. Recommended Execution Order
 
-1. Add a lexical baseline so the benchmark has a zero-cost floor.
+The current recommended order is:
+
+1. Finish the zero-cost stage:
+   - `bioreview-stats --check-docs`
+   - `bioreview-human-subset --n 100`
+   - `bioreview-bm25 --split val`
+   - `bioreview-bm25 --split test`
+2. Then move to low-cost LLM reproducibility runs:
+   - `bioreview-baseline --split val --provider openai --model gpt-4o-mini --dry-run`
+   - `bioreview-baseline --split val --provider google --model gemini-2.5-flash-lite --dry-run`
+   - run the same commands without `--dry-run` only after API budget approval
+3. Reserve more expensive provider runs for targeted confirmation, not first-pass screening.
+
+## 7. Recommended Next Work
+
+1. Complete human-reference annotation on a frozen subset and publish agreement metrics.
 2. Add a domain-tool adapter or documented import path for W8-style systems.
-3. Define a human reference subset and reporting format.
-4. Bring provider coverage in the runnable baseline CLI closer to the providers
-   represented on the public leaderboard.
+3. Evaluate additional frontier models (e.g., Claude Sonnet, GPT-4o) on the test split.
