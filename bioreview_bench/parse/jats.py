@@ -506,12 +506,30 @@ class JATSParser:
 
     def _infer_decision(self, decision_text: str) -> str:
         t = decision_text.lower()
+
+        # Major revision keywords (check first — most common decision)
+        major_keywords = [
+            "major revision", "major revisions",
+            "essential revision", "essential revisions",
+            "substantive revision", "substantive revisions",
+            "substantial revision", "substantial revisions",
+            "significant revision", "significant revisions",
+        ]
+        if any(kw in t for kw in major_keywords):
+            return "major_revision"
+
+        # Minor revision keywords
+        minor_keywords = [
+            "minor revision", "minor revisions",
+            "optional revision", "optional revisions",
+        ]
+        if any(kw in t for kw in minor_keywords):
+            return "minor_revision"
+
+        # Accept (no revision mentioned)
         if "accept" in t and "revision" not in t:
             return "accept"
-        if "major revision" in t or "major revisions" in t:
-            return "major_revision"
-        if "minor revision" in t or "minor revisions" in t:
-            return "minor_revision"
+
         if "reject" in t:
             return "reject"
         return "unknown"

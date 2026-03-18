@@ -33,11 +33,16 @@ from __future__ import annotations
 
 import json
 import random
+import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
 import click
+
+_CORRECTION_TITLE_RE = re.compile(
+    r"^(correction|erratum|retraction|corrigendum)[\s:]", re.IGNORECASE
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -278,6 +283,16 @@ def main(
         if not entries:
             click.echo(f"  [warn] No data found for '{source}'", err=True)
             continue
+
+        # Filter out correction/erratum/retraction articles
+        before_corr = len(entries)
+        entries = [
+            e for e in entries
+            if not _CORRECTION_TITLE_RE.match(e.get("title", ""))
+        ]
+        n_corr = before_corr - len(entries)
+        if n_corr:
+            click.echo(f"  {source}: removed {n_corr} correction/erratum/retraction articles")
 
         # Filter to usable entries
         if usable_only:
