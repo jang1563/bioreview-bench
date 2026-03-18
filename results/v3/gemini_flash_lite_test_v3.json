@@ -1,0 +1,140 @@
+{
+  "tool_name": "Gemini-Flash-Lite",
+  "tool_version": "gemini-2.5-flash-lite",
+  "git_hash": "",
+  "benchmark_version": "1.0",
+  "extraction_manifest_id": "em-v1.0",
+  "split": "test",
+  "run_date": "2026-03-18T10:50:00.854626Z",
+  "recall_overall": 0.6150462611861065,
+  "precision_overall": 0.7082969432314411,
+  "f1_micro": 0.6583861016398767,
+  "recall_major": 0.7813875527353247,
+  "f1_macro": 0.0,
+  "soft_recall_overall": 0.7180132700475879,
+  "soft_precision_overall": 0.6166392473898606,
+  "soft_f1": 0.6634763081377517,
+  "ci_recall": {
+    "lo": 0.5879028114218601,
+    "hi": 0.6437392527747382,
+    "n_bootstrap": 1000
+  },
+  "ci_precision": {
+    "lo": 0.6846642863363233,
+    "hi": 0.7291630263847633,
+    "n_bootstrap": 1000
+  },
+  "bootstrap_n": 1000,
+  "per_category": {
+    "missing_experiment": {
+      "recall": 0.8018030042668676,
+      "precision": 0.6961673455760184,
+      "f1_micro": 0.745260504273516,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 2070,
+      "n_matched": 1502,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "writing_clarity": {
+      "recall": 0.7032050803713918,
+      "precision": 0.7878836709944853,
+      "f1_micro": 0.7431399367441616,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 4806,
+      "n_matched": 2523,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "interpretation": {
+      "recall": 0.782970110540204,
+      "precision": 0.7460090421372131,
+      "f1_micro": 0.7640428336296605,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 2157,
+      "n_matched": 1475,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "prior_art_novelty": {
+      "recall": 0.7068552792237003,
+      "precision": 0.7240695651626826,
+      "f1_micro": 0.7153588766989778,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 1049,
+      "n_matched": 639,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "reagent_method_specificity": {
+      "recall": 0.6421015802154194,
+      "precision": 0.7089011125283446,
+      "f1_micro": 0.6738499146089434,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 974,
+      "n_matched": 527,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "design_flaw": {
+      "recall": 0.7776995167952615,
+      "precision": 0.7510874649990853,
+      "f1_micro": 0.7641618689285027,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 1362,
+      "n_matched": 944,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "statistical_methodology": {
+      "recall": 0.7213071630918656,
+      "precision": 0.7580929693535926,
+      "f1_micro": 0.7392427201969151,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 730,
+      "n_matched": 476,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "other": {
+      "recall": 0.6129032258064516,
+      "precision": 0.5697004608294931,
+      "f1_micro": 0.590512703675188,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 38,
+      "n_matched": 24,
+      "ci_recall": null,
+      "ci_precision": null
+    }
+  },
+  "per_stance": {},
+  "matching_stats": {
+    "n_tool_concerns": 11450,
+    "n_human_concerns": 13186,
+    "n_matched_pairs": 8110,
+    "threshold": 0.65,
+    "algorithm": "hungarian"
+  },
+  "n_articles": 944,
+  "n_human_concerns": 13186,
+  "n_tool_concerns": 11450,
+  "excluded_figure_concerns": 684,
+  "dedup_gt": false,
+  "notes": ""
+}
