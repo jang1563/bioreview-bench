@@ -7,8 +7,8 @@
 [![License: Source-specific](https://img.shields.io/badge/Data-source--specific-lightgrey)](LICENSE_MATRIX.md)
 [![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-blue)](https://www.python.org/)
 
-- **6,559 articles** from 5 journals (eLife, PLOS, F1000Research, PeerJ, Nature)
-- **97,365 reviewer concerns** with category, severity, and author stance labels
+- **6,696 articles** from 5 journals (eLife, PLOS, F1000Research, PeerJ, Nature)
+- **96,866 reviewer concerns** with category, severity, and author stance labels
 - Outcome-anchored ground truth: each concern is annotated with how the authors responded
 - Integrated evaluation harness with SPECTER2 semantic matching
 - [GitHub](https://github.com/jang1563/bioreview-bench) | [HuggingFace](https://huggingface.co/datasets/jang1563/bioreview-bench)
@@ -38,9 +38,9 @@ from datasets import load_dataset
 # Default config: all sources, all fields
 dataset = load_dataset("jang1563/bioreview-bench")
 
-train = dataset["train"]       # 4,740 articles, 70,147 concerns
-val   = dataset["validation"]  # 838 articles, 12,535 concerns
-test  = dataset["test"]        # 981 articles, 14,683 concerns
+train = dataset["train"]       # 4,888 articles, 70,241 concerns
+val   = dataset["validation"]  # 864 articles, 12,755 concerns
+test  = dataset["test"]        # 944 articles, 13,870 concerns
 
 # Inspect an article
 article = val[0]
@@ -55,12 +55,12 @@ for c in article["concerns"]:
 |--------|-------------|
 | `default` | All sources, full article + concern records |
 | `benchmark` | Test split with `concerns=[]` (no label leakage) |
-| `concerns_flat` | One row per concern (97,365 rows) |
+| `concerns_flat` | One row per concern (96,866 rows) |
 | `elife` | eLife articles only (1,810) |
 | `plos` | PLOS articles only (1,737) |
 | `f1000` | F1000Research articles only (2,679) |
 | `peerj` | PeerJ articles only (244) |
-| `nature` | Nature articles only (89) |
+| `nature` | Nature articles only (470) |
 
 ```python
 # Load a specific config
@@ -173,10 +173,10 @@ print(f"Recall: {result.recall:.2f}, Precision: {result.precision:.2f}")
 
 | Split | Articles | Concerns | Avg concerns/article |
 |-------|----------|----------|---------------------|
-| train | 4,740 | 70,147 | 14.8 |
-| validation | 838 | 12,535 | 15.0 |
-| test | 981 | 14,683 | 15.0 |
-| **Total** | **6,559** | **97,365** | **14.8** |
+| train | 4,888 | 70,241 | 14.4 |
+| validation | 864 | 12,755 | 14.8 |
+| test | 944 | 13,870 | 14.7 |
+| **Total** | **6,696** | **96,866** | **14.5** |
 
 ### Source distribution
 
@@ -186,39 +186,39 @@ print(f"Recall: {result.recall:.2f}, Precision: {result.precision:.2f}")
 | eLife | 1,810 | 2019-2026; journal and reviewed_preprint formats |
 | PLOS | 1,737 | PLOS ONE, PLOS Biology, and other PLOS journals |
 | PeerJ | 244 | Open peer review, 2018-present |
-| Nature | 89 | Nature Communications and Nature journals, PDF-based |
+| Nature | 470 | Nature Communications and Nature journals, PDF-based |
 
 ### Severity distribution
 
 | Severity | Count | % |
 |----------|-------|---|
-| major | 60,763 | 62.4% |
-| minor | 34,315 | 35.2% |
-| optional | 2,287 | 2.3% |
+| major | 61,093 | 63.1% |
+| minor | 33,548 | 34.6% |
+| optional | 2,225 | 2.3% |
 
 ### Author stance distribution
 
 | Stance | Count | % |
 |--------|-------|---|
-| no_response | 90,222 | 92.7% |
-| partial | 4,615 | 4.7% |
-| conceded | 2,048 | 2.1% |
-| rebutted | 423 | 0.4% |
-| unclear | 57 | 0.1% |
+| no_response | 87,833 | 90.7% |
+| partial | 5,229 | 5.4% |
+| conceded | 3,250 | 3.4% |
+| rebutted | 491 | 0.5% |
+| unclear | 63 | 0.1% |
 
 ### Category distribution
 
 | Category | Count | % |
 |----------|-------|---|
-| writing_clarity | 33,954 | 34.9% |
-| missing_experiment | 14,743 | 15.1% |
-| interpretation | 14,611 | 15.0% |
-| design_flaw | 10,050 | 10.3% |
-| prior_art_novelty | 7,250 | 7.4% |
-| reagent_method_specificity | 6,987 | 7.2% |
-| statistical_methodology | 4,898 | 5.0% |
-| figure_issue | 4,619 | 4.7% |
-| other | 253 | 0.3% |
+| writing_clarity | 32,885 | 33.9% |
+| missing_experiment | 15,315 | 15.8% |
+| interpretation | 14,808 | 15.3% |
+| design_flaw | 10,020 | 10.3% |
+| prior_art_novelty | 7,179 | 7.4% |
+| reagent_method_specificity | 6,828 | 7.0% |
+| statistical_methodology | 4,903 | 5.1% |
+| figure_issue | 4,678 | 4.8% |
+| other | 250 | 0.3% |
 
 ---
 

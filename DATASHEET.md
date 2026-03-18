@@ -42,15 +42,15 @@ Each instance represents one published biomedical research article together with
 
 **How many instances are there in total, and per split?**
 
-The current repository snapshot contains 6,559 articles (instances) and 97,365
+The current repository snapshot contains 6,696 articles (instances) and 96,866
 concern records across all splits.
 
 | Split      | Articles | Concerns |
 |------------|----------|----------|
-| train      | 4,740    | 70,147   |
-| validation | 838      | 12,535   |
-| test       | 981      | 14,683   |
-| **Total**  | **6,559**| **97,365**|
+| train      | 4,888    | 70,241   |
+| validation | 864      | 12,755   |
+| test       | 944      | 13,870   |
+| **Total**  | **6,696**| **96,866**|
 
 **Does the dataset contain all possible instances, or is it a sample?**
 
@@ -250,7 +250,7 @@ Yes. Substantial preprocessing, cleaning, and labelling were applied:
 
 - Category and severity labels are silver standard, not gold standard. Users relying on these labels for training or analysis should be aware that a non-trivial fraction may be incorrect.
 - Author stance labels reflect LLM interpretation of author response letters, which may not always accurately capture the nuance of the authors' actual position.
-- The matching threshold (SPECTER2 cosine >= 0.65) for the benchmark evaluation harness was validated on a sample of 148 concerns from 20 articles; generalisation to all 97,365 concerns has not been exhaustively verified.
+- The matching threshold (SPECTER2 cosine >= 0.65) for the benchmark evaluation harness was validated on a sample of 148 concerns from 20 articles; generalisation to all 96,866 concerns has not been exhaustively verified.
 - LLM-based processing may reflect the biases of the underlying LLM (e.g., systematic tendencies to classify certain concern types differently across subfields of biomedicine).
 
 **Was the "raw" data saved in addition to the preprocessed data?**
@@ -292,7 +292,7 @@ Beyond the primary benchmark task (concern detection), the dataset is suitable f
 Yes. Several factors should be considered:
 
 - **Source composition.** The current repository snapshot contains five sources
-  (F1000Research 2,679, eLife 1,810, PLOS 1,737, PeerJ 244, Nature 89). Each
+  (F1000Research 2,679, eLife 1,810, PLOS 1,737, PeerJ 244, Nature 470). Each
   journal has distinct editorial philosophy and reviewer culture. Models trained
   on bioreview-bench may not generalise to journals with significantly different
   practices.
