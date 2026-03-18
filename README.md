@@ -241,8 +241,8 @@ All metrics include bootstrap 95% confidence intervals (1,000 iterations, docume
 
 ## Leaderboard
 
-The current official public leaderboard snapshot (`v3.0-release`) covers **981 scored test articles**.
-The full test split contains 981 articles; the rankings below follow the frozen release
+The current official public leaderboard snapshot covers **944 scored test articles** (after correction/erratum filtering).
+The full test split contains 944 articles; the rankings below follow the frozen release
 manifest in `results/release_manifest.json`. To submit results, open an issue or pull request.
 
 Leaderboard inclusion policy:
@@ -254,12 +254,12 @@ Leaderboard inclusion policy:
 
 | Rank | Tool | Version | Recall | 95% CI | Precision | 95% CI | F1 | Major Recall | Articles |
 |------|------|---------|--------|--------|-----------|--------|----|--------------|----------|
-| 1 | Haiku-4.5 | `claude-haiku-4-5-20251001` | 0.721 | [0.693, 0.752] | 0.678 | [0.658, 0.699] | 0.699 | 0.866 | 981 |
-| 2 | GPT-4o-mini | `gpt-4o-mini` | 0.678 | [0.650, 0.708] | 0.709 | [0.689, 0.729] | 0.693 | 0.839 | 981 |
-| 3 | Gemini-2.5-Flash | `gemini-2.5-flash` | 0.658 | [0.631, 0.687] | 0.715 | [0.695, 0.736] | 0.686 | 0.831 | 981 |
-| 4 | BM25 | `lexical-v1` | 0.631 | [0.604, 0.659] | 0.747 | [0.728, 0.767] | 0.684 | 0.790 | 981 |
-| 5 | Gemini-2.5-Flash-Lite | `gemini-2.5-flash-lite` | 0.610 | [0.583, 0.639] | 0.715 | [0.694, 0.737] | 0.659 | 0.780 | 981 |
-| 6 | Llama-3.3-70B | `llama-3.3-70b-versatile` | 0.547 | [0.524, 0.574] | 0.799 | [0.781, 0.817] | 0.650 | 0.751 | 981 |
+| 1 | Haiku-4.5 | `claude-haiku-4-5-20251001` | 0.725 | [0.697, 0.753] | 0.675 | [0.653, 0.694] | 0.699 | 0.872 | 944 |
+| 2 | GPT-4o-mini | `gpt-4o-mini` | 0.684 | [0.658, 0.712] | 0.703 | [0.682, 0.722] | 0.694 | 0.840 | 944 |
+| 3 | Gemini-2.5-Flash | `gemini-2.5-flash` | 0.665 | [0.639, 0.693] | 0.709 | [0.688, 0.729] | 0.686 | 0.832 | 944 |
+| 4 | BM25 | `bm25-specter2` | 0.637 | [0.611, 0.664] | 0.741 | [0.721, 0.760] | 0.685 | 0.794 | 944 |
+| 5 | Gemini-2.5-Flash-Lite | `gemini-2.5-flash-lite` | 0.615 | [0.588, 0.644] | 0.708 | [0.685, 0.729] | 0.658 | 0.781 | 944 |
+| 6 | Llama-3.3-70B | `llama-3.3-70b` | 0.554 | [0.530, 0.580] | 0.794 | [0.774, 0.811] | 0.653 | 0.753 | 944 |
 
 > Ranking metric: micro-averaged F1 (`f1_micro`). 95% CI from 1,000 article-level bootstrap resamples.
 > Matching: SPECTER2 cosine similarity, threshold=0.65, hungarian bipartite matching.
