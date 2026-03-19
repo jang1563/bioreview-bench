@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+title: "BioReview-Bench: A Benchmark for AI-Assisted Biomedical Peer Review"
+message: "If you use this dataset, please cite it using the metadata from this file."
+type: dataset
+authors:
+  - family-names: Kim
+    given-names: JangKeun
+    orcid: "https://orcid.org/0000-0002-4653-2616"
+    affiliation: "Weill Cornell Medicine"
+    email: jak4013@med.cornell.edu
+date-released: "2026-03-01"
+version: "3.0"
+license: CC-BY-NC-4.0
+url: "https://huggingface.co/datasets/jang1563/bioreview-bench"
+repository-code: "https://github.com/jang1563/bioreview-bench"
+keywords:
+  - peer-review
+  - biomedical
+  - benchmark
+  - scientific-review
+  - elife
+  - plos
+  - f1000research
+  - peerj
+  - nature
+  - text-classification
+  - severity-rating
+  - open-peer-review
+abstract: >-
+  BioReview-Bench is a benchmark and training dataset for AI-assisted
+  biomedical peer review, containing 6,940 articles with 101,869 reviewer
+  concerns from five open peer review sources (eLife, F1000Research, PLOS,
+  PeerJ, Nature Portfolio). Each concern is annotated with category, severity,
+  and author stance labels. The benchmark supports evaluation of AI systems
+  that generate structured peer review feedback on biomedical manuscripts.
+preferred-citation:
+  type: misc
+  title: "BioReview-Bench: A Benchmark for AI-Assisted Biomedical Peer Review"
+  authors:
+    - family-names: Kim
+      given-names: JangKeun
+  year: 2026
+  url: "https://huggingface.co/datasets/jang1563/bioreview-bench"
