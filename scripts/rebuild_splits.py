@@ -198,7 +198,7 @@ def _check_source_balance(split: list[dict], split_name: str) -> None:
     "--sources",
     "-s",
     multiple=True,
-    default=["elife", "plos", "f1000", "nature"],
+    default=["elife", "plos", "f1000", "nature", "peerj"],
     show_default=True,
     help="Source names to include (multiple allowed). "
     "Choices: elife plos f1000 nature peerj",
