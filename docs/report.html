@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bioreview-bench Report — Pipeline, Dataset & Evaluation Results</title>
+<meta name="description" content="Comprehensive report for bioreview-bench v3: 6,940 articles, 101,869 concerns, 5 sources, 6 baseline models.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   RESET & VARIABLES
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1a1a;--paper:#faf8f5;--accent:#c2410c;--accent-light:#fed7aa;
+  --border:#d6d0c8;--muted:#8a8278;--card:#ffffff;--card-hover:#f9f7f4;
+  --serif:'Newsreader',Georgia,serif;
+  --sans:'DM Sans','Helvetica Neue',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --sidebar-w:220px;
+  /* model colors */
+  --c-haiku:#c2410c;--c-gpt:#0284c7;--c-gemini:#7c3aed;
+  --c-bm25:#475569;--c-lite:#0d9488;--c-llama:#d97706;
+}
+[data-theme="dark"]{
+  --ink:#e5e5e5;--paper:#181818;--accent:#f97316;--accent-light:#7c2d12;
+  --border:#333;--muted:#888;--card:#222;--card-hover:#2a2a2a;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:var(--sans);color:var(--ink);background:var(--paper);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+  margin-left:var(--sidebar-w);
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar{
+  position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+  background:var(--card);border-right:1px solid var(--border);
+  padding:1.5rem 1rem;overflow-y:auto;z-index:200;
+  display:flex;flex-direction:column;
+}
+.sidebar-brand{
+  font-family:var(--serif);font-size:1.1rem;font-weight:600;
+  margin-bottom:.25rem;
+}
+.sidebar-brand span{color:var(--accent);font-style:italic}
+.sidebar-version{font-size:.7rem;color:var(--muted);margin-bottom:1.5rem}
+.sidebar nav{flex:1}
+.sidebar nav a{
+  display:block;padding:.4rem .6rem;font-size:.8rem;color:var(--muted);
+  text-decoration:none;border-left:2px solid transparent;
+  transition:all .15s;margin-bottom:.1rem;
+}
+.sidebar nav a:hover{color:var(--ink);background:var(--card-hover)}
+.sidebar nav a.active{color:var(--accent);border-left-color:var(--accent);font-weight:500}
+.sidebar-footer{margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)}
+.sidebar-footer a{
+  font-size:.72rem;color:var(--muted);text-decoration:none;display:block;margin-bottom:.3rem;
+}
+.sidebar-footer a:hover{color:var(--accent)}
+.theme-toggle{
+  background:none;border:1px solid var(--border);padding:.3rem .6rem;
+  font-size:.72rem;color:var(--muted);cursor:pointer;margin-top:.5rem;
+  font-family:var(--sans);border-radius:3px;width:100%;
+}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.main{max-width:960px;margin:0 auto;padding:0 2rem 4rem}
+section{padding:3rem 0}
+section+section{border-top:1px solid var(--border)}
+.section-label{
+  font-family:var(--mono);font-size:.68rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:.12em;color:var(--accent);
+  margin-bottom:.4rem;
+}
+h2{font-family:var(--serif);font-size:1.5rem;font-weight:500;margin-bottom:1.2rem;letter-spacing:-.01em}
+h3{font-family:var(--sans);font-size:.88rem;font-weight:600;margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+
+/* ============================================================
+   HERO STATS
+   ============================================================ */
+.hero-stats{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
+  background:var(--border);border:1px solid var(--border);margin-top:1rem;
+}
+.hero-stat{
+  background:var(--card);padding:1.2rem .8rem;text-align:center;
+}
+.hero-stat .num{
+  font-family:var(--serif);font-size:2rem;font-weight:600;color:var(--ink);
+  line-height:1;display:block;
+}
+.hero-stat .label{
+  font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;
+  margin-top:.35rem;display:block;
+}
+.hero-note{font-size:.78rem;color:var(--muted);margin-top:.6rem;font-style:italic}
+
+/* ============================================================
+   CHART GRID
+   ============================================================ */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1rem}
+.chart-card{
+  background:var(--card);border:1px solid var(--border);padding:1.2rem;
+}
+.chart-card h3{margin-bottom:.8rem}
+.chart-card canvas{width:100%!important;max-height:260px}
+.chart-card.wide{grid-column:1/-1}
+.chart-card.wide canvas{max-height:220px}
+.chart-card.wide.tall canvas{max-height:320px}
+.chart-card.third{/* for 3-col items */}
+.chart-note{font-size:.72rem;color:var(--muted);margin-top:.4rem;font-style:italic}
+
+/* ============================================================
+   PIPELINE SVG
+   ============================================================ */
+.pipeline-wrap{margin:1rem 0}
+.pipeline-wrap svg{width:100%;height:auto}
+.pipeline-wrap svg text{font-family:var(--sans);fill:var(--ink)}
+.pipeline-wrap svg .box{fill:var(--card);stroke:var(--border);stroke-width:1.5}
+.pipeline-wrap svg .box-accent{fill:var(--accent-light);stroke:var(--accent);stroke-width:1.5}
+.pipeline-wrap svg .arrow-line{stroke:var(--muted);stroke-width:1.5;fill:none;marker-end:url(#arrowhead)}
+.pipeline-wrap svg .label{font-size:10px;fill:var(--muted);font-family:var(--mono)}
+
+/* ============================================================
+   TABLES
+   ============================================================ */
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+thead th{
+  font-family:var(--mono);font-size:.68rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+  text-align:left;padding:.5rem .6rem;border-bottom:2px solid var(--ink);
+  cursor:pointer;user-select:none;white-space:nowrap;
+}
+thead th:hover{color:var(--accent)}
+thead th .sort-arrow{font-size:.6rem;margin-left:.2rem}
+tbody td{padding:.45rem .6rem;border-bottom:1px solid var(--border)}
+tbody tr:hover{background:var(--card-hover)}
+td.num{font-family:var(--mono);text-align:right;font-size:.82rem}
+td .rank-badge{
+  display:inline-block;width:1.4rem;height:1.4rem;border-radius:50%;
+  text-align:center;line-height:1.4rem;font-size:.65rem;font-weight:600;
+  color:#fff;
+}
+td .rank-badge.r1{background:var(--accent)}
+td .rank-badge.r2{background:#64748b}
+td .rank-badge.r3{background:#92400e}
+
+/* ============================================================
+   INFO BOXES
+   ============================================================ */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin:1rem 0}
+.info-box{
+  background:var(--card);border:1px solid var(--border);padding:.8rem 1rem;
+  border-left:3px solid var(--accent);
+}
+.info-box .info-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.info-box .info-value{font-family:var(--mono);font-size:1rem;font-weight:500;margin-top:.15rem}
+
+/* ============================================================
+   HEATMAP
+   ============================================================ */
+.heatmap{margin:1rem 0;overflow-x:auto}
+.heatmap table{min-width:600px}
+.heatmap td.cell{
+  text-align:center;font-family:var(--mono);font-size:.78rem;font-weight:500;
+  padding:.5rem .3rem;border:1px solid var(--card);min-width:70px;
+}
+.heatmap td.cat-label{
+  font-size:.78rem;font-weight:500;text-align:left;padding-right:1rem;white-space:nowrap;
+}
+
+/* ============================================================
+   DISCUSSION
+   ============================================================ */
+.prose{font-family:var(--serif);font-size:1.05rem;line-height:1.75;color:var(--ink)}
+.prose p{margin-bottom:1rem;max-width:680px}
+.prose strong{font-weight:600}
+.prose ul{margin-left:1.5rem;margin-bottom:1rem}
+.prose li{margin-bottom:.3rem}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:900px){
+  .sidebar{display:none}
+  body{margin-left:0}
+  .hero-stats{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:600px){
+  .hero-stats{grid-template-columns:repeat(2,1fr)}
+  .chart-grid{grid-template-columns:1fr}
+  .info-grid{grid-template-columns:1fr}
+}
+
+/* ============================================================
+   DARK MODE CHART FIX
+   ============================================================ */
+[data-theme="dark"] .chart-card canvas{
+  filter:invert(0.88) hue-rotate(180deg);
+}
+[data-theme="dark"] .chart-card{
+  border-color:var(--border);
+}
+
+/* ============================================================
+   METRIC TOGGLE BUTTONS
+   ============================================================ */
+.metric-toggles{display:flex;gap:.5rem;margin-bottom:.8rem}
+.metric-toggles button{
+  font-family:var(--sans);font-size:.75rem;padding:.3rem .8rem;
+  border:1px solid var(--border);background:var(--card);color:var(--muted);
+  cursor:pointer;border-radius:3px;transition:all .15s;
+}
+.metric-toggles button.active{
+  background:var(--accent);color:#fff;border-color:var(--accent);
+}
+.metric-toggles button:hover:not(.active){border-color:var(--accent);color:var(--accent)}
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@media print{
+  .sidebar{display:none}
+  body{margin-left:0;background:#fff;color:#000}
+  section{page-break-inside:avoid}
+  .chart-card canvas{max-height:200px!important;filter:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SIDEBAR
+     ============================================================ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">bioreview-<span>bench</span></div>
+  <div class="sidebar-version">v3 Report &middot; 2026-03-21</div>
+  <nav>
+    <a href="#hero" class="active">Overview</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#dataset">Dataset</a>
+    <a href="#methodology">Methodology</a>
+    <a href="#results">Results</a>
+    <a href="#analysis">Analysis</a>
+    <a href="#discussion">Discussion</a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="https://github.com/jang1563/bioreview-bench">GitHub &rarr;</a>
+    <a href="https://huggingface.co/datasets/jang1563/bioreview-bench">HuggingFace &rarr;</a>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Dark Mode</button>
+  </div>
+</aside>
+
+<!-- ============================================================
+     MAIN CONTENT
+     ============================================================ -->
+<div class="main">
+
+<!-- ============================================================
+     SECTION 1: HERO
+     ============================================================ -->
+<section id="hero">
+  <div class="section-label">Overview</div>
+  <h2>A benchmark for evaluating AI biomedical peer review tools</h2>
+  <p style="font-family:var(--serif);font-size:1.05rem;line-height:1.7;color:var(--muted);max-width:680px">
+    <strong style="color:var(--ink)">bioreview-bench</strong> pairs open-access biomedical articles with
+    the substantive concerns raised during professional peer review. Each concern is annotated with
+    <strong style="color:var(--ink)">category</strong>, <strong style="color:var(--ink)">severity</strong>,
+    and <strong style="color:var(--ink)">author stance</strong>. The benchmark measures how well AI tools
+    identify concerns that human reviewers would raise.
+  </p>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="num" id="hs-articles">6,940</span><span class="label">Articles</span></div>
+    <div class="hero-stat"><span class="num" id="hs-concerns">101,869</span><span class="label">Concerns</span></div>
+    <div class="hero-stat"><span class="num">5</span><span class="label">Sources</span></div>
+    <div class="hero-stat"><span class="num">9</span><span class="label">Categories</span></div>
+    <div class="hero-stat"><span class="num">6</span><span class="label">Baseline Models</span></div>
+  </div>
+  <p class="hero-note">Evaluated on 944 test articles from 4 sources (eLife, PLOS, F1000Research, Nature).</p>
+</section>
+
+<!-- ============================================================
+     SECTION 2: PIPELINE
+     ============================================================ -->
+<section id="pipeline">
+  <div class="section-label">Pipeline</div>
+  <h2>Data collection &amp; evaluation pipeline</h2>
+
+  <h3>Collection Pipeline</h3>
+  <div class="pipeline-wrap">
+    <svg viewBox="0 0 880 140" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#8a8278"/>
+        </marker>
+      </defs>
+      <!-- Sources -->
+      <rect class="box" x="10" y="20" width="130" height="100" rx="4"/>
+      <text x="75" y="42" text-anchor="middle" font-size="11" font-weight="600">5 Sources</text>
+      <text x="75" y="58" text-anchor="middle" font-size="9" class="label">eLife</text>
+      <text x="75" y="70" text-anchor="middle" font-size="9" class="label">PLOS</text>
+      <text x="75" y="82" text-anchor="middle" font-size="9" class="label">F1000Research</text>
+      <text x="75" y="94" text-anchor="middle" font-size="9" class="label">PeerJ &middot; Nature</text>
+      <text x="75" y="112" text-anchor="middle" font-size="8" class="label">JATS XML / PDF</text>
+      <!-- Arrow 1 -->
+      <line class="arrow-line" x1="145" y1="70" x2="185" y2="70"/>
+      <!-- Parser -->
+      <rect class="box" x="190" y="35" width="130" height="70" rx="4"/>
+      <text x="255" y="62" text-anchor="middle" font-size="11" font-weight="600">Parser</text>
+      <text x="255" y="78" text-anchor="middle" font-size="9" class="label">JATSParser</text>
+      <text x="255" y="90" text-anchor="middle" font-size="9" class="label">NaturePDFParser</text>
+      <!-- Arrow 2 -->
+      <line class="arrow-line" x1="325" y1="70" x2="365" y2="70"/>
+      <!-- LLM Extraction -->
+      <rect class="box-accent" x="370" y="30" width="150" height="80" rx="4"/>
+      <text x="445" y="56" text-anchor="middle" font-size="11" font-weight="600">LLM Extraction</text>
+      <text x="445" y="72" text-anchor="middle" font-size="9" class="label">Claude Haiku 4.5</text>
+      <text x="445" y="84" text-anchor="middle" font-size="9" class="label">per-reviewer prompts</text>
+      <text x="445" y="96" text-anchor="middle" font-size="9" class="label">JSON structured output</text>
+      <!-- Arrow 3 -->
+      <line class="arrow-line" x1="525" y1="70" x2="565" y2="70"/>
+      <!-- Output -->
+      <rect class="box" x="570" y="30" width="160" height="80" rx="4"/>
+      <text x="650" y="52" text-anchor="middle" font-size="11" font-weight="600">Structured Entry</text>
+      <text x="650" y="68" text-anchor="middle" font-size="9" class="label">concern_text</text>
+      <text x="650" y="80" text-anchor="middle" font-size="9" class="label">category &middot; severity</text>
+      <text x="650" y="92" text-anchor="middle" font-size="9" class="label">author_stance</text>
+      <text x="650" y="104" text-anchor="middle" font-size="9" class="label">confidence</text>
+      <!-- Arrow 4 -->
+      <line class="arrow-line" x1="735" y1="70" x2="775" y2="70"/>
+      <!-- JSONL -->
+      <rect class="box" x="780" y="42" width="90" height="56" rx="4"/>
+      <text x="825" y="66" text-anchor="middle" font-size="11" font-weight="600">JSONL</text>
+      <text x="825" y="82" text-anchor="middle" font-size="9" class="label">train/val/test</text>
+    </svg>
+  </div>
+
+  <h3 style="margin-top:1.5rem">Evaluation Pipeline</h3>
+  <div class="pipeline-wrap">
+    <svg viewBox="0 0 880 130" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrowhead2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#8a8278"/>
+        </marker>
+      </defs>
+      <!-- Tool Output -->
+      <rect class="box" x="10" y="30" width="120" height="70" rx="4"/>
+      <text x="70" y="55" text-anchor="middle" font-size="11" font-weight="600">Tool Output</text>
+      <text x="70" y="72" text-anchor="middle" font-size="9" class="label">list of concern</text>
+      <text x="70" y="84" text-anchor="middle" font-size="9" class="label">strings per article</text>
+      <!-- Arrow -->
+      <line class="arrow-line" x1="135" y1="65" x2="175" y2="65" style="marker-end:url(#arrowhead2)"/>
+      <!-- SPECTER2 -->
+      <rect class="box-accent" x="180" y="25" width="140" height="80" rx="4"/>
+      <text x="250" y="50" text-anchor="middle" font-size="11" font-weight="600">SPECTER2</text>
+      <text x="250" y="66" text-anchor="middle" font-size="9" class="label">allenai/specter2_base</text>
+      <text x="250" y="78" text-anchor="middle" font-size="9" class="label">768-dim embeddings</text>
+      <text x="250" y="90" text-anchor="middle" font-size="9" class="label">cosine similarity</text>
+      <!-- Arrow -->
+      <line class="arrow-line" x1="325" y1="65" x2="365" y2="65" style="marker-end:url(#arrowhead2)"/>
+      <!-- Matching -->
+      <rect class="box" x="370" y="30" width="140" height="70" rx="4"/>
+      <text x="440" y="55" text-anchor="middle" font-size="11" font-weight="600">Matching</text>
+      <text x="440" y="72" text-anchor="middle" font-size="9" class="label">Hungarian (Munkres)</text>
+      <text x="440" y="84" text-anchor="middle" font-size="9" class="label">threshold t &ge; 0.65</text>
+      <!-- Arrow -->
+      <line class="arrow-line" x1="515" y1="65" x2="555" y2="65" style="marker-end:url(#arrowhead2)"/>
+      <!-- Metrics -->
+      <rect class="box" x="560" y="25" width="140" height="80" rx="4"/>
+      <text x="630" y="48" text-anchor="middle" font-size="11" font-weight="600">Metrics</text>
+      <text x="630" y="64" text-anchor="middle" font-size="9" class="label">Recall &middot; Precision</text>
+      <text x="630" y="76" text-anchor="middle" font-size="9" class="label">F1 (micro-avg)</text>
+      <text x="630" y="88" text-anchor="middle" font-size="9" class="label">per-category breakdown</text>
+      <!-- Arrow -->
+      <line class="arrow-line" x1="705" y1="65" x2="745" y2="65" style="marker-end:url(#arrowhead2)"/>
+      <!-- Bootstrap -->
+      <rect class="box" x="750" y="30" width="120" height="70" rx="4"/>
+      <text x="810" y="55" text-anchor="middle" font-size="11" font-weight="600">Bootstrap CI</text>
+      <text x="810" y="72" text-anchor="middle" font-size="9" class="label">1,000 resamples</text>
+      <text x="810" y="84" text-anchor="middle" font-size="9" class="label">95% percentile</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 3: DATASET COMPOSITION
+     ============================================================ -->
+<section id="dataset">
+  <div class="section-label">Dataset</div>
+  <h2>Composition of the benchmark dataset</h2>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Source Distribution</h3>
+      <canvas id="chart-source"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Split &times; Source</h3>
+      <canvas id="chart-splits"></canvas>
+    </div>
+    <div class="chart-card wide">
+      <h3>Concern Categories</h3>
+      <canvas id="chart-categories"></canvas>
+      <p class="chart-note">* Figure concerns are excluded from model evaluation (AI cannot inspect figures).</p>
+    </div>
+    <div class="chart-card">
+      <h3>Severity</h3>
+      <canvas id="chart-severity"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Author Stance</h3>
+      <canvas id="chart-stance"></canvas>
+      <p class="chart-note">no_response dominates (91.1%) because most sources lack structured author replies.</p>
+    </div>
+    <div class="chart-card">
+      <h3>Review Format</h3>
+      <canvas id="chart-format"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Author Response</h3>
+      <canvas id="chart-response"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 4: METHODOLOGY
+     ============================================================ -->
+<section id="methodology">
+  <div class="section-label">Methodology</div>
+  <h2>Evaluation methodology</h2>
+
+  <div class="prose">
+    <p>
+      Each model receives the article text (abstract + full body, truncated to fit context) and must
+      output a list of concern strings. These are matched against ground-truth concerns extracted from
+      actual peer reviews using semantic similarity.
+    </p>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-box">
+      <div class="info-label">Embedding Model</div>
+      <div class="info-value">SPECTER2</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">Similarity</div>
+      <div class="info-value">Cosine &ge; 0.65</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">Matching</div>
+      <div class="info-value">Hungarian</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">Bootstrap</div>
+      <div class="info-value">1,000 &times; 95%</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">Test Articles</div>
+      <div class="info-value">944</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">Figure Concerns</div>
+      <div class="info-value">Excluded</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:1.5rem">F1 Stability Across Thresholds</h3>
+  <div class="chart-card wide" style="margin-top:.5rem">
+    <canvas id="chart-threshold-preview"></canvas>
+    <p class="chart-note">F1 is stable from t=0.50 to t=0.80, confirming the threshold choice is not fragile.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 5: MAIN RESULTS
+     ============================================================ -->
+<section id="results">
+  <div class="section-label">Results</div>
+  <h2>Baseline model performance</h2>
+
+  <!-- Leaderboard Table -->
+  <h3>Leaderboard (test split, n=944)</h3>
+  <table id="leaderboard-table">
+    <thead>
+      <tr>
+        <th data-col="rank">Rank</th>
+        <th data-col="name">Model</th>
+        <th data-col="f1">F1 <span class="sort-arrow">&#9660;</span></th>
+        <th data-col="recall">Recall</th>
+        <th data-col="precision">Precision</th>
+        <th data-col="recall_major">R<sub>major</sub></th>
+        <th data-col="auc">AUC-PR</th>
+      </tr>
+    </thead>
+    <tbody id="leaderboard-body"></tbody>
+  </table>
+
+  <div class="chart-grid" style="margin-top:2rem">
+    <!-- Forest Plot -->
+    <div class="chart-card wide tall">
+      <h3>Recall &amp; Precision with 95% CI</h3>
+      <canvas id="chart-forest"></canvas>
+    </div>
+
+    <!-- Radar -->
+    <div class="chart-card">
+      <h3>Model Profiles</h3>
+      <canvas id="chart-radar"></canvas>
+    </div>
+
+    <!-- Heatmap -->
+    <div class="chart-card">
+      <h3>F1 by Category &times; Model</h3>
+      <div class="heatmap" id="heatmap-container"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 6: ANALYSIS
+     ============================================================ -->
+<section id="analysis">
+  <div class="section-label">Analysis</div>
+  <h2>Detailed analysis</h2>
+
+  <div class="chart-grid">
+    <div class="chart-card wide">
+      <h3>Threshold Sensitivity</h3>
+      <div class="metric-toggles" id="threshold-toggles">
+        <button class="active" data-metric="f1">F1</button>
+        <button data-metric="recall">Recall</button>
+        <button data-metric="precision">Precision</button>
+      </div>
+      <canvas id="chart-threshold-full"></canvas>
+    </div>
+
+    <div class="chart-card wide">
+      <h3>F1 by Category</h3>
+      <canvas id="chart-category-grouped"></canvas>
+    </div>
+  </div>
+
+  <!-- Small multiples: per-model radar -->
+  <h3 style="margin-top:2rem">Per-Model Category Profiles</h3>
+  <div class="chart-grid" id="model-profiles-grid">
+    <!-- Populated by JS -->
+  </div>
+
+  <!-- Per-Source Performance -->
+  <h3 style="margin-top:2rem">Performance by Source</h3>
+  <div class="chart-grid">
+    <div class="chart-card wide">
+      <h3>F1 by Source</h3>
+      <canvas id="chart-source-f1"></canvas>
+      <p class="chart-note">4 common sources (eLife n=273, PLOS n=260, F1000 n=403, Nature n=8). Haiku-4.5 was not evaluated on PeerJ (n=37).</p>
+    </div>
+  </div>
+
+  <!-- Pairwise Significance -->
+  <h3 style="margin-top:2rem">Pairwise Statistical Significance</h3>
+  <div class="chart-card wide" style="margin-top:.5rem">
+    <div class="heatmap" id="pairwise-heatmap"></div>
+    <p class="chart-note">Paired bootstrap test (10,000 resamples, n=944). Bonferroni-corrected &alpha; = 0.05/15 &asymp; 0.003. Green = row model significantly better, red = significantly worse, gray = not significant.</p>
+  </div>
+
+  <!-- Similarity Distribution -->
+  <h3 style="margin-top:2rem">SPECTER2 Similarity Distribution</h3>
+  <div class="chart-grid">
+    <div class="chart-card wide">
+      <h3>Max Similarity per Tool Concern</h3>
+      <canvas id="chart-sim-hist"></canvas>
+      <p class="chart-note">Each tool concern's highest cosine similarity to any ground-truth concern (n=73,329 across all models). Orange bars &ge; threshold (0.65), gray bars &lt; threshold.</p>
+    </div>
+  </div>
+
+  <!-- Concern Counts -->
+  <h3 style="margin-top:2rem">Concern Generation Volume</h3>
+  <div class="chart-grid">
+    <div class="chart-card wide">
+      <h3>Mean Concerns per Article</h3>
+      <canvas id="chart-concern-counts"></canvas>
+      <p class="chart-note">Average number of concerns generated per article. BM25 always returns exactly 12 (by design).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 7: DISCUSSION
+     ============================================================ -->
+<section id="discussion">
+  <div class="section-label">Discussion</div>
+  <h2>Key findings &amp; limitations</h2>
+
+  <div class="prose">
+    <p>
+      <strong>Finding 1: Models cluster into three statistical tiers.</strong>
+      Paired bootstrap testing (10,000 resamples, Bonferroni-corrected &alpha; &asymp; 0.003) reveals three groups:
+      Haiku-4.5 and GPT-4o-mini form the top tier (F1 0.694&ndash;0.699, &Delta;F1 = 0.005, p = 0.003),
+      Gemini-2.5-Flash and BM25 form a middle tier (F1 0.685&ndash;0.686, p = 0.56),
+      and Gemini-Flash-Lite and Llama-3.3-70B form the bottom tier (F1 0.653&ndash;0.658, p = 0.33).
+    </p>
+    <p>
+      <strong>Finding 2: Performance varies dramatically by source.</strong>
+      All models achieve near-perfect recall on eLife (&gt;0.91) but low precision (~0.38&ndash;0.55),
+      while PLOS shows the highest F1 (0.67&ndash;0.78). This pattern reflects source-specific differences:
+      eLife articles have fewer ground-truth concerns per article, causing models' fixed-count outputs
+      to produce many unmatched predictions.
+    </p>
+    <p>
+      <strong>Finding 3: Statistical methodology concerns are most reliably detected.</strong>
+      These concrete, well-defined concerns achieve the highest per-category F1 (0.67&ndash;0.78).
+      Writing clarity (F1 0.59&ndash;0.70) and reagent/method specificity (F1 0.63&ndash;0.71) are harder,
+      likely because they require domain-specific expertise or subjective judgment.
+    </p>
+    <p>
+      <strong>Finding 4: The BM25 retrieval baseline is surprisingly competitive.</strong>
+      A simple lexical similarity baseline achieves F1 = 0.685, statistically indistinguishable from
+      Gemini 2.5 Flash (p = 0.56). This suggests many peer review concerns are somewhat predictable
+      from the manuscript text alone.
+    </p>
+    <p>
+      <strong>Finding 5: Threshold choice is not fragile.</strong>
+      F1 remains stable from t=0.50 to t=0.80 for all models, with a sharp drop only at t=0.90.
+      The similarity distribution confirms this: 98.5% of matched tool concerns have cosine similarity &gt; 0.85,
+      creating a clear separation from non-matches.
+    </p>
+  </div>
+
+  <h3 style="margin-top:1.5rem">Limitations</h3>
+  <div class="prose">
+    <ul>
+      <li><strong>Silver labels from single-model extraction.</strong>
+        Ground-truth concerns are extracted from peer reviews by Claude Haiku 4.5, not manually annotated.
+        This creates potential &ldquo;extractor advantage&rdquo; for the extracting model. We note that (a) BM25,
+        a non-neural baseline, achieves competitive F1 (0.685), suggesting labels are not pathologically model-specific,
+        and (b) the evaluation framework is model-agnostic &mdash; practitioners can re-extract with any model.
+        Cross-model validation is planned as future work.</li>
+      <li><strong>944 vs 981 test articles.</strong>
+        Tool outputs were generated for 944 test articles from 4 sources (eLife, PLOS, F1000Research, Nature).
+        37 PeerJ articles in the test split were not evaluated by all models. Per-source PeerJ metrics
+        are available for 5 of 6 models as supplementary data.</li>
+      <li><strong>Nature small sample (n=8).</strong>
+        Only 8 Nature articles are in the test split. Per-source results for Nature should be interpreted as
+        preliminary; bootstrap confidence intervals are uninformatively wide.</li>
+      <li><strong>Figure concerns excluded.</strong>
+        AI models cannot inspect manuscript figures. The ~5% of concerns requiring figure analysis are
+        filtered from evaluation.</li>
+      <li><strong>Source imbalance.</strong>
+        F1000Research dominates the test set (403/981, 41%), while Nature (8) and PeerJ (37) are underrepresented.
+        Per-source breakdowns help contextualize this imbalance.</li>
+    </ul>
+  </div>
+
+  <h3 style="margin-top:1.5rem">Links</h3>
+  <div class="info-grid">
+    <div class="info-box">
+      <div class="info-label">GitHub</div>
+      <div class="info-value"><a href="https://github.com/jang1563/bioreview-bench" style="color:var(--accent);text-decoration:none">jang1563/bioreview-bench</a></div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">HuggingFace</div>
+      <div class="info-value"><a href="https://huggingface.co/datasets/jang1563/bioreview-bench" style="color:var(--accent);text-decoration:none">jang1563/bioreview-bench</a></div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /.main -->
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+// ============================================================
+// EMBEDDED DATA
+// ============================================================
+const DATA_SUMMARY = {"total_articles":6940,"total_concerns":101869,"avg_concerns_per_article":14.7,"source_distribution":{"elife":1810,"f1000":2679,"nature":470,"peerj":244,"plos":1737},"severity_distribution":{"major":{"count":63617,"percent":62.4},"minor":{"count":35869,"percent":35.2},"optional":{"count":2383,"percent":2.3}},"author_stance_distribution":{"no_response":{"count":92836,"percent":91.1},"partial":{"count":5229,"percent":5.1},"conceded":{"count":3250,"percent":3.2},"rebutted":{"count":491,"percent":0.5},"unclear":{"count":63,"percent":0.1}},"category_distribution":{"writing_clarity":{"count":35166,"percent":34.5},"missing_experiment":{"count":15715,"percent":15.4},"interpretation":{"count":15395,"percent":15.1},"design_flaw":{"count":10462,"percent":10.3},"prior_art_novelty":{"count":7550,"percent":7.4},"reagent_method_specificity":{"count":7282,"percent":7.1},"statistical_methodology":{"count":5090,"percent":5.0},"figure_issue":{"count":4950,"percent":4.9},"other":{"count":259,"percent":0.3}},"review_format_distribution":{"journal":5519,"reviewed_preprint":1418,"unknown":3},"author_response_distribution":{"with_response":4284,"without_response":2656}};
+
+const SPLIT_META = {"split_sizes":{"train":5064,"val":895,"test":981,"total":6940},"split_source_distribution":{"train":{"elife":1305,"nature":392,"plos":1256,"f1000":1935,"peerj":176},"val":{"plos":221,"elife":232,"f1000":341,"nature":70,"peerj":31},"test":{"plos":260,"f1000":403,"elife":273,"nature":8,"peerj":37}}};
+
+const LEADERBOARD = [{"rank":1,"tool_name":"Haiku-4.5","f1":0.6988,"recall":0.7247,"precision":0.6746,"recall_major":0.8722,"auc_pr":0.2437,"ci_recall_lo":0.6970,"ci_recall_hi":0.7525,"ci_precision_lo":0.6527,"ci_precision_hi":0.6937},{"rank":2,"tool_name":"GPT-4o-mini","f1":0.6937,"recall":0.6844,"precision":0.7033,"recall_major":0.8405,"auc_pr":0.2400,"ci_recall_lo":0.6577,"ci_recall_hi":0.7122,"ci_precision_lo":0.6821,"ci_precision_hi":0.7221},{"rank":3,"tool_name":"Gemini-2.5-Flash","f1":0.6865,"recall":0.6651,"precision":0.7093,"recall_major":0.8321,"auc_pr":0.2354,"ci_recall_lo":0.6387,"ci_recall_hi":0.6928,"ci_precision_lo":0.6882,"ci_precision_hi":0.7289},{"rank":4,"tool_name":"BM25","f1":0.6852,"recall":0.6370,"precision":0.7414,"recall_major":0.7938,"auc_pr":0.2326,"ci_recall_lo":0.6113,"ci_recall_hi":0.6638,"ci_precision_lo":0.7210,"ci_precision_hi":0.7600},{"rank":5,"tool_name":"Gemini-Flash-Lite","f1":0.6584,"recall":0.6150,"precision":0.7083,"recall_major":0.7814,"auc_pr":0.2172,"ci_recall_lo":0.5879,"ci_recall_hi":0.6437,"ci_precision_lo":0.6847,"ci_precision_hi":0.7292},{"rank":6,"tool_name":"Llama-3.3-70B","f1":0.6526,"recall":0.5541,"precision":0.7939,"recall_major":0.7533,"auc_pr":0.2196,"ci_recall_lo":0.5298,"ci_recall_hi":0.5796,"ci_precision_lo":0.7744,"ci_precision_hi":0.8108}];
+
+const CATEGORY_DATA = {"models":["Haiku-4.5","GPT-4o-mini","Gemini-2.5-Flash","BM25","Gemini-Flash-Lite","Llama-3.3-70B"],"categories":{"statistical_methodology":{"n_gt":730,"models":{"Haiku-4.5":{"f1":0.779},"GPT-4o-mini":{"f1":0.74},"Gemini-2.5-Flash":{"f1":0.737},"BM25":{"f1":0.683},"Gemini-Flash-Lite":{"f1":0.721},"Llama-3.3-70B":{"f1":0.671}}},"design_flaw":{"n_gt":1362,"models":{"Haiku-4.5":{"f1":0.711},"GPT-4o-mini":{"f1":0.692},"Gemini-2.5-Flash":{"f1":0.72},"BM25":{"f1":0.659},"Gemini-Flash-Lite":{"f1":0.697},"Llama-3.3-70B":{"f1":0.703}}},"missing_experiment":{"n_gt":2070,"models":{"Haiku-4.5":{"f1":0.662},"GPT-4o-mini":{"f1":0.672},"Gemini-2.5-Flash":{"f1":0.659},"BM25":{"f1":0.67},"Gemini-Flash-Lite":{"f1":0.649},"Llama-3.3-70B":{"f1":0.692}}},"interpretation":{"n_gt":2157,"models":{"Haiku-4.5":{"f1":0.708},"GPT-4o-mini":{"f1":0.715},"Gemini-2.5-Flash":{"f1":0.706},"BM25":{"f1":0.699},"Gemini-Flash-Lite":{"f1":0.679},"Llama-3.3-70B":{"f1":0.705}}},"prior_art_novelty":{"n_gt":1049,"models":{"Haiku-4.5":{"f1":0.698},"GPT-4o-mini":{"f1":0.698},"Gemini-2.5-Flash":{"f1":0.691},"BM25":{"f1":0.705},"Gemini-Flash-Lite":{"f1":0.658},"Llama-3.3-70B":{"f1":0.653}}},"reagent_method_specificity":{"n_gt":974,"models":{"Haiku-4.5":{"f1":0.689},"GPT-4o-mini":{"f1":0.706},"Gemini-2.5-Flash":{"f1":0.688},"BM25":{"f1":0.689},"Gemini-Flash-Lite":{"f1":0.651},"Llama-3.3-70B":{"f1":0.632}}},"writing_clarity":{"n_gt":4806,"models":{"Haiku-4.5":{"f1":0.703},"GPT-4o-mini":{"f1":0.688},"Gemini-2.5-Flash":{"f1":0.674},"BM25":{"f1":0.692},"Gemini-Flash-Lite":{"f1":0.634},"Llama-3.3-70B":{"f1":0.588}}}}};
+
+const AUC_PR_DATA = {"thresholds":[0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95],"models":{"Haiku-4.5":{"points":[{"threshold":0.5,"recall":0.7247,"precision":0.6746,"f1":0.6988},{"threshold":0.55,"recall":0.7247,"precision":0.6746,"f1":0.6988},{"threshold":0.6,"recall":0.7247,"precision":0.6746,"f1":0.6988},{"threshold":0.65,"recall":0.7247,"precision":0.6746,"f1":0.6988},{"threshold":0.7,"recall":0.7247,"precision":0.6746,"f1":0.6988},{"threshold":0.75,"recall":0.7247,"precision":0.6746,"f1":0.6988},{"threshold":0.8,"recall":0.7246,"precision":0.6746,"f1":0.6987},{"threshold":0.85,"recall":0.7194,"precision":0.6697,"f1":0.6936},{"threshold":0.9,"recall":0.5913,"precision":0.5504,"f1":0.5701},{"threshold":0.95,"recall":0.0403,"precision":0.0376,"f1":0.0389}]},"GPT-4o-mini":{"points":[{"threshold":0.5,"recall":0.6844,"precision":0.7033,"f1":0.6937},{"threshold":0.55,"recall":0.6844,"precision":0.7033,"f1":0.6937},{"threshold":0.6,"recall":0.6844,"precision":0.7033,"f1":0.6937},{"threshold":0.65,"recall":0.6844,"precision":0.7033,"f1":0.6937},{"threshold":0.7,"recall":0.6844,"precision":0.7033,"f1":0.6937},{"threshold":0.75,"recall":0.6844,"precision":0.7033,"f1":0.6937},{"threshold":0.8,"recall":0.6844,"precision":0.7033,"f1":0.6937},{"threshold":0.85,"recall":0.6825,"precision":0.7012,"f1":0.6917},{"threshold":0.9,"recall":0.5814,"precision":0.5974,"f1":0.5893},{"threshold":0.95,"recall":0.0354,"precision":0.0364,"f1":0.0359}]},"Gemini-2.5-Flash":{"points":[{"threshold":0.5,"recall":0.6651,"precision":0.7093,"f1":0.6865},{"threshold":0.55,"recall":0.6651,"precision":0.7093,"f1":0.6865},{"threshold":0.6,"recall":0.6651,"precision":0.7093,"f1":0.6865},{"threshold":0.65,"recall":0.6651,"precision":0.7093,"f1":0.6865},{"threshold":0.7,"recall":0.6651,"precision":0.7093,"f1":0.6865},{"threshold":0.75,"recall":0.6651,"precision":0.7093,"f1":0.6865},{"threshold":0.8,"recall":0.6650,"precision":0.7092,"f1":0.6864},{"threshold":0.85,"recall":0.6612,"precision":0.7052,"f1":0.6825},{"threshold":0.9,"recall":0.5375,"precision":0.5733,"f1":0.5548},{"threshold":0.95,"recall":0.0309,"precision":0.0330,"f1":0.0319}]},"BM25":{"points":[{"threshold":0.5,"recall":0.6370,"precision":0.7414,"f1":0.6852},{"threshold":0.55,"recall":0.6370,"precision":0.7414,"f1":0.6852},{"threshold":0.6,"recall":0.6370,"precision":0.7414,"f1":0.6852},{"threshold":0.65,"recall":0.6370,"precision":0.7414,"f1":0.6852},{"threshold":0.7,"recall":0.6370,"precision":0.7414,"f1":0.6852},{"threshold":0.75,"recall":0.6369,"precision":0.7413,"f1":0.6852},{"threshold":0.8,"recall":0.6368,"precision":0.7413,"f1":0.6851},{"threshold":0.85,"recall":0.6327,"precision":0.7365,"f1":0.6807},{"threshold":0.9,"recall":0.4487,"precision":0.5223,"f1":0.4827},{"threshold":0.95,"recall":0.0774,"precision":0.0901,"f1":0.0833}]},"Gemini-Flash-Lite":{"points":[{"threshold":0.5,"recall":0.6150,"precision":0.7083,"f1":0.6584},{"threshold":0.55,"recall":0.6150,"precision":0.7083,"f1":0.6584},{"threshold":0.6,"recall":0.6150,"precision":0.7083,"f1":0.6584},{"threshold":0.65,"recall":0.6150,"precision":0.7083,"f1":0.6584},{"threshold":0.7,"recall":0.6150,"precision":0.7083,"f1":0.6584},{"threshold":0.75,"recall":0.6150,"precision":0.7083,"f1":0.6584},{"threshold":0.8,"recall":0.6150,"precision":0.7083,"f1":0.6584},{"threshold":0.85,"recall":0.6112,"precision":0.7038,"f1":0.6542},{"threshold":0.9,"recall":0.5071,"precision":0.5840,"f1":0.5429},{"threshold":0.95,"recall":0.0322,"precision":0.0371,"f1":0.0345}]},"Llama-3.3-70B":{"points":[{"threshold":0.5,"recall":0.5541,"precision":0.7939,"f1":0.6526},{"threshold":0.55,"recall":0.5541,"precision":0.7939,"f1":0.6526},{"threshold":0.6,"recall":0.5541,"precision":0.7939,"f1":0.6526},{"threshold":0.65,"recall":0.5541,"precision":0.7939,"f1":0.6526},{"threshold":0.7,"recall":0.5541,"precision":0.7939,"f1":0.6526},{"threshold":0.75,"recall":0.5540,"precision":0.7938,"f1":0.6526},{"threshold":0.8,"recall":0.5535,"precision":0.7931,"f1":0.6520},{"threshold":0.85,"recall":0.5498,"precision":0.7878,"f1":0.6476},{"threshold":0.9,"recall":0.4270,"precision":0.6118,"f1":0.5029},{"threshold":0.95,"recall":0.0216,"precision":0.0310,"f1":0.0255}]}}};
+
+const PER_SOURCE_DATA = {"Haiku-4.5":{"elife":{"f1":0.548,"r":0.990,"p":0.379,"n":273},"plos":{"f1":0.783,"r":0.737,"p":0.835,"n":260},"f1000":{"f1":0.717,"r":0.673,"p":0.766,"n":403},"nature":{"f1":0.526,"r":0.365,"p":0.942,"n":8}},"GPT-4o-mini":{"elife":{"f1":0.579,"r":0.984,"p":0.410,"n":273},"plos":{"f1":0.765,"r":0.688,"p":0.861,"n":260},"f1000":{"f1":0.705,"r":0.630,"p":0.799,"n":403},"nature":{"f1":0.484,"r":0.326,"p":0.944,"n":8},"peerj":{"f1":0.681,"r":0.565,"p":0.857,"n":37}},"Gemini-2.5-Flash":{"elife":{"f1":0.581,"r":0.973,"p":0.414,"n":273},"plos":{"f1":0.760,"r":0.682,"p":0.859,"n":260},"f1000":{"f1":0.691,"r":0.600,"p":0.815,"n":403},"nature":{"f1":0.486,"r":0.326,"p":0.953,"n":8},"peerj":{"f1":0.668,"r":0.541,"p":0.873,"n":37}},"BM25":{"elife":{"f1":0.628,"r":0.970,"p":0.464,"n":273},"plos":{"f1":0.735,"r":0.627,"p":0.889,"n":260},"f1000":{"f1":0.685,"r":0.583,"p":0.830,"n":403},"nature":{"f1":0.453,"r":0.297,"p":0.958,"n":8},"peerj":{"f1":0.656,"r":0.519,"p":0.890,"n":37}},"Gemini-Flash-Lite":{"elife":{"f1":0.589,"r":0.944,"p":0.428,"n":273},"plos":{"f1":0.693,"r":0.571,"p":0.879,"n":260},"f1000":{"f1":0.673,"r":0.582,"p":0.799,"n":403},"nature":{"f1":0.481,"r":0.323,"p":0.943,"n":8},"peerj":{"f1":0.664,"r":0.528,"p":0.893,"n":37}},"Llama-3.3-70B":{"elife":{"f1":0.685,"r":0.913,"p":0.548,"n":273},"plos":{"f1":0.669,"r":0.527,"p":0.916,"n":260},"f1000":{"f1":0.639,"r":0.504,"p":0.874,"n":403},"nature":{"f1":0.392,"r":0.245,"p":0.974,"n":8},"peerj":{"f1":0.588,"r":0.430,"p":0.932,"n":37}}};
+
+const PAIRWISE_DATA = {"BM25 vs GPT-4o-mini":{"delta":-0.0085,"p":0.0},"BM25 vs Gemini-2.5-Flash":{"delta":-0.0013,"p":0.5628},"BM25 vs Gemini-Flash-Lite":{"delta":0.0269,"p":0.0},"BM25 vs Haiku-4.5":{"delta":-0.0135,"p":0.0},"BM25 vs Llama-3.3-70B":{"delta":0.0326,"p":0.0},"GPT-4o-mini vs Gemini-2.5-Flash":{"delta":0.0072,"p":0.0},"GPT-4o-mini vs Gemini-Flash-Lite":{"delta":0.0353,"p":0.0},"GPT-4o-mini vs Haiku-4.5":{"delta":-0.005,"p":0.0028},"GPT-4o-mini vs Llama-3.3-70B":{"delta":0.0411,"p":0.0},"Gemini-2.5-Flash vs Gemini-Flash-Lite":{"delta":0.0281,"p":0.0},"Gemini-2.5-Flash vs Haiku-4.5":{"delta":-0.0123,"p":0.0},"Gemini-2.5-Flash vs Llama-3.3-70B":{"delta":0.0339,"p":0.0},"Gemini-Flash-Lite vs Haiku-4.5":{"delta":-0.0404,"p":0.0},"Gemini-Flash-Lite vs Llama-3.3-70B":{"delta":0.0057,"p":0.3326},"Haiku-4.5 vs Llama-3.3-70B":{"delta":0.0461,"p":0.0}};
+
+const SIMILARITY_DATA = {"all_max":{"bin_edges":[0.0,0.033,0.067,0.1,0.133,0.167,0.2,0.233,0.267,0.3,0.333,0.367,0.4,0.433,0.467,0.5,0.533,0.567,0.6,0.633,0.667,0.7,0.733,0.767,0.8,0.833,0.867,0.9,0.933,0.967,1.0],"counts":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,11,62,304,2283,14788,40656,14242,981],"n":73329,"mean":0.915},"threshold":0.65};
+
+const CONCERN_COUNTS = {"Haiku-4.5":{"mean":15.01,"median":15,"stdev":0.17,"min":12,"max":17,"n":944},"GPT-4o-mini":{"mean":13.59,"median":14,"stdev":0.52,"min":10,"max":15,"n":981},"Gemini-2.5-Flash":{"mean":13.08,"median":13,"stdev":1.56,"min":0,"max":15,"n":981},"BM25":{"mean":12,"median":12,"stdev":0.0,"min":12,"max":12,"n":981},"Gemini-Flash-Lite":{"mean":12.13,"median":14,"stdev":4.16,"min":0,"max":83,"n":981},"Llama-3.3-70B":{"mean":9.81,"median":10,"stdev":0.91,"min":0,"max":15,"n":974}};
+
+// ============================================================
+// MODEL CONSTANTS
+// ============================================================
+const MODEL_COLORS = {
+  'Haiku-4.5':'#c2410c','GPT-4o-mini':'#0284c7','Gemini-2.5-Flash':'#7c3aed',
+  'BM25':'#475569','Gemini-Flash-Lite':'#0d9488','Llama-3.3-70B':'#d97706'
+};
+const MODEL_ORDER = ['Haiku-4.5','GPT-4o-mini','Gemini-2.5-Flash','BM25','Gemini-Flash-Lite','Llama-3.3-70B'];
+// Alias for category_breakdown naming discrepancy
+const MODEL_ALIAS = {'Gemini-2.5-Flash-Lite':'Gemini-Flash-Lite'};
+
+const CAT_LABELS = {
+  'statistical_methodology':'Statistical Methodology','design_flaw':'Design Flaw',
+  'missing_experiment':'Missing Experiment','interpretation':'Interpretation',
+  'prior_art_novelty':'Prior Art / Novelty','reagent_method_specificity':'Reagent / Method',
+  'writing_clarity':'Writing Clarity'
+};
+const CAT_ORDER = ['statistical_methodology','design_flaw','missing_experiment','interpretation','prior_art_novelty','reagent_method_specificity','writing_clarity'];
+
+// ============================================================
+// CHART DEFAULTS
+// ============================================================
+Chart.defaults.font.family = "'DM Sans','Helvetica Neue',sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#8a8278';
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.pointStyleWidth = 10;
+const chartRegistry = [];
+
+// ============================================================
+// SECTION 3: DATASET CHARTS
+// ============================================================
+
+// Source Doughnut
+const srcDist = DATA_SUMMARY.source_distribution;
+const srcLabels = ['eLife','F1000','PLOS','Nature','PeerJ'];
+const srcKeys = ['elife','f1000','plos','nature','peerj'];
+const srcColors = ['#7c3aed','#d97706','#0284c7','#16a34a','#e11d48'];
+chartRegistry.push(new Chart(document.getElementById('chart-source'),{
+  type:'doughnut',
+  data:{
+    labels:srcLabels.map((l,i)=>l+' ('+srcDist[srcKeys[i]]+')'),
+    datasets:[{data:srcKeys.map(k=>srcDist[k]),backgroundColor:srcColors,borderWidth:0,hoverOffset:6}]
+  },
+  options:{cutout:'60%',plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}
+}));
+
+// Splits Stacked Bar
+const splitNames = ['Train','Validation','Test'];
+const splitKeys = ['train','val','test'];
+const sources5 = ['elife','plos','f1000','nature','peerj'];
+const src5Labels = ['eLife','PLOS','F1000','Nature','PeerJ'];
+const src5Colors = ['#7c3aed','#0284c7','#d97706','#16a34a','#e11d48'];
+chartRegistry.push(new Chart(document.getElementById('chart-splits'),{
+  type:'bar',
+  data:{
+    labels:splitNames,
+    datasets:sources5.map((s,i)=>({
+      label:src5Labels[i],
+      data:splitKeys.map(k=>SPLIT_META.split_source_distribution[k][s]||0),
+      backgroundColor:src5Colors[i],
+      borderRadius:2,
+    }))
+  },
+  options:{
+    plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+    scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'}}},
+  }
+}));
+
+// Categories Horizontal Bar
+const catDist = DATA_SUMMARY.category_distribution;
+const catKeys = Object.keys(catDist).sort((a,b)=>catDist[b].count-catDist[a].count);
+const catLabelsAll = {'writing_clarity':'Writing Clarity','missing_experiment':'Missing Experiment','interpretation':'Interpretation','design_flaw':'Design Flaw','prior_art_novelty':'Prior Art / Novelty','reagent_method_specificity':'Reagent / Method','statistical_methodology':'Statistical Methodology','figure_issue':'Figure Issue *','other':'Other'};
+const catColors9 = ['#c2410c','#ea580c','#d97706','#0d9488','#0284c7','#7c3aed','#e11d48','#64748b','#a3a3a3'];
+chartRegistry.push(new Chart(document.getElementById('chart-categories'),{
+  type:'bar',
+  data:{
+    labels:catKeys.map(k=>catLabelsAll[k]||k),
+    datasets:[{data:catKeys.map(k=>catDist[k].count),backgroundColor:catColors9,borderRadius:3,barPercentage:.6}]
+  },
+  options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#eee'}},y:{grid:{display:false}}}}
+}));
+
+// Severity Doughnut
+const sevDist = DATA_SUMMARY.severity_distribution;
+chartRegistry.push(new Chart(document.getElementById('chart-severity'),{
+  type:'doughnut',
+  data:{
+    labels:['Major ('+sevDist.major.percent+'%)','Minor ('+sevDist.minor.percent+'%)','Optional ('+sevDist.optional.percent+'%)'],
+    datasets:[{data:[sevDist.major.count,sevDist.minor.count,sevDist.optional.count],backgroundColor:['#c2410c','#f59e0b','#16a34a'],borderWidth:0,hoverOffset:6}]
+  },
+  options:{cutout:'60%',plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}
+}));
+
+// Stance Doughnut (no_response 91% dominates — doughnut shows proportions better than bar)
+const stDist = DATA_SUMMARY.author_stance_distribution;
+const stKeys = ['no_response','partial','conceded','rebutted','unclear'];
+const stLabels = ['No Response','Partial','Conceded','Rebutted','Unclear'];
+const stColors = ['#475569','#f59e0b','#16a34a','#c2410c','#7c3aed'];
+chartRegistry.push(new Chart(document.getElementById('chart-stance'),{
+  type:'doughnut',
+  data:{
+    labels:stKeys.map((k,i)=>stLabels[i]+' ('+stDist[k].percent+'%)'),
+    datasets:[{data:stKeys.map(k=>stDist[k].count),backgroundColor:stColors,borderWidth:0,hoverOffset:6}]
+  },
+  options:{cutout:'60%',plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}
+}));
+
+// Review Format Doughnut
+const fmtDist = DATA_SUMMARY.review_format_distribution;
+chartRegistry.push(new Chart(document.getElementById('chart-format'),{
+  type:'doughnut',
+  data:{
+    labels:['Journal ('+fmtDist.journal+')','Reviewed Preprint ('+fmtDist.reviewed_preprint+')'],
+    datasets:[{data:[fmtDist.journal,fmtDist.reviewed_preprint],backgroundColor:['#0284c7','#7c3aed'],borderWidth:0,hoverOffset:6}]
+  },
+  options:{cutout:'60%',plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}
+}));
+
+// Author Response Doughnut
+const arDist = DATA_SUMMARY.author_response_distribution;
+chartRegistry.push(new Chart(document.getElementById('chart-response'),{
+  type:'doughnut',
+  data:{
+    labels:['With Response ('+arDist.with_response+')','Without ('+arDist.without_response+')'],
+    datasets:[{data:[arDist.with_response,arDist.without_response],backgroundColor:['#16a34a','#94a3b8'],borderWidth:0,hoverOffset:6}]
+  },
+  options:{cutout:'60%',plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}
+}));
+
+// ============================================================
+// SECTION 4: THRESHOLD PREVIEW (F1 only)
+// ============================================================
+const thresholds = AUC_PR_DATA.thresholds;
+chartRegistry.push(new Chart(document.getElementById('chart-threshold-preview'),{
+  type:'line',
+  data:{
+    labels:thresholds.map(t=>t.toFixed(2)),
+    datasets:MODEL_ORDER.map(m=>({
+      label:m,
+      data:AUC_PR_DATA.models[m].points.map(p=>p.f1),
+      borderColor:MODEL_COLORS[m],
+      backgroundColor:MODEL_COLORS[m]+'22',
+      borderWidth:2,pointRadius:3,tension:.2,
+    }))
+  },
+  options:{
+    plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+    scales:{
+      x:{title:{display:true,text:'Cosine Similarity Threshold',font:{size:11}}},
+      y:{title:{display:true,text:'F1',font:{size:11}},min:0,max:0.8,grid:{color:'#eee'}}
+    }
+  }
+}));
+
+// ============================================================
+// SECTION 5: LEADERBOARD TABLE
+// ============================================================
+function renderLeaderboard(data, sortCol='f1', sortDir='desc'){
+  const sorted = [...data].sort((a,b)=>{
+    const va = a[sortCol], vb = b[sortCol];
+    if(typeof va==='string') return sortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+    return sortDir==='asc'?va-vb:vb-va;
+  });
+  const tbody = document.getElementById('leaderboard-body');
+  tbody.innerHTML = sorted.map((m,i)=>{
+    const rc = i<3?` r${i+1}`:'';
+    const ciR = `[${m.ci_recall_lo.toFixed(3)}, ${m.ci_recall_hi.toFixed(3)}]`;
+    const ciP = `[${m.ci_precision_lo.toFixed(3)}, ${m.ci_precision_hi.toFixed(3)}]`;
+    return `<tr>
+      <td><span class="rank-badge${rc}">${i+1}</span></td>
+      <td style="font-weight:500">${m.tool_name}</td>
+      <td class="num" style="font-weight:600">${m.f1.toFixed(3)}</td>
+      <td class="num" title="${ciR}">${m.recall.toFixed(3)}</td>
+      <td class="num" title="${ciP}">${m.precision.toFixed(3)}</td>
+      <td class="num">${m.recall_major.toFixed(3)}</td>
+      <td class="num">${m.auc_pr.toFixed(3)}</td>
+    </tr>`;
+  }).join('');
+}
+renderLeaderboard(LEADERBOARD);
+
+// Sortable table headers
+let currentSort = {col:'f1',dir:'desc'};
+document.querySelectorAll('#leaderboard-table thead th').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const col = th.dataset.col;
+    if(!col) return;
+    const colMap = {rank:'rank',name:'tool_name',f1:'f1',recall:'recall',precision:'precision',recall_major:'recall_major',auc:'auc_pr'};
+    const mapped = colMap[col];
+    if(!mapped) return;
+    if(currentSort.col===mapped) currentSort.dir = currentSort.dir==='desc'?'asc':'desc';
+    else {currentSort.col=mapped;currentSort.dir=mapped==='rank'||mapped==='tool_name'?'asc':'desc';}
+    renderLeaderboard(LEADERBOARD,currentSort.col,currentSort.dir);
+  });
+});
+
+// ============================================================
+// SECTION 5: FOREST PLOT
+// ============================================================
+// Custom plugin for error bars
+const errorBarPlugin = {
+  id:'errorBars',
+  afterDatasetsDraw(chart){
+    const ctx = chart.ctx;
+    chart.data.datasets.forEach((ds,di)=>{
+      if(!ds.errorBars) return;
+      const meta = chart.getDatasetMeta(di);
+      meta.data.forEach((pt,pi)=>{
+        const eb = ds.errorBars[pi];
+        if(!eb) return;
+        const x = pt.x, y = pt.y;
+        const yScale = chart.scales.y;
+        // error bars are on x-axis
+        const xLo = chart.scales.x.getPixelForValue(eb[0]);
+        const xHi = chart.scales.x.getPixelForValue(eb[1]);
+        ctx.save();
+        ctx.strokeStyle = ds.borderColor || '#666';
+        ctx.lineWidth = 1.5;
+        // horizontal line
+        ctx.beginPath();ctx.moveTo(xLo,y);ctx.lineTo(xHi,y);ctx.stroke();
+        // whiskers
+        ctx.beginPath();ctx.moveTo(xLo,y-4);ctx.lineTo(xLo,y+4);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(xHi,y-4);ctx.lineTo(xHi,y+4);ctx.stroke();
+        ctx.restore();
+      });
+    });
+  }
+};
+Chart.register(errorBarPlugin);
+
+// Build forest plot data: each model has 2 points (Recall, Precision) on separate y positions
+chartRegistry.push(new Chart(document.getElementById('chart-forest'),{
+  type:'scatter',
+  data:{
+    datasets:[
+      {
+        label:'Recall',
+        data:LEADERBOARD.map((m,i)=>({x:m.recall,y:i*2})),
+        errorBars:LEADERBOARD.map(m=>[m.ci_recall_lo,m.ci_recall_hi]),
+        backgroundColor:'#c2410c',borderColor:'#c2410c',pointRadius:5,
+      },
+      {
+        label:'Precision',
+        data:LEADERBOARD.map((m,i)=>({x:m.precision,y:i*2+0.8})),
+        errorBars:LEADERBOARD.map(m=>[m.ci_precision_lo,m.ci_precision_hi]),
+        backgroundColor:'#0284c7',borderColor:'#0284c7',pointRadius:5,pointStyle:'rectRot',
+      }
+    ]
+  },
+  options:{
+    plugins:{legend:{position:'bottom'}},
+    scales:{
+      x:{title:{display:true,text:'Score',font:{size:11}},min:0.45,max:0.85,grid:{color:'#eee'}},
+      y:{
+        type:'linear',min:-0.5,max:LEADERBOARD.length*2-0.5,reverse:true,
+        grid:{display:false},
+        ticks:{
+          callback:function(val){
+            const idx = Math.round(val/2);
+            return val%2===0 && idx>=0 && idx<LEADERBOARD.length ? LEADERBOARD[idx].tool_name : '';
+          },
+          font:{size:11},
+          stepSize:2,
+        }
+      }
+    }
+  }
+}));
+
+// ============================================================
+// SECTION 5: RADAR
+// ============================================================
+chartRegistry.push(new Chart(document.getElementById('chart-radar'),{
+  type:'radar',
+  data:{
+    labels:['Recall','Precision','F1','R_major','AUC-PR\n(×3)'],
+    datasets:MODEL_ORDER.map(m=>{
+      const d = LEADERBOARD.find(l=>l.tool_name===m);
+      return {
+        label:m,
+        data:[d.recall, d.precision, d.f1, d.recall_major, d.auc_pr*3],
+        borderColor:MODEL_COLORS[m],backgroundColor:MODEL_COLORS[m]+'18',
+        borderWidth:2,pointRadius:3,
+      };
+    })
+  },
+  options:{
+    plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+    scales:{r:{min:0,max:1,ticks:{stepSize:0.2,font:{size:9}},grid:{color:'#ddd'},pointLabels:{font:{size:10}}}}
+  }
+}));
+
+// ============================================================
+// SECTION 5: HEATMAP
+// ============================================================
+function buildHeatmap(){
+  const container = document.getElementById('heatmap-container');
+  let html = '<table><thead><tr><th></th>';
+  MODEL_ORDER.forEach(m=>{html+='<th style="text-align:center;font-size:.72rem">'+m+'</th>'});
+  html+='</tr></thead><tbody>';
+  CAT_ORDER.forEach(catKey=>{
+    html+='<tr><td class="cat-label">'+(CAT_LABELS[catKey]||catKey)+'</td>';
+    MODEL_ORDER.forEach(m=>{
+      // Handle alias
+      const catData = CATEGORY_DATA.categories[catKey];
+      if(!catData){html+='<td class="cell">-</td>';return;}
+      let f1val = null;
+      // Try direct name, then check all keys for alias
+      if(catData.models[m]){
+        f1val = catData.models[m].f1;
+      } else {
+        // Check reverse alias
+        for(const [alias,canonical] of Object.entries(MODEL_ALIAS)){
+          if(canonical===m && catData.models[alias]){
+            f1val = catData.models[alias].f1;
+            break;
+          }
+        }
+      }
+      if(f1val===null){html+='<td class="cell">-</td>';return;}
+      // Color: interpolate from red (0.6) to green (0.85)
+      const t = Math.max(0,Math.min(1,(f1val-0.55)/0.25));
+      const r = Math.round(200-t*110), g = Math.round(70+t*120), b = Math.round(70-t*10);
+      const bg = `rgb(${r},${g},${b})`;
+      const lum = 0.299*r + 0.587*g + 0.114*b;
+      const fg = lum>140?'#1a1a1a':'#fff';
+      html+=`<td class="cell" style="background:${bg};color:${fg}">${f1val.toFixed(3)}</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  container.innerHTML = html;
+}
+buildHeatmap();
+
+// ============================================================
+// SECTION 6: THRESHOLD FULL (R/P/F1 with metric toggles)
+// ============================================================
+let activeMetric = 'f1';
+function buildThreshDatasets(metric){
+  return MODEL_ORDER.map(m=>({
+    label:m,
+    data:AUC_PR_DATA.models[m].points.map(p=>p[metric]),
+    borderColor:MODEL_COLORS[m],
+    backgroundColor:MODEL_COLORS[m]+'22',
+    borderWidth:2,pointRadius:3,tension:.2,
+  }));
+}
+const threshFullChart = new Chart(document.getElementById('chart-threshold-full'),{
+  type:'line',
+  data:{labels:thresholds.map(t=>t.toFixed(2)),datasets:buildThreshDatasets('f1')},
+  options:{
+    plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+    scales:{
+      x:{title:{display:true,text:'Threshold',font:{size:11}}},
+      y:{title:{display:true,text:'F1',font:{size:11}},min:0,max:0.85,grid:{color:'#eee'}}
+    },
+    interaction:{mode:'index',intersect:false},
+  }
+});
+chartRegistry.push(threshFullChart);
+
+// Metric toggle buttons
+document.querySelectorAll('#threshold-toggles button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const metric = btn.dataset.metric;
+    if(metric===activeMetric) return;
+    activeMetric = metric;
+    document.querySelectorAll('#threshold-toggles button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    threshFullChart.data.datasets = buildThreshDatasets(metric);
+    threshFullChart.options.scales.y.title.text = metric.charAt(0).toUpperCase()+metric.slice(1);
+    threshFullChart.update();
+  });
+});
+
+// ============================================================
+// SECTION 6: CATEGORY GROUPED BAR
+// ============================================================
+chartRegistry.push(new Chart(document.getElementById('chart-category-grouped'),{
+  type:'bar',
+  data:{
+    labels:CAT_ORDER.map(k=>CAT_LABELS[k]||k),
+    datasets:MODEL_ORDER.map(m=>({
+      label:m,
+      data:CAT_ORDER.map(catKey=>{
+        const catData = CATEGORY_DATA.categories[catKey];
+        if(!catData) return 0;
+        if(catData.models[m]) return catData.models[m].f1;
+        for(const [alias,canonical] of Object.entries(MODEL_ALIAS)){
+          if(canonical===m && catData.models[alias]) return catData.models[alias].f1;
+        }
+        return 0;
+      }),
+      backgroundColor:MODEL_COLORS[m],borderRadius:2,
+    }))
+  },
+  options:{
+    plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+    scales:{
+      x:{grid:{display:false}},
+      y:{title:{display:true,text:'F1',font:{size:11}},min:0.5,max:0.85,grid:{color:'#eee'}}
+    }
+  }
+}));
+
+// ============================================================
+// SECTION 6: PER-MODEL CATEGORY PROFILES (small radars)
+// ============================================================
+const profilesGrid = document.getElementById('model-profiles-grid');
+MODEL_ORDER.forEach(m=>{
+  const card = document.createElement('div');
+  card.className = 'chart-card';
+  card.innerHTML = '<h3>'+m+'</h3><canvas></canvas>';
+  profilesGrid.appendChild(card);
+
+  const data = CAT_ORDER.map(catKey=>{
+    const catData = CATEGORY_DATA.categories[catKey];
+    if(!catData) return 0;
+    if(catData.models[m]) return catData.models[m].f1;
+    for(const [alias,canonical] of Object.entries(MODEL_ALIAS)){
+      if(canonical===m && catData.models[alias]) return catData.models[alias].f1;
+    }
+    return 0;
+  });
+
+  chartRegistry.push(new Chart(card.querySelector('canvas'),{
+    type:'radar',
+    data:{
+      labels:CAT_ORDER.map(k=>{const l=CAT_LABELS[k]||k;return l.length>12?l.slice(0,12)+'..':l;}),
+      datasets:[{
+        data:data,
+        borderColor:MODEL_COLORS[m],backgroundColor:MODEL_COLORS[m]+'25',
+        borderWidth:2,pointRadius:3,
+      }]
+    },
+    options:{
+      plugins:{legend:{display:false}},
+      scales:{r:{min:0.5,max:0.85,ticks:{stepSize:0.1,font:{size:8},display:false},grid:{color:'#ddd'},pointLabels:{font:{size:9}}}}
+    }
+  }));
+});
+
+// ============================================================
+// SECTION 6: PER-SOURCE F1 BAR CHART
+// ============================================================
+const srcF1Sources = ['elife','plos','f1000','nature'];
+const srcF1Labels = ['eLife','PLOS','F1000','Nature'];
+chartRegistry.push(new Chart(document.getElementById('chart-source-f1'),{
+  type:'bar',
+  data:{
+    labels:srcF1Labels,
+    datasets:MODEL_ORDER.map(m=>({
+      label:m,
+      data:srcF1Sources.map(s=>PER_SOURCE_DATA[m][s]?PER_SOURCE_DATA[m][s].f1:0),
+      backgroundColor:MODEL_COLORS[m],borderRadius:2,
+    }))
+  },
+  options:{
+    plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+    scales:{
+      x:{grid:{display:false}},
+      y:{title:{display:true,text:'F1',font:{size:11}},min:0.3,max:0.85,grid:{color:'#eee'}}
+    }
+  }
+}));
+
+// ============================================================
+// SECTION 6: PAIRWISE SIGNIFICANCE HEATMAP
+// ============================================================
+function buildPairwiseHeatmap(){
+  const container = document.getElementById('pairwise-heatmap');
+  const bonferroni = 0.05/15;
+  let html = '<table><thead><tr><th></th>';
+  MODEL_ORDER.forEach(m=>{html+='<th style="text-align:center;font-size:.68rem">'+m+'</th>'});
+  html+='</tr></thead><tbody>';
+  MODEL_ORDER.forEach((m1,i)=>{
+    html+='<tr><td class="cat-label">'+m1+'</td>';
+    MODEL_ORDER.forEach((m2,j)=>{
+      if(i===j){html+='<td class="cell" style="background:#f5f5f5;color:#ccc">&mdash;</td>';return;}
+      const key1 = m1+' vs '+m2, key2 = m2+' vs '+m1;
+      const pair = PAIRWISE_DATA[key1] || PAIRWISE_DATA[key2];
+      if(!pair){html+='<td class="cell">-</td>';return;}
+      const p = pair.p;
+      // delta: positive means first model in key is better
+      const delta = PAIRWISE_DATA[key1] ? pair.delta : -pair.delta;
+      let bg,fg;
+      if(p<=bonferroni){bg=delta>0?'#dcfce7':'#fee2e2';fg=delta>0?'#166534':'#991b1b';}
+      else{bg='#f1f5f9';fg='#64748b';}
+      const pStr = p<0.001?'<.001':p.toFixed(3);
+      html+='<td class="cell" style="background:'+bg+';color:'+fg+';font-size:.7rem" title="&Delta;F1='+delta.toFixed(4)+'">'+pStr+'</td>';
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  container.innerHTML = html;
+}
+buildPairwiseHeatmap();
+
+// ============================================================
+// SECTION 6: SIMILARITY HISTOGRAM
+// ============================================================
+(function(){
+  const bins = SIMILARITY_DATA.all_max.bin_edges;
+  const counts = SIMILARITY_DATA.all_max.counts;
+  const labels = [], data = [];
+  for(let i=0;i<counts.length;i++){
+    const lo = bins[i], hi = bins[i+1];
+    if(hi<=0.6 && counts[i]===0) continue;
+    labels.push(lo.toFixed(2));
+    data.push(counts[i]);
+  }
+  chartRegistry.push(new Chart(document.getElementById('chart-sim-hist'),{
+    type:'bar',
+    data:{
+      labels:labels,
+      datasets:[{
+        data:data,
+        backgroundColor:data.map((_,i)=>parseFloat(labels[i])>=0.65?'#c2410c':'#94a3b8'),
+        borderRadius:1,
+      }]
+    },
+    options:{
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{title:{display:true,text:'Cosine Similarity',font:{size:11}},grid:{display:false}},
+        y:{title:{display:true,text:'Count',font:{size:11}},grid:{color:'#eee'}}
+      }
+    }
+  }));
+})();
+
+// ============================================================
+// SECTION 6: CONCERN COUNTS BAR CHART
+// ============================================================
+chartRegistry.push(new Chart(document.getElementById('chart-concern-counts'),{
+  type:'bar',
+  data:{
+    labels:MODEL_ORDER,
+    datasets:[{
+      data:MODEL_ORDER.map(m=>CONCERN_COUNTS[m].mean),
+      backgroundColor:MODEL_ORDER.map(m=>MODEL_COLORS[m]),
+      borderRadius:3,
+      barPercentage:.5,
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{title:{display:true,text:'Mean Concerns per Article',font:{size:11}},min:0,max:18,grid:{color:'#eee'}},
+      y:{grid:{display:false}}
+    }
+  }
+}));
+
+// ============================================================
+// SCROLL SPY
+// ============================================================
+const sidebarLinks = document.querySelectorAll('.sidebar nav a');
+const sectionIds = ['hero','pipeline','dataset','methodology','results','analysis','discussion'];
+const spyObserver = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      sidebarLinks.forEach(l=>l.classList.remove('active'));
+      const idx = sectionIds.indexOf(e.target.id);
+      if(idx>=0) sidebarLinks[idx].classList.add('active');
+    }
+  });
+},{threshold:0.2,rootMargin:'-80px 0px -60% 0px'});
+sectionIds.forEach(id=>{const el=document.getElementById(id);if(el)spyObserver.observe(el);});
+
+// ============================================================
+// THEME TOGGLE
+// ============================================================
+function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next==='dark'?'dark':'');
+  localStorage.setItem('theme',next);
+}
+// Restore saved theme
+(function(){
+  const saved = localStorage.getItem('theme');
+  if(saved==='dark') document.documentElement.setAttribute('data-theme','dark');
+})();
+</script>
+</body>
+</html>

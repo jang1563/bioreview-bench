@@ -1,0 +1,56 @@
+{
+  "Haiku-4.5": {
+    "mean": 15.01,
+    "median": 15.0,
+    "stdev": 0.17,
+    "min": 12,
+    "max": 17,
+    "n_articles": 944,
+    "total_concerns": 14165
+  },
+  "GPT-4o-mini": {
+    "mean": 13.59,
+    "median": 14,
+    "stdev": 0.52,
+    "min": 10,
+    "max": 15,
+    "n_articles": 981,
+    "total_concerns": 13335
+  },
+  "Gemini-2.5-Flash": {
+    "mean": 13.08,
+    "median": 13,
+    "stdev": 1.56,
+    "min": 0,
+    "max": 15,
+    "n_articles": 981,
+    "total_concerns": 12836
+  },
+  "BM25": {
+    "mean": 12,
+    "median": 12,
+    "stdev": 0.0,
+    "min": 12,
+    "max": 12,
+    "n_articles": 981,
+    "total_concerns": 11772
+  },
+  "Gemini-Flash-Lite": {
+    "mean": 12.13,
+    "median": 14,
+    "stdev": 4.16,
+    "min": 0,
+    "max": 83,
+    "n_articles": 981,
+    "total_concerns": 11900
+  },
+  "Llama-3.3-70B": {
+    "mean": 9.81,
+    "median": 10.0,
+    "stdev": 0.91,
+    "min": 0,
+    "max": 15,
+    "n_articles": 974,
+    "total_concerns": 9554
+  }
+}
