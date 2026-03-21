@@ -4,334 +4,334 @@
     "GPT-4o-mini",
     "Gemini-2.5-Flash",
     "BM25",
-    "Gemini-2.5-Flash-Lite",
+    "Gemini-Flash-Lite",
     "Llama-3.3-70B"
   ],
   "categories": {
     "statistical_methodology": {
-      "n_gt": 767,
+      "n_gt": 730,
       "models": {
         "Haiku-4.5": {
-          "recall": 0.846,
-          "precision": 0.845,
-          "f1": 0.845,
-          "n_matched": 586
+          "recall": 0.797,
+          "precision": 0.762,
+          "f1": 0.779,
+          "n_matched": 582
         },
         "GPT-4o-mini": {
-          "recall": 0.799,
-          "precision": 0.842,
-          "f1": 0.82,
-          "n_matched": 536
+          "recall": 0.7,
+          "precision": 0.785,
+          "f1": 0.74,
+          "n_matched": 511
         },
         "Gemini-2.5-Flash": {
-          "recall": 0.777,
-          "precision": 0.815,
-          "f1": 0.796,
-          "n_matched": 522
+          "recall": 0.685,
+          "precision": 0.797,
+          "f1": 0.737,
+          "n_matched": 500
         },
         "BM25": {
-          "recall": 0.678,
-          "precision": 0.74,
-          "f1": 0.707,
-          "n_matched": 445
+          "recall": 0.585,
+          "precision": 0.821,
+          "f1": 0.683,
+          "n_matched": 427
         },
-        "Gemini-2.5-Flash-Lite": {
-          "recall": 0.717,
-          "precision": 0.759,
-          "f1": 0.738,
-          "n_matched": 495
+        "Gemini-Flash-Lite": {
+          "recall": 0.652,
+          "precision": 0.807,
+          "f1": 0.721,
+          "n_matched": 476
         },
         "Llama-3.3-70B": {
-          "recall": 0.632,
-          "precision": 0.746,
-          "f1": 0.684,
-          "n_matched": 410
+          "recall": 0.54,
+          "precision": 0.887,
+          "f1": 0.671,
+          "n_matched": 394
         }
       }
     },
     "design_flaw": {
-      "n_gt": 1431,
+      "n_gt": 1362,
       "models": {
         "Haiku-4.5": {
-          "recall": 0.877,
-          "precision": 0.803,
-          "f1": 0.838,
-          "n_matched": 1127
+          "recall": 0.801,
+          "precision": 0.64,
+          "f1": 0.711,
+          "n_matched": 1091
         },
         "GPT-4o-mini": {
-          "recall": 0.826,
-          "precision": 0.793,
-          "f1": 0.809,
-          "n_matched": 1031
+          "recall": 0.722,
+          "precision": 0.665,
+          "f1": 0.692,
+          "n_matched": 984
         },
         "Gemini-2.5-Flash": {
-          "recall": 0.859,
-          "precision": 0.808,
-          "f1": 0.833,
-          "n_matched": 1087
+          "recall": 0.761,
+          "precision": 0.684,
+          "f1": 0.72,
+          "n_matched": 1036
         },
         "BM25": {
-          "recall": 0.733,
-          "precision": 0.766,
-          "f1": 0.749,
-          "n_matched": 880
+          "recall": 0.622,
+          "precision": 0.701,
+          "f1": 0.659,
+          "n_matched": 847
         },
-        "Gemini-2.5-Flash-Lite": {
-          "recall": 0.775,
-          "precision": 0.754,
-          "f1": 0.764,
-          "n_matched": 991
+        "Gemini-Flash-Lite": {
+          "recall": 0.693,
+          "precision": 0.701,
+          "f1": 0.697,
+          "n_matched": 944
         },
         "Llama-3.3-70B": {
-          "recall": 0.749,
-          "precision": 0.802,
-          "f1": 0.774,
-          "n_matched": 922
+          "recall": 0.644,
+          "precision": 0.774,
+          "f1": 0.703,
+          "n_matched": 877
         }
       }
     },
     "missing_experiment": {
-      "n_gt": 2146,
+      "n_gt": 2070,
       "models": {
         "Haiku-4.5": {
-          "recall": 0.887,
-          "precision": 0.728,
-          "f1": 0.8,
+          "recall": 0.843,
+          "precision": 0.545,
+          "f1": 0.662,
           "n_matched": 1746
         },
         "GPT-4o-mini": {
-          "recall": 0.854,
-          "precision": 0.771,
-          "f1": 0.81,
-          "n_matched": 1645
+          "recall": 0.771,
+          "precision": 0.596,
+          "f1": 0.672,
+          "n_matched": 1596
         },
         "Gemini-2.5-Flash": {
-          "recall": 0.845,
-          "precision": 0.721,
-          "f1": 0.778,
-          "n_matched": 1655
+          "recall": 0.774,
+          "precision": 0.574,
+          "f1": 0.659,
+          "n_matched": 1602
         },
         "BM25": {
-          "recall": 0.791,
-          "precision": 0.74,
-          "f1": 0.764,
-          "n_matched": 1519
+          "recall": 0.714,
+          "precision": 0.632,
+          "f1": 0.67,
+          "n_matched": 1478
         },
-        "Gemini-2.5-Flash-Lite": {
-          "recall": 0.8,
-          "precision": 0.698,
-          "f1": 0.745,
-          "n_matched": 1556
+        "Gemini-Flash-Lite": {
+          "recall": 0.726,
+          "precision": 0.587,
+          "f1": 0.649,
+          "n_matched": 1502
         },
         "Llama-3.3-70B": {
-          "recall": 0.778,
-          "precision": 0.777,
-          "f1": 0.777,
-          "n_matched": 1467
+          "recall": 0.688,
+          "precision": 0.695,
+          "f1": 0.692,
+          "n_matched": 1425
         }
       }
     },
     "interpretation": {
-      "n_gt": 2241,
+      "n_gt": 2157,
       "models": {
         "Haiku-4.5": {
-          "recall": 0.87,
-          "precision": 0.773,
-          "f1": 0.819,
-          "n_matched": 1719
+          "recall": 0.793,
+          "precision": 0.64,
+          "f1": 0.708,
+          "n_matched": 1711
         },
         "GPT-4o-mini": {
-          "recall": 0.854,
-          "precision": 0.812,
-          "f1": 0.832,
-          "n_matched": 1669
+          "recall": 0.745,
+          "precision": 0.687,
+          "f1": 0.715,
+          "n_matched": 1607
         },
         "Gemini-2.5-Flash": {
-          "recall": 0.837,
-          "precision": 0.791,
-          "f1": 0.813,
-          "n_matched": 1641
+          "recall": 0.733,
+          "precision": 0.68,
+          "f1": 0.706,
+          "n_matched": 1582
         },
         "BM25": {
-          "recall": 0.796,
-          "precision": 0.819,
-          "f1": 0.807,
-          "n_matched": 1496
+          "recall": 0.675,
+          "precision": 0.725,
+          "f1": 0.699,
+          "n_matched": 1455
         },
-        "Gemini-2.5-Flash-Lite": {
-          "recall": 0.783,
-          "precision": 0.752,
-          "f1": 0.767,
-          "n_matched": 1529
+        "Gemini-Flash-Lite": {
+          "recall": 0.684,
+          "precision": 0.674,
+          "f1": 0.679,
+          "n_matched": 1475
         },
         "Llama-3.3-70B": {
-          "recall": 0.755,
-          "precision": 0.826,
-          "f1": 0.789,
-          "n_matched": 1433
+          "recall": 0.643,
+          "precision": 0.779,
+          "f1": 0.705,
+          "n_matched": 1388
         }
       }
     },
     "prior_art_novelty": {
-      "n_gt": 1113,
+      "n_gt": 1049,
       "models": {
         "Haiku-4.5": {
-          "recall": 0.811,
-          "precision": 0.782,
-          "f1": 0.796,
-          "n_matched": 810
+          "recall": 0.709,
+          "precision": 0.686,
+          "f1": 0.698,
+          "n_matched": 744
         },
         "GPT-4o-mini": {
-          "recall": 0.768,
-          "precision": 0.771,
-          "f1": 0.77,
-          "n_matched": 771
+          "recall": 0.698,
+          "precision": 0.698,
+          "f1": 0.698,
+          "n_matched": 732
         },
         "Gemini-2.5-Flash": {
-          "recall": 0.735,
-          "precision": 0.768,
-          "f1": 0.751,
-          "n_matched": 720
+          "recall": 0.657,
+          "precision": 0.729,
+          "f1": 0.691,
+          "n_matched": 689
         },
         "BM25": {
-          "recall": 0.759,
-          "precision": 0.788,
-          "f1": 0.773,
-          "n_matched": 738
+          "recall": 0.67,
+          "precision": 0.743,
+          "f1": 0.705,
+          "n_matched": 703
         },
-        "Gemini-2.5-Flash-Lite": {
-          "recall": 0.7,
-          "precision": 0.728,
-          "f1": 0.714,
-          "n_matched": 668
+        "Gemini-Flash-Lite": {
+          "recall": 0.609,
+          "precision": 0.716,
+          "f1": 0.658,
+          "n_matched": 639
         },
         "Llama-3.3-70B": {
-          "recall": 0.654,
-          "precision": 0.73,
-          "f1": 0.69,
-          "n_matched": 617
+          "recall": 0.559,
+          "precision": 0.784,
+          "f1": 0.653,
+          "n_matched": 586
         }
       }
     },
     "reagent_method_specificity": {
-      "n_gt": 1044,
+      "n_gt": 974,
       "models": {
         "Haiku-4.5": {
-          "recall": 0.766,
-          "precision": 0.807,
-          "f1": 0.786,
-          "n_matched": 690
+          "recall": 0.627,
+          "precision": 0.765,
+          "f1": 0.689,
+          "n_matched": 611
         },
         "GPT-4o-mini": {
-          "recall": 0.753,
-          "precision": 0.805,
-          "f1": 0.778,
-          "n_matched": 660
+          "recall": 0.641,
+          "precision": 0.786,
+          "f1": 0.706,
+          "n_matched": 624
         },
         "Gemini-2.5-Flash": {
-          "recall": 0.685,
-          "precision": 0.761,
-          "f1": 0.721,
-          "n_matched": 605
+          "recall": 0.585,
+          "precision": 0.833,
+          "f1": 0.688,
+          "n_matched": 570
         },
         "BM25": {
-          "recall": 0.695,
-          "precision": 0.783,
-          "f1": 0.736,
-          "n_matched": 606
+          "recall": 0.588,
+          "precision": 0.832,
+          "f1": 0.689,
+          "n_matched": 573
         },
-        "Gemini-2.5-Flash-Lite": {
-          "recall": 0.638,
-          "precision": 0.71,
-          "f1": 0.672,
-          "n_matched": 559
+        "Gemini-Flash-Lite": {
+          "recall": 0.541,
+          "precision": 0.816,
+          "f1": 0.651,
+          "n_matched": 527
         },
         "Llama-3.3-70B": {
-          "recall": 0.58,
-          "precision": 0.704,
-          "f1": 0.636,
-          "n_matched": 507
+          "recall": 0.492,
+          "precision": 0.884,
+          "f1": 0.632,
+          "n_matched": 479
         }
       }
     },
     "writing_clarity": {
-      "n_gt": 5173,
+      "n_gt": 4806,
       "models": {
         "Haiku-4.5": {
-          "recall": 0.816,
-          "precision": 0.823,
-          "f1": 0.819,
-          "n_matched": 3358
+          "recall": 0.633,
+          "precision": 0.791,
+          "f1": 0.703,
+          "n_matched": 3043
         },
         "GPT-4o-mini": {
-          "recall": 0.783,
-          "precision": 0.843,
-          "f1": 0.812,
-          "n_matched": 3110
+          "recall": 0.612,
+          "precision": 0.785,
+          "f1": 0.688,
+          "n_matched": 2939
         },
         "Gemini-2.5-Flash": {
-          "recall": 0.747,
-          "precision": 0.859,
-          "f1": 0.799,
-          "n_matched": 2923
+          "recall": 0.575,
+          "precision": 0.815,
+          "f1": 0.674,
+          "n_matched": 2762
         },
         "BM25": {
-          "recall": 0.768,
-          "precision": 0.85,
-          "f1": 0.807,
-          "n_matched": 3079
+          "recall": 0.6,
+          "precision": 0.817,
+          "f1": 0.692,
+          "n_matched": 2886
         },
-        "Gemini-2.5-Flash-Lite": {
-          "recall": 0.697,
-          "precision": 0.792,
-          "f1": 0.741,
-          "n_matched": 2690
+        "Gemini-Flash-Lite": {
+          "recall": 0.525,
+          "precision": 0.8,
+          "f1": 0.634,
+          "n_matched": 2523
         },
         "Llama-3.3-70B": {
-          "recall": 0.626,
-          "precision": 0.888,
-          "f1": 0.735,
-          "n_matched": 2252
+          "recall": 0.444,
+          "precision": 0.874,
+          "f1": 0.588,
+          "n_matched": 2132
         }
       }
     },
     "other": {
-      "n_gt": 39,
+      "n_gt": 38,
       "models": {
         "Haiku-4.5": {
-          "recall": 0.766,
-          "precision": 0.706,
-          "f1": 0.735,
-          "n_matched": 30
+          "recall": 0.737,
+          "precision": 0.683,
+          "f1": 0.709,
+          "n_matched": 28
         },
         "GPT-4o-mini": {
-          "recall": 0.844,
-          "precision": 0.715,
-          "f1": 0.774,
-          "n_matched": 33
+          "recall": 0.842,
+          "precision": 0.561,
+          "f1": 0.674,
+          "n_matched": 32
         },
         "Gemini-2.5-Flash": {
-          "recall": 0.75,
-          "precision": 0.692,
-          "f1": 0.72,
+          "recall": 0.763,
+          "precision": 0.674,
+          "f1": 0.716,
           "n_matched": 29
         },
         "BM25": {
-          "recall": 0.828,
-          "precision": 0.741,
-          "f1": 0.782,
-          "n_matched": 31
+          "recall": 0.789,
+          "precision": 0.638,
+          "f1": 0.706,
+          "n_matched": 30
         },
-        "Gemini-2.5-Flash-Lite": {
-          "recall": 0.594,
-          "precision": 0.552,
-          "f1": 0.572,
+        "Gemini-Flash-Lite": {
+          "recall": 0.632,
+          "precision": 0.615,
+          "f1": 0.623,
           "n_matched": 24
         },
         "Llama-3.3-70B": {
-          "recall": 0.641,
-          "precision": 0.577,
-          "f1": 0.607,
+          "recall": 0.658,
+          "precision": 0.676,
+          "f1": 0.667,
           "n_matched": 25
         }
       }

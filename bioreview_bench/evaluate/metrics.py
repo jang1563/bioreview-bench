@@ -23,6 +23,7 @@ Usage:
 from __future__ import annotations
 
 import re
+import warnings
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Literal
@@ -46,6 +47,12 @@ def _get_embed_model() -> object | None:
     except Exception:
         _EMBED_MODEL = None
         _EMBED_AVAILABLE = False
+        warnings.warn(
+            "SPECTER2 unavailable, falling back to Jaccard similarity. "
+            "Install sentence-transformers for embedding-based matching.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
     return _EMBED_MODEL
 
 
@@ -523,17 +530,26 @@ class ConcernMatcher:
             for cat, cm in r.per_category.items():
                 agg_cat[cat].append(cm)
 
-        per_category = {
-            cat: CategoryMetrics(
-                recall=sum(m.recall for m in cms) / len(cms),
-                precision=sum(m.precision for m in cms) / len(cms),
-                f1=sum(m.f1 for m in cms) / len(cms),
-                n_gt=sum(m.n_gt for m in cms),
-                n_tool=sum(m.n_tool for m in cms),
-                n_matched=sum(m.n_matched for m in cms),
+        per_category = {}
+        for cat, cms in agg_cat.items():
+            cat_n_gt = sum(m.n_gt for m in cms)
+            cat_n_tool = sum(m.n_tool for m in cms)
+            cat_n_matched = sum(m.n_matched for m in cms)
+            cat_recall = cat_n_matched / cat_n_gt if cat_n_gt > 0 else 0.0
+            cat_prec = cat_n_matched / cat_n_tool if cat_n_tool > 0 else 0.0
+            cat_f1 = (
+                (2 * cat_prec * cat_recall / (cat_prec + cat_recall))
+                if (cat_prec + cat_recall) > 0
+                else 0.0
             )
-            for cat, cms in agg_cat.items()
-        }
+            per_category[cat] = CategoryMetrics(
+                recall=cat_recall,
+                precision=cat_prec,
+                f1=cat_f1,
+                n_gt=cat_n_gt,
+                n_tool=cat_n_tool,
+                n_matched=cat_n_matched,
+            )
 
         return EvalResult(
             recall=recall,

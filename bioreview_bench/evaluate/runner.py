@@ -280,10 +280,11 @@ def aggregate_results(
 
     per_category: dict[str, CategoryMetrics] = {}
     for cat, cms in agg_cat.items():
-        cat_recall = sum(m.recall for m in cms) / len(cms)
-        cat_prec = sum(m.precision for m in cms) / len(cms)
         cat_n_gt = sum(m.n_gt for m in cms)
         cat_n_matched = sum(m.n_matched for m in cms)
+        cat_n_tool = sum(m.n_tool for m in cms)
+        cat_recall = cat_n_matched / cat_n_gt if cat_n_gt > 0 else 0.0
+        cat_prec = cat_n_matched / cat_n_tool if cat_n_tool > 0 else 0.0
         f1_micro = (
             (2 * cat_prec * cat_recall / (cat_prec + cat_recall))
             if (cat_prec + cat_recall) > 0
