@@ -12,7 +12,6 @@ import re
 import uuid
 from typing import Any
 
-import anthropic
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from ..models.concern import AuthorStance, ConcernCategory, Resolution, ReviewerConcern
@@ -88,13 +87,42 @@ CONCERN_PROMPT_HASH = _prompt_hash(CONCERN_EXTRACTION_SYSTEM, "{review_text}")
 RESOLUTION_PROMPT_HASH = _prompt_hash(RESOLUTION_SYSTEM, "{concerns_json}\n{response_text}")
 
 
+# ── Reviewer block splitting ─────────────────────────────────────────────────
+
+_REVIEWER_HEADER_RE = re.compile(
+    r"(?:^|\n)(?:Reviewer\s*[#\-]?\s*(\d+)|Referee\s*[#\-]?\s*(\d+)|"
+    r"Review\s*(?:Report\s*)?(?:from\s+)?(?:Reviewer\s*)?(\d+))\s*[:\.\-]",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+
+def split_into_reviewer_blocks(decision_letter_raw: str) -> list[str]:
+    """Split decision_letter_raw into per-reviewer text blocks.
+
+    If no reviewer headers are found, returns the full text as a single block.
+    """
+    matches = list(_REVIEWER_HEADER_RE.finditer(decision_letter_raw))
+    if not matches:
+        return [decision_letter_raw] if decision_letter_raw.strip() else []
+
+    blocks = []
+    for i, m in enumerate(matches):
+        start = m.start()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(decision_letter_raw)
+        block = decision_letter_raw[start:end].strip()
+        if block:
+            blocks.append(block)
+    return blocks
+
+
 class ConcernExtractor:
     """Reviewer concern extraction + resolution classification.
 
     Args:
-        model: Anthropic model ID
-        manifest_id: ExtractionManifest ID (reproducibility tracking)
-        max_tokens: Maximum output tokens for the LLM
+        model: Model identifier (e.g. "claude-haiku-4-5-20251001", "gpt-4o-mini").
+        manifest_id: ExtractionManifest ID (reproducibility tracking).
+        max_tokens: Maximum output tokens for the LLM.
+        provider: "anthropic", "openai", "google", or "groq".
     """
 
     def __init__(
@@ -102,11 +130,35 @@ class ConcernExtractor:
         model: str = "claude-haiku-4-5-20251001",
         manifest_id: str = "em-v1.0",
         max_tokens: int = 2048,
+        provider: str = "anthropic",
     ) -> None:
         self._model = model
         self._manifest_id = manifest_id
         self._max_tokens = max_tokens
-        self._client = anthropic.Anthropic()
+        self._provider = provider
+        self._client: Any = None
+
+    def _get_client(self) -> Any:
+        """Lazy-initialize the API client."""
+        if self._client is not None:
+            return self._client
+
+        if self._provider == "anthropic":
+            import anthropic
+            self._client = anthropic.Anthropic()
+        elif self._provider == "openai":
+            import openai
+            self._client = openai.OpenAI()
+        elif self._provider == "google":
+            from google import genai
+            self._client = genai.Client()
+        elif self._provider == "groq":
+            from groq import Groq
+            self._client = Groq()
+        else:
+            raise ValueError(f"Unsupported provider: {self._provider}")
+
+        return self._client
 
     @retry(
         stop=stop_after_attempt(3),
@@ -115,14 +167,64 @@ class ConcernExtractor:
     )
     def _call_llm(self, system: str, user: str) -> str:
         """Call the LLM with temperature=0 for deterministic output."""
-        msg = self._client.messages.create(
-            model=self._model,
-            max_tokens=self._max_tokens,
-            temperature=0.0,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-        )
-        return msg.content[0].text  # type: ignore[index]
+        client = self._get_client()
+
+        if self._provider == "anthropic":
+            msg = client.messages.create(
+                model=self._model,
+                max_tokens=self._max_tokens,
+                temperature=0.0,
+                system=system,
+                messages=[{"role": "user", "content": user}],
+            )
+            return msg.content[0].text  # type: ignore[union-attr]
+
+        if self._provider == "openai":
+            resp = client.chat.completions.create(
+                model=self._model,
+                max_tokens=self._max_tokens,
+                temperature=0.0,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+            )
+            return resp.choices[0].message.content or ""
+
+        if self._provider == "google":
+            try:
+                from google.genai import types
+                config = types.GenerateContentConfig(
+                    system_instruction=system,
+                    max_output_tokens=self._max_tokens,
+                    temperature=0.0,
+                )
+            except ImportError:
+                config = {
+                    "system_instruction": system,
+                    "max_output_tokens": self._max_tokens,
+                    "temperature": 0.0,
+                }
+            resp = client.models.generate_content(
+                model=self._model,
+                contents=user,
+                config=config,
+            )
+            return resp.text or ""
+
+        if self._provider == "groq":
+            resp = client.chat.completions.create(
+                model=self._model,
+                temperature=0.0,
+                max_completion_tokens=self._max_tokens,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+            )
+            return resp.choices[0].message.content or ""
+
+        raise ValueError(f"Unsupported provider: {self._provider}")
 
     @staticmethod
     def _parse_json(text: str) -> list[dict]:

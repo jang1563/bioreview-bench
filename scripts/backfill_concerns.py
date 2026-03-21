@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 import tempfile
 from pathlib import Path
@@ -33,42 +32,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from bioreview_bench.collect.postprocess import load_or_create_manifest, finalize_manifest
-from bioreview_bench.parse.concern_extractor import ConcernExtractor
+from bioreview_bench.parse.concern_extractor import ConcernExtractor, split_into_reviewer_blocks
 from bioreview_bench.parse.jats import ParsedReview
 
 console = Console()
-
-# Reviewer header patterns used to split decision_letter_raw into per-reviewer blocks.
-# Handles formats from all sources (Nature, eLife, PLOS, F1000, PeerJ).
-#
-# Known limitation: "Review N:" can produce a false positive if a reviewer writes
-# a line like "Review 5: the authors..." at the start of a line. In practice,
-# Nature PDFs (2-3 reviewers max) are unlikely to have >3 reviewer headers, so
-# splitting into more blocks is caught by the empty-block filter (.strip() + skip).
-_REVIEWER_HEADER_RE = re.compile(
-    r"(?:^|\n)(?:Reviewer\s*[#\-]?\s*(\d+)|Referee\s*[#\-]?\s*(\d+)|"
-    r"Review\s*(?:Report\s*)?(?:from\s+)?(?:Reviewer\s*)?(\d+))\s*[:\.\-]",
-    re.IGNORECASE | re.MULTILINE,
-)
-
-
-def split_into_reviewer_blocks(decision_letter_raw: str) -> list[str]:
-    """Split decision_letter_raw into per-reviewer text blocks.
-
-    If no reviewer headers are found, returns the full text as a single block.
-    """
-    matches = list(_REVIEWER_HEADER_RE.finditer(decision_letter_raw))
-    if not matches:
-        return [decision_letter_raw] if decision_letter_raw.strip() else []
-
-    blocks = []
-    for i, m in enumerate(matches):
-        start = m.start()
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(decision_letter_raw)
-        block = decision_letter_raw[start:end].strip()
-        if block:
-            blocks.append(block)
-    return blocks
 
 
 def extract_concerns_for_entry(
