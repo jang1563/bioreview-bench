@@ -253,6 +253,7 @@ td .rank-badge.r3{background:#92400e}
     <a href="#results">Results</a>
     <a href="#analysis">Analysis</a>
     <a href="#discussion">Discussion</a>
+    <a href="#validation">GT Validation</a>
   </nav>
   <div class="sidebar-footer">
     <a href="https://github.com/jang1563/bioreview-bench">GitHub &rarr;</a>
@@ -596,7 +597,81 @@ td .rank-badge.r3{background:#92400e}
 </section>
 
 <!-- ============================================================
-     SECTION 7: DISCUSSION
+     SECTION 7: CROSS-MODEL GT VALIDATION
+     ============================================================ -->
+<section id="validation">
+  <div class="section-label">Validation</div>
+  <h2>Cross-model ground truth validation</h2>
+
+  <div class="prose">
+    <p>
+      All ground-truth concerns are extracted by a single model (Claude Haiku 4.5). To assess whether
+      benchmark conclusions depend on this choice, we re-extracted concerns for all 981 test articles
+      using GPT-4o-mini and measured inter-extractor agreement.
+    </p>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-box">
+      <div class="info-label">Haiku Mean</div>
+      <div class="info-value">14.2 / article</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">GPT Mean</div>
+      <div class="info-value">6.7 / article</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">Reverse Overlap</div>
+      <div class="info-value">97.6%</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">Category &kappa;</div>
+      <div class="info-value">0.528</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">Severity &kappa;</div>
+      <div class="info-value">0.477</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">Kendall's &tau;</div>
+      <div class="info-value">&minus;0.600</div>
+    </div>
+  </div>
+
+  <div class="chart-grid" style="margin-top:1.5rem">
+    <div class="chart-card">
+      <h3>Concern Volume by Extractor</h3>
+      <canvas id="chart-extractor-volume"></canvas>
+      <p class="chart-note">GPT-4o-mini consistently extracts fewer concerns. The ratio varies by source (1.4&times; for F1000 to 6.9&times; for PLOS).</p>
+    </div>
+    <div class="chart-card">
+      <h3>Ranking Under Each GT</h3>
+      <canvas id="chart-ranking-comparison"></canvas>
+      <p class="chart-note">F1 scores for 6 baseline models under Haiku GT vs GPT-4o-mini GT. Rankings invert because models generating more concerns are penalized by the smaller GPT GT.</p>
+    </div>
+  </div>
+
+  <div class="prose" style="margin-top:1.5rem">
+    <p>
+      <strong>Asymmetric overlap reveals a granularity difference, not a substance disagreement.</strong>
+      97.6% of GPT-4o-mini&rsquo;s concerns match a Haiku concern (reverse direction),
+      while only 63.9% of Haiku concerns match a GPT concern (forward direction).
+      This means GPT-4o-mini identifies a strict subset of what Haiku finds &mdash;
+      the two extractors agree on <em>which</em> concerns exist but disagree on <em>how many</em> to extract.
+    </p>
+    <p>
+      <strong>The leaderboard inversion is a count-calibration artifact.</strong>
+      Under GPT GT (6.7 concerns/article), models generating ~15 concerns (Haiku, GPT-4o-mini)
+      incur massive precision penalties from unmatched predictions, while models generating ~10 concerns
+      (Llama, BM25) happen to be better count-calibrated. Kendall&rsquo;s &tau; = &minus;0.600
+      (12/15 pairwise swaps) does <em>not</em> mean the models perform differently &mdash;
+      it means F1 rankings depend on the ratio of model output count to GT count.
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 8: DISCUSSION
      ============================================================ -->
 <section id="discussion">
   <div class="section-label">Discussion</div>
@@ -635,17 +710,30 @@ td .rank-badge.r3{background:#92400e}
       The similarity distribution confirms this: 98.5% of matched tool concerns have cosine similarity &gt; 0.85,
       creating a clear separation from non-matches.
     </p>
+    <p>
+      <strong>Finding 6: Rankings depend on extractor granularity, not concern substance.</strong>
+      Re-extracting all 981 test articles with GPT-4o-mini yields 6.7 concerns/article vs Haiku&rsquo;s 14.2.
+      Despite this 2.1&times; volume gap, 97.6% of GPT concerns match a Haiku concern, confirming both
+      extractors identify the same underlying issues. However, model rankings invert under the coarser GT
+      (Kendall&rsquo;s &tau; = &minus;0.600): models producing more concerns are penalized by the smaller reference set.
+      Category agreement is moderate (&kappa; = 0.528), with <em>writing_clarity</em> and <em>prior_art_novelty</em>
+      most consistent across extractors. This finding implies that F1 rankings should be interpreted relative
+      to the GT extractor, and that recall (less sensitive to count mismatch) may be a more robust metric
+      for cross-extractor comparisons.
+    </p>
   </div>
 
   <h3 style="margin-top:1.5rem">Limitations</h3>
   <div class="prose">
     <ul>
-      <li><strong>Silver labels from single-model extraction.</strong>
+      <li><strong>Silver labels sensitive to extractor granularity.</strong>
         Ground-truth concerns are extracted from peer reviews by Claude Haiku 4.5, not manually annotated.
-        This creates potential &ldquo;extractor advantage&rdquo; for the extracting model. We note that (a) BM25,
-        a non-neural baseline, achieves competitive F1 (0.685), suggesting labels are not pathologically model-specific,
-        and (b) the evaluation framework is model-agnostic &mdash; practitioners can re-extract with any model.
-        Cross-model validation is planned as future work.</li>
+        Cross-model validation with GPT-4o-mini shows 97.6% of its concerns match Haiku&rsquo;s (substance agreement),
+        but Haiku extracts 2.1&times; more concerns (14.2 vs 6.7 per article). This granularity difference
+        inverts leaderboard rankings under the alternative GT (&tau; = &minus;0.600). Rankings should be interpreted
+        as relative to the specific GT extractor. BM25&rsquo;s competitive F1 (0.685) suggests the labels are not
+        pathologically model-specific in substance, but count-dependent metrics like F1 are sensitive to
+        extractor granularity.</li>
       <li><strong>944 vs 981 test articles.</strong>
         Tool outputs were generated for 944 test articles from 4 sources (eLife, PLOS, F1000Research, Nature).
         37 PeerJ articles in the test split were not evaluated by all models. Per-source PeerJ metrics
@@ -701,6 +789,17 @@ const PAIRWISE_DATA = {"BM25 vs GPT-4o-mini":{"delta":-0.0085,"p":0.0},"BM25 vs 
 const SIMILARITY_DATA = {"all_max":{"bin_edges":[0.0,0.033,0.067,0.1,0.133,0.167,0.2,0.233,0.267,0.3,0.333,0.367,0.4,0.433,0.467,0.5,0.533,0.567,0.6,0.633,0.667,0.7,0.733,0.767,0.8,0.833,0.867,0.9,0.933,0.967,1.0],"counts":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,11,62,304,2283,14788,40656,14242,981],"n":73329,"mean":0.915},"threshold":0.65};
 
 const CONCERN_COUNTS = {"Haiku-4.5":{"mean":15.01,"median":15,"stdev":0.17,"min":12,"max":17,"n":944},"GPT-4o-mini":{"mean":13.59,"median":14,"stdev":0.52,"min":10,"max":15,"n":981},"Gemini-2.5-Flash":{"mean":13.08,"median":13,"stdev":1.56,"min":0,"max":15,"n":981},"BM25":{"mean":12,"median":12,"stdev":0.0,"min":12,"max":12,"n":981},"Gemini-Flash-Lite":{"mean":12.13,"median":14,"stdev":4.16,"min":0,"max":83,"n":981},"Llama-3.3-70B":{"mean":9.81,"median":10,"stdev":0.91,"min":0,"max":15,"n":974}};
+
+const CROSS_MODEL = {
+  "overlap":{"forward_frac":0.639,"reverse_frac":0.976,"forward_matched":6411,"total_haiku":10027,"total_gpt":6572},
+  "category_kappa":0.528,"severity_kappa":0.477,
+  "volume":{"haiku":14.22,"gpt":6.70,"per_source":{"elife":{"h":5.74,"g":1.59},"plos":{"h":17.02,"g":2.47},"f1000":{"h":17.08,"g":12.12},"nature":{"h":38.75,"g":7.88},"peerj":{"h":20.57,"g":14.84}}},
+  "ranking":{
+    "haiku_gt":{"Haiku-4.5":0.699,"GPT-4o-mini":0.694,"Gemini-2.5-Flash":0.687,"BM25":0.684,"Gemini-Flash-Lite":0.658,"Llama-3.3-70B":0.653},
+    "gpt_gt":{"Haiku-4.5":0.452,"GPT-4o-mini":0.488,"Gemini-2.5-Flash":0.485,"BM25":0.502,"Gemini-Flash-Lite":0.486,"Llama-3.3-70B":0.512}
+  },
+  "kendall_tau":-0.600,"n_rank_swaps":12
+};
 
 // ============================================================
 // MODEL CONSTANTS
@@ -1261,10 +1360,62 @@ chartRegistry.push(new Chart(document.getElementById('chart-concern-counts'),{
 }));
 
 // ============================================================
+// SECTION 7: CROSS-MODEL VALIDATION CHARTS
+// ============================================================
+
+// Extractor Volume Grouped Bar
+(function(){
+  const sources = ['elife','plos','f1000','nature','peerj'];
+  const srcLabels = ['eLife','PLOS','F1000','Nature','PeerJ'];
+  const vol = CROSS_MODEL.volume.per_source;
+  chartRegistry.push(new Chart(document.getElementById('chart-extractor-volume'),{
+    type:'bar',
+    data:{
+      labels:srcLabels,
+      datasets:[
+        {label:'Haiku 4.5',data:sources.map(s=>vol[s].h),backgroundColor:'#c2410c',borderRadius:2},
+        {label:'GPT-4o-mini',data:sources.map(s=>vol[s].g),backgroundColor:'#0284c7',borderRadius:2}
+      ]
+    },
+    options:{
+      plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+      scales:{
+        x:{grid:{display:false}},
+        y:{title:{display:true,text:'Mean Concerns / Article',font:{size:11}},min:0,grid:{color:'#eee'}}
+      }
+    }
+  }));
+})();
+
+// Ranking Comparison (Grouped Bar: Haiku GT vs GPT GT)
+(function(){
+  const models = MODEL_ORDER;
+  const hGT = CROSS_MODEL.ranking.haiku_gt;
+  const gGT = CROSS_MODEL.ranking.gpt_gt;
+  chartRegistry.push(new Chart(document.getElementById('chart-ranking-comparison'),{
+    type:'bar',
+    data:{
+      labels:models,
+      datasets:[
+        {label:'Haiku GT',data:models.map(m=>hGT[m]),backgroundColor:'#c2410c88',borderColor:'#c2410c',borderWidth:1,borderRadius:2},
+        {label:'GPT GT',data:models.map(m=>gGT[m]),backgroundColor:'#0284c788',borderColor:'#0284c7',borderWidth:1,borderRadius:2}
+      ]
+    },
+    options:{
+      plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:9}}},
+        y:{title:{display:true,text:'F1',font:{size:11}},min:0.35,max:0.75,grid:{color:'#eee'}}
+      }
+    }
+  }));
+})();
+
+// ============================================================
 // SCROLL SPY
 // ============================================================
 const sidebarLinks = document.querySelectorAll('.sidebar nav a');
-const sectionIds = ['hero','pipeline','dataset','methodology','results','analysis','discussion'];
+const sectionIds = ['hero','pipeline','dataset','methodology','results','analysis','validation','discussion'];
 const spyObserver = new IntersectionObserver(entries=>{
   entries.forEach(e=>{
     if(e.isIntersecting){
