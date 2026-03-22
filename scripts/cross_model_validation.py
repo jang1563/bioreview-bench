@@ -77,14 +77,14 @@ MODELS: dict[str, dict] = {
     },
 }
 
-# Known Haiku GT F1 values (from results/v3/*_test_v3.json)
+# Known Haiku GT F1 values (from results/v3/*_test_v3.json, 4-decimal precision)
 HAIKU_GT_F1: dict[str, float] = {
-    "Haiku-4.5": 0.699,
-    "GPT-4o-mini": 0.693,
-    "Gemini-2.5-Flash": 0.686,
-    "BM25": 0.684,
-    "Gemini-Flash-Lite": 0.659,
-    "Llama-3.3-70B": 0.650,
+    "Haiku-4.5": 0.6988,
+    "GPT-4o-mini": 0.6937,
+    "Gemini-2.5-Flash": 0.6865,
+    "BM25": 0.6852,
+    "Gemini-Flash-Lite": 0.6584,
+    "Llama-3.3-70B": 0.6526,
 }
 
 
@@ -266,12 +266,10 @@ def compute_concern_overlap(
     # Forward: Haiku → GPT (what fraction of Haiku concerns match a GPT concern?)
     fwd_matched = 0
     fwd_total = 0
-    fwd_sims: list[float] = []
 
     # Reverse: GPT → Haiku (what fraction of GPT concerns match a Haiku concern?)
     rev_matched = 0
     rev_total = 0
-    rev_sims: list[float] = []
 
     for haiku_entry in haiku_entries:
         art_id = haiku_entry["id"]
@@ -340,9 +338,6 @@ def compute_category_agreement(
             continue
 
         haiku_texts = [c["concern_text"] for c in haiku_concerns]
-        gpt_as_gt = [{"concern_text": c["concern_text"], "category": c.get("category", "other"), "severity": c.get("severity", "minor"), "requires_figure_reading": False} for c in gpt_concerns]
-
-        result = matcher.score_article(haiku_texts, gpt_as_gt)
 
         # Extract matched pairs' categories and severities
         scores = matcher._compute_scores(haiku_texts, [c["concern_text"] for c in gpt_concerns])
@@ -524,12 +519,21 @@ def compute_ranking_preservation(
     }
 
 
-def _rank_list(values: list[float]) -> list[int]:
-    """Rank values in descending order (1 = highest)."""
+def _rank_list(values: list[float]) -> list[float]:
+    """Rank values in descending order (1 = highest), with average rank for ties."""
     indexed = sorted(enumerate(values), key=lambda x: -x[1])
-    ranks = [0] * len(values)
-    for rank, (idx, _) in enumerate(indexed, 1):
-        ranks[idx] = rank
+    ranks = [0.0] * len(values)
+    i = 0
+    while i < len(indexed):
+        # Find group of tied values
+        j = i + 1
+        while j < len(indexed) and indexed[j][1] == indexed[i][1]:
+            j += 1
+        # Assign average rank to all tied items
+        avg_rank = (i + 1 + j) / 2.0
+        for k in range(i, j):
+            ranks[indexed[k][0]] = avg_rank
+        i = j
     return ranks
 
 
