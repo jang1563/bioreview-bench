@@ -90,8 +90,14 @@ RESOLUTION_PROMPT_HASH = _prompt_hash(RESOLUTION_SYSTEM, "{concerns_json}\n{resp
 # ── Reviewer block splitting ─────────────────────────────────────────────────
 
 _REVIEWER_HEADER_RE = re.compile(
-    r"(?:^|\n)(?:Reviewer\s*[#\-]?\s*(\d+)|Referee\s*[#\-]?\s*(\d+)|"
-    r"Review\s*(?:Report\s*)?(?:from\s+)?(?:Reviewer\s*)?(\d+))\s*[:\.\-]",
+    r"(?:^|\n|\s)"  # anchor: start, newline, or whitespace (PLOS has no newlines)
+    r"(?:"
+    r"Reviewer\s*[#\-]?\s*(\d+)"
+    r"|Referee\s*[#\-]?\s*(\d+)"
+    r"|Review\s*(?:Report\s*)?(?:from\s+)?(?:Reviewer\s*)?(\d+)"
+    r")"
+    r"(?:\s*\([^)]*\))?"  # optional parenthetical, e.g. (Remarks to Author)
+    r"\s*[:\.\-]",
     re.IGNORECASE | re.MULTILINE,
 )
 

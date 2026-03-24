@@ -1,7 +1,7 @@
 # bioreview-bench Data Curation Report
 
 > Version: 1.0
-> Date: 2026-03-11
+> Date: 2026-03-22
 > Status: Repository process summary aligned with `v3.0-release`
 
 This report summarizes how data enters the repository, how it is normalized into
@@ -18,8 +18,9 @@ with frozen `data/splits/v3` evaluation splits and release artifacts rooted in:
 - `results/v3`
 - `results/release_manifest.json`
 
-The public `v3.0-release` leaderboard ranks 981 scored test articles. The full
-test split contains 982 entries; the release manifest freezes the exact scored
+The public `v3.0-release` leaderboard ranks 944 scored test articles (981 test
+articles minus 37 PeerJ articles not evaluated by all models). The full test
+split contains 981 entries; the release manifest freezes the exact scored
 artifact set used for the public ranking.
 
 ---

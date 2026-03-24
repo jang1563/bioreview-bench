@@ -26,18 +26,24 @@ The release freezes:
 
 The default public leaderboard includes these result files:
 
-- `results/v3/haiku_test.json`
-- `results/v3/gpt4omini_test_v2.json`
-- `results/v3/gemini25flash_test_v2.json`
-- `results/v3/bm25_test.json`
-- `results/v3/gemini_flash_lite_test.json`
-- `results/v3/llama33_test.json`
+- `results/v3/haiku_test_v3.json`
+- `results/v3/gpt4omini_test_v3.json`
+- `results/v3/gemini25flash_test_v3.json`
+- `results/v3/bm25_test_v3.json`
+- `results/v3/gemini_flash_lite_test_v3.json`
+- `results/v3/llama33_test_v3.json`
 
 Excluded from the default public leaderboard but retained in-repo:
 
 - `results/v3/haiku_test_dedup.json`
+- `results/v3/haiku_test.json`
 - `results/v3/gemini25flash_test.json`
+- `results/v3/gemini25flash_test_v2.json`
 - `results/v3/gpt4omini_test.json`
+- `results/v3/gpt4omini_test_v2.json`
+- `results/v3/bm25_test.json`
+- `results/v3/gemini_flash_lite_test.json`
+- `results/v3/llama33_test.json`
 - `results/v3/auc_pr_comparison.json`
 
 ## Key Changes

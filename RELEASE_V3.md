@@ -1,6 +1,6 @@
 # bioreview-bench v3 Release Reference
 
-Date: 2026-03-13
+Date: 2026-03-22
 
 This document defines the official public release reference for the current
 `v3` benchmark snapshot and its published evaluation artifacts.
@@ -60,18 +60,24 @@ Use this command to regenerate the public release artifacts:
 
 As of this release reference, the public ranking includes:
 
-- `results/v3/haiku_test.json`
-- `results/v3/gpt4omini_test_v2.json`
-- `results/v3/gemini25flash_test_v2.json`
-- `results/v3/bm25_test.json`
-- `results/v3/gemini_flash_lite_test.json`
-- `results/v3/llama33_test.json`
+- `results/v3/haiku_test_v3.json`
+- `results/v3/gpt4omini_test_v3.json`
+- `results/v3/gemini25flash_test_v3.json`
+- `results/v3/bm25_test_v3.json`
+- `results/v3/gemini_flash_lite_test_v3.json`
+- `results/v3/llama33_test_v3.json`
 
 Excluded but retained in-repo for analysis:
 
 - `results/v3/haiku_test_dedup.json`
 - `results/v3/gemini25flash_test.json`
+- `results/v3/gemini25flash_test_v2.json`
 - `results/v3/gpt4omini_test.json`
+- `results/v3/gpt4omini_test_v2.json`
+- `results/v3/haiku_test.json`
+- `results/v3/bm25_test.json`
+- `results/v3/gemini_flash_lite_test.json`
+- `results/v3/llama33_test.json`
 - `results/v3/auc_pr_comparison.json`
 
 ## Publication Checklist

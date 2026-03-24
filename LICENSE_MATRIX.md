@@ -1,7 +1,7 @@
 # bioreview-bench License Matrix
 
-> Version: 1.1
-> Date: 2026-03-11
+> Version: 1.2
+> Date: 2026-03-22
 > Status: Release-policy matrix aligned with `v3.0-release`
 
 This document records the repository's operational redistribution policy by
@@ -205,5 +205,6 @@ Test-split leakage policy is separate from license policy:
 
 | Date | Change |
 |------|--------|
+| 2026-03-22 | Aligned license references to CC-BY-NC 4.0 for benchmark annotations (matching LICENSE file) |
 | 2026-03-11 | Reworked matrix for `v3.0-release`, added PeerJ, and aligned repository policy with source-specific redistribution rules |
 | 2026-02-28 | Initial draft created |

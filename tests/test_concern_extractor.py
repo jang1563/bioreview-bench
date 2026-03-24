@@ -105,3 +105,39 @@ def test_split_empty_input() -> None:
     """Empty string → empty list."""
     assert split_into_reviewer_blocks("") == []
     assert split_into_reviewer_blocks("   ") == []
+
+
+def test_split_plos_no_newlines() -> None:
+    """PLOS format: reviewer headers with spaces (no newlines)."""
+    text = (
+        "Editor comments here. "
+        "Reviewer #1: The statistical analysis lacks proper controls "
+        "and sufficient sample size for the claims made. "
+        "Reviewer #2: The western blot images need better quantification "
+        "and the loading controls are not convincing."
+    )
+    result = split_into_reviewer_blocks(text)
+    assert len(result) == 2
+    assert "statistical analysis" in result[0]
+    assert "western blot" in result[1]
+
+
+def test_split_nature_parenthetical() -> None:
+    """Nature format: Reviewer #N (Remarks to Author):"""
+    text = (
+        "Reviewer #1 (Remarks to Author):\n"
+        "The experimental design has several issues.\n\n"
+        "Reviewer #2 (Remarks to Author):\n"
+        "The conclusions are not supported by the data."
+    )
+    result = split_into_reviewer_blocks(text)
+    assert len(result) == 2
+    assert "experimental design" in result[0]
+    assert "conclusions" in result[1]
+
+
+def test_split_referee_format() -> None:
+    """Referee #N format (eLife legacy)."""
+    text = "Referee #1:\nFirst review text here.\nReferee #2:\nSecond review text here."
+    result = split_into_reviewer_blocks(text)
+    assert len(result) == 2

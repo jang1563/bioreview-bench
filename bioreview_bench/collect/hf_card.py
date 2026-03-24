@@ -105,6 +105,7 @@ def _build_body(stats: dict[str, Any]) -> str:
         _section_configs(configs),
         _section_usage(),
         _section_schema(),
+        _section_leaderboard(),
         _section_license(),
         _section_citation(),
     ]
@@ -130,7 +131,7 @@ A benchmark and training dataset for AI-assisted biomedical peer review.
 - **{total:,} articles** with **{total_concerns:,} reviewer concerns**
 - Sources: {source_line}
 - Concern-level labels: 9 categories, 3 severity levels, 5 author stance types
-- License: benchmark metadata CC-BY-4.0 | source content follows per-source terms | code Apache-2.0
+- License: benchmark metadata CC-BY-NC-4.0 | source content follows per-source terms | code Apache-2.0
 
 ## What makes this dataset unique
 
@@ -239,10 +240,27 @@ def _section_schema() -> str:
 `interpretation`, `other`"""
 
 
+def _section_leaderboard() -> str:
+    return """## Leaderboard (test split)
+
+| Rank | Tool | Version | Recall | Precision | F1 | Major Recall |
+|------|------|---------|--------|-----------|-----|--------------|
+| 1 | Haiku-4.5 | claude-haiku-4-5-20251001 | 0.725 | 0.675 | 0.699 | 0.872 |
+| 2 | GPT-4o-mini | gpt-4o-mini | 0.684 | 0.703 | 0.694 | 0.840 |
+| 3 | Gemini-2.5-Flash | gemini-2.5-flash | 0.665 | 0.709 | 0.686 | 0.832 |
+| 4 | BM25 | bm25-specter2 | 0.637 | 0.741 | 0.685 | 0.794 |
+| 5 | Gemini-Flash-Lite | gemini-2.5-flash-lite | 0.615 | 0.708 | 0.658 | 0.781 |
+| 6 | Llama-3.3-70B | llama-3.3-70b | 0.554 | 0.794 | 0.653 | 0.753 |
+
+> Matching: SPECTER2 cosine similarity, threshold=0.65, Hungarian bipartite matching.
+> Figure-issue concerns excluded. 944 scored articles.
+> Submit results via [GitHub](https://github.com/jang1563/bioreview-bench)."""
+
+
 def _section_license() -> str:
     return """## License
 
-- **Benchmark annotations and packaging metadata**: CC-BY-4.0.
+- **Benchmark annotations and packaging metadata**: CC-BY-NC-4.0.
 - **Underlying article, review, and author-response content**: source-specific.
   Redistribution is not uniform across all sources; follow `LICENSE_MATRIX.md`
   in the GitHub repository and the original publisher terms.

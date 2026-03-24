@@ -1,7 +1,7 @@
 # bioreview-bench Limitations and Ethics
 
-> Version: 1.0
-> Date: 2026-03-11
+> Version: 1.1
+> Date: 2026-03-22
 > Status: Repository disclosure document
 
 This document records the main methodological, ethical, and deployment limits of

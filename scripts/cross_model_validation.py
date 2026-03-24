@@ -125,7 +125,9 @@ def extract_article_concerns(
     article_doi = entry.get("doi", "")
     article_source = entry.get("source", "elife")
 
-    blocks = split_into_reviewer_blocks(decision_letter_raw)
+    # Prefer pre-split review_texts when available (avoids regex splitting issues)
+    review_texts = entry.get("review_texts", [])
+    blocks = review_texts if review_texts else split_into_reviewer_blocks(decision_letter_raw)
     if not blocks:
         return []
 

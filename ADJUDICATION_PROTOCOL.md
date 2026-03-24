@@ -1,7 +1,7 @@
 # bioreview-bench Adjudication Protocol
 
 > Version: 1.0
-> Date: 2026-03-11
+> Date: 2026-03-22
 > Status: Repository annotation policy
 
 This document defines how annotation disagreements are resolved for

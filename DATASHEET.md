@@ -3,10 +3,10 @@
 **Dataset name:** bioreview-bench
 **Version:** 3.0
 **Schema version:** 1.1
-**Date of this document:** 2026-03-13
+**Date of this document:** 2026-03-22
 **GitHub:** [github.com/jang1563/bioreview-bench](https://github.com/jang1563/bioreview-bench)
 **HuggingFace:** [huggingface.co/datasets/jang1563/bioreview-bench](https://huggingface.co/datasets/jang1563/bioreview-bench)
-**License:** Benchmark annotations and packaging metadata: CC-BY 4.0 | Underlying source content: source-specific | Code: Apache-2.0
+**License:** Benchmark annotations and packaging metadata: CC-BY-NC 4.0 | Underlying source content: source-specific | Code: Apache-2.0
 
 This document follows the Datasheets for Datasets framework (Gebru et al., 2018) and provides structured documentation of bioreview-bench for dataset consumers, downstream researchers, and auditors.
 
@@ -42,15 +42,15 @@ Each instance represents one published biomedical research article together with
 
 **How many instances are there in total, and per split?**
 
-The current repository snapshot contains 6,696 articles (instances) and 96,866
+The current repository snapshot contains 6,940 articles (instances) and 101,869
 concern records across all splits.
 
 | Split      | Articles | Concerns |
 |------------|----------|----------|
-| train      | 4,888    | 70,241   |
-| validation | 864      | 12,755   |
-| test       | 944      | 13,870   |
-| **Total**  | **6,696**| **96,866**|
+| train      | 5,064    | 73,722   |
+| validation | 895      | 13,464   |
+| test       | 981      | 14,683   |
+| **Total**  | **6,940**| **101,869**|
 
 **Does the dataset contain all possible instances, or is it a sample?**
 
@@ -250,7 +250,7 @@ Yes. Substantial preprocessing, cleaning, and labelling were applied:
 
 - Category and severity labels are silver standard, not gold standard. Users relying on these labels for training or analysis should be aware that a non-trivial fraction may be incorrect.
 - Author stance labels reflect LLM interpretation of author response letters, which may not always accurately capture the nuance of the authors' actual position.
-- The matching threshold (SPECTER2 cosine >= 0.65) for the benchmark evaluation harness was validated on a sample of 148 concerns from 20 articles; generalisation to all 96,866 concerns has not been exhaustively verified.
+- The matching threshold (SPECTER2 cosine >= 0.65) for the benchmark evaluation harness was validated on a sample of 148 concerns from 20 articles; generalisation to all 101,869 concerns has not been exhaustively verified.
 - LLM-based processing may reflect the biases of the underlying LLM (e.g., systematic tendencies to classify certain concern types differently across subfields of biomedicine).
 
 **Was the "raw" data saved in addition to the preprocessed data?**
@@ -333,7 +333,7 @@ become available.
 **Will the dataset be distributed under a copyright or other IP license?**
 
 The project uses a dual-license-plus-source-policy model. Benchmark annotations
-and packaging metadata are released under CC-BY 4.0. Code (Python package,
+and packaging metadata are released under CC-BY-NC 4.0. Code (Python package,
 evaluation harness, scripts) is released under Apache-2.0. Underlying article,
 review, and author-response materials remain subject to source-specific terms.
 
@@ -396,7 +396,7 @@ Yes. Contributions are welcome via the GitHub repository. The preferred mechanis
 - **Benchmark results:** Open an issue or pull request to register results for inclusion in the leaderboard.
 - **Schema proposals:** Open a GitHub Issue to propose schema extensions or modifications before submitting a pull request.
 
-All contributions must be compatible with CC-BY 4.0 licensing. Contributors are expected to ensure that any content they contribute is either their own original work, already openly licensed under compatible terms, or derived from public-domain sources.
+All contributions must be compatible with CC-BY-NC 4.0 licensing. Contributors are expected to ensure that any content they contribute is either their own original work, already openly licensed under compatible terms, or derived from public-domain sources.
 
 ---
 

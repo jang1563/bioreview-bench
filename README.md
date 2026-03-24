@@ -4,7 +4,8 @@
 
 [![HuggingFace Dataset](https://img.shields.io/badge/HuggingFace-bioreview--bench-yellow)](https://huggingface.co/datasets/jang1563/bioreview-bench)
 [![License: Apache-2.0](https://img.shields.io/badge/Code-Apache--2.0-blue)](LICENSE)
-[![License: Source-specific](https://img.shields.io/badge/Data-source--specific-lightgrey)](LICENSE_MATRIX.md)
+[![License: CC-BY-NC-4.0](https://img.shields.io/badge/Data-CC--BY--NC--4.0-lightgrey)](LICENSE)
+[![License: Source-specific](https://img.shields.io/badge/Content-source--specific-lightgrey)](LICENSE_MATRIX.md)
 [![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-blue)](https://www.python.org/)
 
 - **6,940 articles** from 5 journals (eLife, PLOS, F1000Research, PeerJ, Nature)
@@ -329,7 +330,7 @@ See [TASK_DEFINITION.md](TASK_DEFINITION.md) for the complete task specification
 
 This project uses a dual license:
 
-- **Benchmark annotations and packaging metadata**: [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+- **Benchmark annotations and packaging metadata**: [CC-BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
 - **Underlying article, review, and author-response content**: source-specific. Redistribution rights are not uniform across eLife, PLOS, F1000Research, PeerJ, Nature Portfolio, and other future sources; see [LICENSE_MATRIX.md](LICENSE_MATRIX.md).
 - **Code** (Python package, evaluation harness, scripts): [Apache-2.0](LICENSE).
 

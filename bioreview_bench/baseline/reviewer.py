@@ -188,6 +188,7 @@ class BaselineReviewer:
                     system_instruction=system,
                     max_output_tokens=self.max_tokens,
                     temperature=self.temperature,
+                    thinking_config=types.ThinkingConfig(thinking_budget=0),
                 )
             except ImportError:
                 config = {

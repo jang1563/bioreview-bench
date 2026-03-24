@@ -177,6 +177,54 @@ def frozen_split(
     return train, val, test
 
 
+def balanced_test_split(
+    entries: list[dict],
+    per_source_test: dict[str, int],
+    val_ratio: float,
+    seed: int,
+) -> tuple[list[dict], list[dict], list[dict]]:
+    """Split with balanced per-source test allocation.
+
+    For each source, sample exactly ``per_source_test[source]`` articles for
+    test (or all available if fewer exist). Remaining articles are split into
+    train/val using the same stratified approach as ``frozen_split``.
+    """
+    rng = random.Random(seed)
+
+    by_source: dict[str, list[dict]] = defaultdict(list)
+    for entry in entries:
+        by_source[entry.get("source", "unknown")].append(entry)
+
+    test: list[dict] = []
+    remaining: list[dict] = []
+
+    for source, src_entries in by_source.items():
+        rng.shuffle(src_entries)
+        n_test = min(per_source_test.get(source, 0), len(src_entries))
+        test.extend(src_entries[:n_test])
+        remaining.extend(src_entries[n_test:])
+
+    # Split remaining into train/val using stratified approach
+    strata: dict[str, list[dict]] = defaultdict(list)
+    for entry in remaining:
+        strata[get_stratum(entry)].append(entry)
+
+    train: list[dict] = []
+    val: list[dict] = []
+    for _key, stratum_entries in strata.items():
+        rng.shuffle(stratum_entries)
+        n = len(stratum_entries)
+        n_val = max(1, round(n * val_ratio)) if n >= 2 else 0
+        val.extend(stratum_entries[:n_val])
+        train.extend(stratum_entries[n_val:])
+
+    rng.shuffle(train)
+    rng.shuffle(val)
+    rng.shuffle(test)
+
+    return train, val, test
+
+
 def _check_source_balance(split: list[dict], split_name: str) -> None:
     """Warn if any single source exceeds 50% of a split."""
     if not split:
@@ -242,6 +290,17 @@ def _check_source_balance(split: list[dict], split_name: str) -> None:
     default=None,
     help="Path to frozen test IDs JSON. Test set is fixed; new articles go to train/val only.",
 )
+@click.option(
+    "--balanced-test",
+    default=None,
+    help='Per-source test counts as JSON, e.g. \'{"elife":150,"plos":150,"f1000":150,"peerj":120,"nature":120}\'',
+)
+@click.option(
+    "--version",
+    "split_version",
+    default=None,
+    help="Version label for metadata (default: inferred from output-dir name).",
+)
 def main(
     sources: tuple[str, ...],
     input_dir: str | None,
@@ -251,6 +310,8 @@ def main(
     test_ratio: float,
     usable_only: bool,
     frozen_test: str | None,
+    balanced_test: str | None,
+    split_version: str | None,
 ) -> None:
     """Rebuild multi-source stratified train/val/test splits."""
     in_dir = Path(input_dir) if input_dir else ROOT / "data" / "processed"
@@ -329,8 +390,18 @@ def main(
 
     click.echo(f"\nTotal entries: {len(all_entries)}")
 
-    # Stratified split (with optional frozen test set)
-    if frozen_test:
+    # Stratified split (with optional frozen test set or balanced test)
+    if frozen_test and balanced_test:
+        click.echo("Error: --frozen-test and --balanced-test are mutually exclusive.", err=True)
+        sys.exit(1)
+
+    if balanced_test:
+        per_source_test = json.loads(balanced_test)
+        click.echo(f"Balanced test mode: {per_source_test}")
+        train, val, test = balanced_test_split(
+            all_entries, per_source_test=per_source_test, val_ratio=val_ratio, seed=seed
+        )
+    elif frozen_test:
         freeze_path = Path(frozen_test)
         freeze_data = json.loads(freeze_path.read_text())
         frozen_ids = set(freeze_data["test_ids"])
@@ -352,13 +423,17 @@ def main(
     save_jsonl(val, out_dir / "val.jsonl")
     save_jsonl(test, out_dir / "test.jsonl")
 
+    # Infer version from output-dir name if not specified
+    version = split_version or out_dir.name
+
     # Save split metadata
     meta = {
-        "version": "v3",
+        "version": version,
         "seed": seed,
         "val_ratio": val_ratio,
-        "test_ratio": "frozen" if frozen_test else test_ratio,
+        "test_ratio": "balanced" if balanced_test else ("frozen" if frozen_test else test_ratio),
         "frozen_test": frozen_test,
+        "balanced_test": balanced_test,
         "usable_only": usable_only,
         "sources": list(sources),
         "source_counts": source_counts,
@@ -373,7 +448,7 @@ def main(
             for split_name, split_data in [("train", train), ("val", val), ("test", test)]
         },
     }
-    meta_path = out_dir / "split_meta_v3.json"
+    meta_path = out_dir / f"split_meta_{version}.json"
     meta_path.write_text(json.dumps(meta, indent=2, ensure_ascii=False))
 
     # Print summary

@@ -1,7 +1,7 @@
 # bioreview-bench Baseline Suite
 
-> Version: 1.1
-> Date: 2026-03-13
+> Version: 1.2
+> Date: 2026-03-22
 > Status: Current implementation and planned gaps
 
 This document defines what counts as a baseline in the repository, what is
@@ -73,9 +73,9 @@ Important distinction:
 | OpenAI zero-shot LLM | Implemented | `bioreview_bench/baseline/*` | Runnable today |
 | Google Gemini zero-shot LLM | Implemented | `bioreview_bench/baseline/*` | Runnable with `google-genai` and `GEMINI_API_KEY` |
 | Groq zero-shot LLM | Implemented | `bioreview_bench/baseline/*` | Runnable with `groq` and `GROQ_API_KEY` |
-| Gemini submission-compatible result | Published result | `results/v3/gemini25flash_test_v2.json` | Runnable via `bioreview-baseline --provider google` |
-| Gemini Flash Lite result | Published result | `results/v3/gemini_flash_lite_test.json` | Runnable via `bioreview-baseline --provider google` |
-| Llama submission-compatible result | Published result | `results/v3/llama33_test.json` | Runnable via `bioreview-baseline --provider groq` |
+| Gemini submission-compatible result | Published result | `results/v3/gemini25flash_test_v3.json` | Runnable via `bioreview-baseline --provider google` |
+| Gemini Flash Lite result | Published result | `results/v3/gemini_flash_lite_test_v3.json` | Runnable via `bioreview-baseline --provider google` |
+| Llama submission-compatible result | Published result | `results/v3/llama33_test_v3.json` | Runnable via `bioreview-baseline --provider groq` |
 | BM25 / lexical baseline | Implemented | `bioreview_bench/baseline/lexical.py` | Runnable today via `bioreview-bm25` |
 | W8 domain baseline | Planned, not implemented | n/a | Still missing from original plan |
 | Human subset reference | Scaffolding implemented | `bioreview_bench/validate/human_subset.py` | Sampling and agreement helpers are ready; annotation not yet completed |
