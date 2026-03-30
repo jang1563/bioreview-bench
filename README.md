@@ -39,9 +39,9 @@ from datasets import load_dataset
 # Default config: all sources, all fields
 dataset = load_dataset("jang1563/bioreview-bench")
 
-train = dataset["train"]       # 5,064 articles, 73,722 concerns
-val   = dataset["validation"]  # 895 articles, 13,464 concerns
-test  = dataset["test"]        # 981 articles, 14,683 concerns
+train = dataset["train"]       # 5,387 articles, 79,121 concerns
+val   = dataset["validation"]  # 953 articles, 14,101 concerns
+test  = dataset["test"]        # 600 articles, 8,647 concerns
 
 # Inspect an article
 article = val[0]
@@ -174,9 +174,9 @@ print(f"Recall: {result.recall:.2f}, Precision: {result.precision:.2f}")
 
 | Split | Articles | Concerns | Avg concerns/article |
 |-------|----------|----------|---------------------|
-| train | 5,064 | 73,722 | 14.6 |
-| validation | 895 | 13,464 | 15.0 |
-| test | 981 | 14,683 | 15.0 |
+| train | 5,387 | 79,121 | 14.7 |
+| validation | 953 | 14,101 | 14.8 |
+| test | 600 | 8,647 | 14.4 |
 | **Total** | **6,940** | **101,869** | **14.7** |
 
 ### Source distribution
@@ -242,48 +242,40 @@ All metrics include bootstrap 95% confidence intervals (1,000 iterations, docume
 
 ## Leaderboard
 
-The current official public leaderboard snapshot covers **944 scored test articles** (981 test articles minus 37 PeerJ articles not evaluated by all models).
-The rankings below follow the frozen release
-manifest in `results/release_manifest.json`. To submit results, open an issue or pull request.
+The current official public leaderboard covers the **v4 test split** (600 articles, balanced by source and publication year).
+To submit results, open an issue or pull request.
 
 Leaderboard inclusion policy:
 
-- Default public rankings use only `split="test"` result files from `results/v3/`.
+- Default public rankings use only `split="test"` result files from `results/v4/`.
 - Experimental `dedup_gt=true` runs are excluded from the default ranking.
 - If multiple result files exist for the same `(tool_name, tool_version)`, only the strongest run by `f1_micro` is retained.
 - `tool_version` should record the exact model or release identifier (for example, `claude-haiku-4-5-20251001`), not `unknown`.
 
 | Rank | Tool | Version | Recall | 95% CI | Precision | 95% CI | F1 | Major Recall | Articles |
 |------|------|---------|--------|--------|-----------|--------|----|--------------|----------|
-| 1 | Haiku-4.5 | `claude-haiku-4-5-20251001` | 0.725 | [0.697, 0.753] | 0.675 | [0.653, 0.694] | 0.699 | 0.872 | 944 |
-| 2 | GPT-4o-mini | `gpt-4o-mini` | 0.684 | [0.658, 0.712] | 0.703 | [0.682, 0.722] | 0.694 | 0.840 | 944 |
-| 3 | Gemini-2.5-Flash | `gemini-2.5-flash` | 0.665 | [0.639, 0.693] | 0.709 | [0.688, 0.729] | 0.686 | 0.832 | 944 |
-| 4 | BM25 | `bm25-specter2` | 0.637 | [0.611, 0.664] | 0.741 | [0.721, 0.760] | 0.685 | 0.794 | 944 |
-| 5 | Gemini-2.5-Flash-Lite | `gemini-2.5-flash-lite` | 0.615 | [0.588, 0.644] | 0.708 | [0.685, 0.729] | 0.658 | 0.781 | 944 |
-| 6 | Llama-3.3-70B | `llama-3.3-70b` | 0.554 | [0.530, 0.580] | 0.794 | [0.774, 0.811] | 0.653 | 0.753 | 944 |
+| 1 | Haiku-4.5 | `claude-haiku-4-5-20251001` | 0.759 | [0.732, 0.790] | 0.692 | [0.667, 0.718] | 0.724 | 0.893 | 600 |
+| 2 | Gemini-2.5-Flash | `gemini-2.5-flash` | 0.738 | [0.710, 0.768] | 0.703 | [0.679, 0.730] | 0.720 | 0.880 | 600 |
+| 3 | GPT-4o-mini | `gpt-4o-mini` | 0.717 | [0.691, 0.748] | 0.721 | [0.698, 0.747] | 0.719 | 0.856 | 600 |
+| 4 | BM25 | `bm25-specter2` | 0.668 | [0.642, 0.698] | 0.761 | [0.738, 0.786] | 0.711 | 0.810 | 600 |
+| 5 | Llama-3.3-70B | `llama-3.3-70b` | 0.614 | [0.589, 0.643] | 0.785 | [0.764, 0.808] | 0.689 | 0.802 | 600 |
+| 6 | Gemini-Flash-Lite | `gemini-2.5-flash-lite` | 0.643 | [0.614, 0.675] | 0.728 | [0.703, 0.754] | 0.683 | 0.800 | 600 |
 
 > Ranking metric: micro-averaged F1 (`f1_micro`). 95% CI from 1,000 article-level bootstrap resamples.
-> Matching: SPECTER2 cosine similarity, threshold=0.65, hungarian bipartite matching.
+> Matching: SPECTER2 cosine similarity, threshold=0.65, Hungarian bipartite matching.
 > Figure-issue concerns excluded from ground truth (require visual inspection).
 
 Official release artifacts are rebuilt from raw result JSON files with:
 
 ```bash
-./.venv/bin/python scripts/rebuild_release_artifacts.py \
-  --results-dir results/v3 \
-  --output-dir results \
+uv run python scripts/rebuild_release_artifacts.py \
+  --results-dir results/v4 \
+  --output-dir results/v4 \
   --split test
 ```
 
-This regenerates `results/leaderboard.md`, `results/leaderboard.json`, and
-`results/release_manifest.json`. The manifest freezes the included result files
-and matching settings for the public release.
-
-Release operators should also consult [RELEASE_V3.md](RELEASE_V3.md), which
-defines the current public `v3` release reference, included result files, and
-publication checklist.
-For a GitHub-release-ready summary of the tagged snapshot, see
-[RELEASE_NOTES_v3.0.md](RELEASE_NOTES_v3.0.md).
+This regenerates `results/v4/leaderboard.md`, `results/v4/leaderboard.json`, and
+`results/v4/release_manifest.json`.
 
 ---
 
@@ -320,7 +312,7 @@ See [TASK_DEFINITION.md](TASK_DEFINITION.md) for the complete task specification
   author  = {Kim, JangKeun},
   year    = {2026},
   url     = {https://huggingface.co/datasets/jang1563/bioreview-bench},
-  note    = {Version 3.0 (v3.0-release)}
+  note    = {Version 4.0 (v4.0-release)}
 }
 ```
 

@@ -1,0 +1,690 @@
+{
+  "cutoff_year": 2023,
+  "split": "data/splits/v4/test.jsonl",
+  "models": {
+    "Haiku-4.5": {
+      "by_cohort": {
+        "2023+": {
+          "f1": 0.7117,
+          "recall": 0.7598,
+          "precision": 0.6693,
+          "n_articles": 427,
+          "tp": 4287,
+          "fp": 2118,
+          "fn": 1355
+        },
+        "pre-2023": {
+          "f1": 0.7522,
+          "recall": 0.7576,
+          "precision": 0.7468,
+          "n_articles": 173,
+          "tp": 1938,
+          "fp": 657,
+          "fn": 620
+        }
+      },
+      "by_source_cohort": {
+        "elife/2023+": {
+          "f1": 0.5419,
+          "recall": 0.9839,
+          "precision": 0.3739,
+          "n_articles": 120,
+          "tp": 673,
+          "fp": 1127,
+          "fn": 11
+        },
+        "elife/pre-2023": {
+          "f1": 0.6047,
+          "recall": 1.0,
+          "precision": 0.4333,
+          "n_articles": 30,
+          "tp": 195,
+          "fp": 255,
+          "fn": 0
+        },
+        "f1000/2023+": {
+          "f1": 0.7086,
+          "recall": 0.684,
+          "precision": 0.735,
+          "n_articles": 79,
+          "tp": 868,
+          "fp": 313,
+          "fn": 401
+        },
+        "f1000/pre-2023": {
+          "f1": 0.7826,
+          "recall": 0.8149,
+          "precision": 0.7528,
+          "n_articles": 71,
+          "tp": 801,
+          "fp": 263,
+          "fn": 182
+        },
+        "nature/2023+": {
+          "f1": 0.7841,
+          "recall": 0.8281,
+          "precision": 0.7445,
+          "n_articles": 97,
+          "tp": 1084,
+          "fp": 372,
+          "fn": 225
+        },
+        "nature/pre-2023": {
+          "f1": 0.6765,
+          "recall": 1.0,
+          "precision": 0.5111,
+          "n_articles": 3,
+          "tp": 23,
+          "fp": 22,
+          "fn": 0
+        },
+        "peerj/2023+": {
+          "f1": 0.7153,
+          "recall": 0.6165,
+          "precision": 0.8519,
+          "n_articles": 31,
+          "tp": 397,
+          "fp": 69,
+          "fn": 247
+        },
+        "peerj/pre-2023": {
+          "f1": 0.7759,
+          "recall": 0.6934,
+          "precision": 0.8807,
+          "n_articles": 19,
+          "tp": 251,
+          "fp": 34,
+          "fn": 111
+        },
+        "plos/2023+": {
+          "f1": 0.7813,
+          "recall": 0.7287,
+          "precision": 0.8422,
+          "n_articles": 100,
+          "tp": 1265,
+          "fp": 237,
+          "fn": 471
+        },
+        "plos/pre-2023": {
+          "f1": 0.7652,
+          "recall": 0.6714,
+          "precision": 0.8895,
+          "n_articles": 50,
+          "tp": 668,
+          "fp": 83,
+          "fn": 327
+        }
+      }
+    },
+    "GPT-4o-mini": {
+      "by_cohort": {
+        "2023+": {
+          "f1": 0.7097,
+          "recall": 0.7196,
+          "precision": 0.7001,
+          "n_articles": 427,
+          "tp": 4060,
+          "fp": 1739,
+          "fn": 1582
+        },
+        "pre-2023": {
+          "f1": 0.7413,
+          "recall": 0.7115,
+          "precision": 0.7738,
+          "n_articles": 173,
+          "tp": 1820,
+          "fp": 532,
+          "fn": 738
+        }
+      },
+      "by_source_cohort": {
+        "elife/2023+": {
+          "f1": 0.57,
+          "recall": 0.9737,
+          "precision": 0.4029,
+          "n_articles": 120,
+          "tp": 666,
+          "fp": 987,
+          "fn": 18
+        },
+        "elife/pre-2023": {
+          "f1": 0.6373,
+          "recall": 1.0,
+          "precision": 0.4676,
+          "n_articles": 30,
+          "tp": 195,
+          "fp": 222,
+          "fn": 0
+        },
+        "f1000/2023+": {
+          "f1": 0.6967,
+          "recall": 0.6407,
+          "precision": 0.7634,
+          "n_articles": 79,
+          "tp": 813,
+          "fp": 252,
+          "fn": 456
+        },
+        "f1000/pre-2023": {
+          "f1": 0.7757,
+          "recall": 0.765,
+          "precision": 0.7866,
+          "n_articles": 71,
+          "tp": 752,
+          "fp": 204,
+          "fn": 231
+        },
+        "nature/2023+": {
+          "f1": 0.7895,
+          "recall": 0.7892,
+          "precision": 0.7898,
+          "n_articles": 97,
+          "tp": 1033,
+          "fp": 275,
+          "fn": 276
+        },
+        "nature/pre-2023": {
+          "f1": 0.7188,
+          "recall": 1.0,
+          "precision": 0.561,
+          "n_articles": 3,
+          "tp": 23,
+          "fp": 18,
+          "fn": 0
+        },
+        "peerj/2023+": {
+          "f1": 0.6925,
+          "recall": 0.5699,
+          "precision": 0.8822,
+          "n_articles": 31,
+          "tp": 367,
+          "fp": 49,
+          "fn": 277
+        },
+        "peerj/pre-2023": {
+          "f1": 0.75,
+          "recall": 0.6381,
+          "precision": 0.9094,
+          "n_articles": 19,
+          "tp": 231,
+          "fp": 23,
+          "fn": 131
+        },
+        "plos/2023+": {
+          "f1": 0.7637,
+          "recall": 0.6803,
+          "precision": 0.8703,
+          "n_articles": 100,
+          "tp": 1181,
+          "fp": 176,
+          "fn": 555
+        },
+        "plos/pre-2023": {
+          "f1": 0.7373,
+          "recall": 0.6221,
+          "precision": 0.905,
+          "n_articles": 50,
+          "tp": 619,
+          "fp": 65,
+          "fn": 376
+        }
+      }
+    },
+    "Gemini-2.5-Flash": {
+      "by_cohort": {
+        "2023+": {
+          "f1": 0.7097,
+          "recall": 0.7407,
+          "precision": 0.6813,
+          "n_articles": 427,
+          "tp": 4179,
+          "fp": 1955,
+          "fn": 1463
+        },
+        "pre-2023": {
+          "f1": 0.7442,
+          "recall": 0.7306,
+          "precision": 0.7582,
+          "n_articles": 173,
+          "tp": 1869,
+          "fp": 596,
+          "fn": 689
+        }
+      },
+      "by_source_cohort": {
+        "elife/2023+": {
+          "f1": 0.5525,
+          "recall": 0.9766,
+          "precision": 0.3852,
+          "n_articles": 120,
+          "tp": 668,
+          "fp": 1066,
+          "fn": 16
+        },
+        "elife/pre-2023": {
+          "f1": 0.6142,
+          "recall": 1.0,
+          "precision": 0.4432,
+          "n_articles": 30,
+          "tp": 195,
+          "fp": 245,
+          "fn": 0
+        },
+        "f1000/2023+": {
+          "f1": 0.6961,
+          "recall": 0.6533,
+          "precision": 0.7448,
+          "n_articles": 79,
+          "tp": 829,
+          "fp": 284,
+          "fn": 440
+        },
+        "f1000/pre-2023": {
+          "f1": 0.7755,
+          "recall": 0.7782,
+          "precision": 0.7727,
+          "n_articles": 71,
+          "tp": 765,
+          "fp": 225,
+          "fn": 218
+        },
+        "nature/2023+": {
+          "f1": 0.7875,
+          "recall": 0.8151,
+          "precision": 0.7616,
+          "n_articles": 97,
+          "tp": 1067,
+          "fp": 334,
+          "fn": 242
+        },
+        "nature/pre-2023": {
+          "f1": 0.697,
+          "recall": 1.0,
+          "precision": 0.5349,
+          "n_articles": 3,
+          "tp": 23,
+          "fp": 20,
+          "fn": 0
+        },
+        "peerj/2023+": {
+          "f1": 0.7053,
+          "recall": 0.5947,
+          "precision": 0.8665,
+          "n_articles": 31,
+          "tp": 383,
+          "fp": 59,
+          "fn": 261
+        },
+        "peerj/pre-2023": {
+          "f1": 0.7556,
+          "recall": 0.6575,
+          "precision": 0.8881,
+          "n_articles": 19,
+          "tp": 238,
+          "fp": 30,
+          "fn": 124
+        },
+        "plos/2023+": {
+          "f1": 0.7748,
+          "recall": 0.7097,
+          "precision": 0.8532,
+          "n_articles": 100,
+          "tp": 1232,
+          "fp": 212,
+          "fn": 504
+        },
+        "plos/pre-2023": {
+          "f1": 0.7539,
+          "recall": 0.6513,
+          "precision": 0.895,
+          "n_articles": 50,
+          "tp": 648,
+          "fp": 76,
+          "fn": 347
+        }
+      }
+    },
+    "BM25": {
+      "by_cohort": {
+        "2023+": {
+          "f1": 0.7046,
+          "recall": 0.6723,
+          "precision": 0.7402,
+          "n_articles": 427,
+          "tp": 3793,
+          "fp": 1331,
+          "fn": 1849
+        },
+        "pre-2023": {
+          "f1": 0.7272,
+          "recall": 0.6587,
+          "precision": 0.8117,
+          "n_articles": 173,
+          "tp": 1685,
+          "fp": 391,
+          "fn": 873
+        }
+      },
+      "by_source_cohort": {
+        "elife/2023+": {
+          "f1": 0.6149,
+          "recall": 0.9547,
+          "precision": 0.4535,
+          "n_articles": 120,
+          "tp": 653,
+          "fp": 787,
+          "fn": 31
+        },
+        "elife/pre-2023": {
+          "f1": 0.6991,
+          "recall": 0.9949,
+          "precision": 0.5389,
+          "n_articles": 30,
+          "tp": 194,
+          "fp": 166,
+          "fn": 1
+        },
+        "f1000/2023+": {
+          "f1": 0.6793,
+          "recall": 0.5934,
+          "precision": 0.7943,
+          "n_articles": 79,
+          "tp": 753,
+          "fp": 195,
+          "fn": 516
+        },
+        "f1000/pre-2023": {
+          "f1": 0.7629,
+          "recall": 0.7121,
+          "precision": 0.8216,
+          "n_articles": 71,
+          "tp": 700,
+          "fp": 152,
+          "fn": 283
+        },
+        "nature/2023+": {
+          "f1": 0.7853,
+          "recall": 0.7418,
+          "precision": 0.8342,
+          "n_articles": 97,
+          "tp": 971,
+          "fp": 193,
+          "fn": 338
+        },
+        "nature/pre-2023": {
+          "f1": 0.7797,
+          "recall": 1.0,
+          "precision": 0.6389,
+          "n_articles": 3,
+          "tp": 23,
+          "fp": 13,
+          "fn": 0
+        },
+        "peerj/2023+": {
+          "f1": 0.6614,
+          "recall": 0.5217,
+          "precision": 0.9032,
+          "n_articles": 31,
+          "tp": 336,
+          "fp": 36,
+          "fn": 308
+        },
+        "peerj/pre-2023": {
+          "f1": 0.7186,
+          "recall": 0.5856,
+          "precision": 0.9298,
+          "n_articles": 19,
+          "tp": 212,
+          "fp": 16,
+          "fn": 150
+        },
+        "plos/2023+": {
+          "f1": 0.7357,
+          "recall": 0.6221,
+          "precision": 0.9,
+          "n_articles": 100,
+          "tp": 1080,
+          "fp": 120,
+          "fn": 656
+        },
+        "plos/pre-2023": {
+          "f1": 0.6972,
+          "recall": 0.5588,
+          "precision": 0.9267,
+          "n_articles": 50,
+          "tp": 556,
+          "fp": 44,
+          "fn": 439
+        }
+      }
+    },
+    "Gemini-Flash-Lite": {
+      "by_cohort": {
+        "2023+": {
+          "f1": 0.6683,
+          "recall": 0.6358,
+          "precision": 0.7043,
+          "n_articles": 427,
+          "tp": 3587,
+          "fp": 1506,
+          "fn": 2055
+        },
+        "pre-2023": {
+          "f1": 0.716,
+          "recall": 0.6583,
+          "precision": 0.7847,
+          "n_articles": 173,
+          "tp": 1684,
+          "fp": 462,
+          "fn": 874
+        }
+      },
+      "by_source_cohort": {
+        "elife/2023+": {
+          "f1": 0.5831,
+          "recall": 0.9152,
+          "precision": 0.4279,
+          "n_articles": 120,
+          "tp": 626,
+          "fp": 837,
+          "fn": 58
+        },
+        "elife/pre-2023": {
+          "f1": 0.6655,
+          "recall": 1.0,
+          "precision": 0.4987,
+          "n_articles": 30,
+          "tp": 195,
+          "fp": 196,
+          "fn": 0
+        },
+        "f1000/2023+": {
+          "f1": 0.6457,
+          "recall": 0.5666,
+          "precision": 0.7505,
+          "n_articles": 79,
+          "tp": 719,
+          "fp": 239,
+          "fn": 550
+        },
+        "f1000/pre-2023": {
+          "f1": 0.7436,
+          "recall": 0.705,
+          "precision": 0.7866,
+          "n_articles": 71,
+          "tp": 693,
+          "fp": 188,
+          "fn": 290
+        },
+        "nature/2023+": {
+          "f1": 0.7579,
+          "recall": 0.7257,
+          "precision": 0.793,
+          "n_articles": 97,
+          "tp": 950,
+          "fp": 248,
+          "fn": 359
+        },
+        "nature/pre-2023": {
+          "f1": 0.7541,
+          "recall": 1.0,
+          "precision": 0.6053,
+          "n_articles": 3,
+          "tp": 23,
+          "fp": 15,
+          "fn": 0
+        },
+        "peerj/2023+": {
+          "f1": 0.6014,
+          "recall": 0.4581,
+          "precision": 0.8754,
+          "n_articles": 31,
+          "tp": 295,
+          "fp": 42,
+          "fn": 349
+        },
+        "peerj/pre-2023": {
+          "f1": 0.7017,
+          "recall": 0.5718,
+          "precision": 0.9079,
+          "n_articles": 19,
+          "tp": 207,
+          "fp": 21,
+          "fn": 155
+        },
+        "plos/2023+": {
+          "f1": 0.694,
+          "recall": 0.5743,
+          "precision": 0.8769,
+          "n_articles": 100,
+          "tp": 997,
+          "fp": 140,
+          "fn": 739
+        },
+        "plos/pre-2023": {
+          "f1": 0.7062,
+          "recall": 0.5688,
+          "precision": 0.9309,
+          "n_articles": 50,
+          "tp": 566,
+          "fp": 42,
+          "fn": 429
+        }
+      }
+    },
+    "Llama-3.3-70B": {
+      "by_cohort": {
+        "2023+": {
+          "f1": 0.6836,
+          "recall": 0.618,
+          "precision": 0.7647,
+          "n_articles": 427,
+          "tp": 3487,
+          "fp": 1073,
+          "fn": 2155
+        },
+        "pre-2023": {
+          "f1": 0.7023,
+          "recall": 0.6056,
+          "precision": 0.8359,
+          "n_articles": 173,
+          "tp": 1549,
+          "fp": 304,
+          "fn": 1009
+        }
+      },
+      "by_source_cohort": {
+        "elife/2023+": {
+          "f1": 0.6392,
+          "recall": 0.9298,
+          "precision": 0.487,
+          "n_articles": 120,
+          "tp": 636,
+          "fp": 670,
+          "fn": 48
+        },
+        "elife/pre-2023": {
+          "f1": 0.7273,
+          "recall": 0.9846,
+          "precision": 0.5766,
+          "n_articles": 30,
+          "tp": 192,
+          "fp": 141,
+          "fn": 3
+        },
+        "f1000/2023+": {
+          "f1": 0.6552,
+          "recall": 0.5422,
+          "precision": 0.8279,
+          "n_articles": 79,
+          "tp": 688,
+          "fp": 143,
+          "fn": 581
+        },
+        "f1000/pre-2023": {
+          "f1": 0.7411,
+          "recall": 0.6582,
+          "precision": 0.848,
+          "n_articles": 71,
+          "tp": 647,
+          "fp": 116,
+          "fn": 336
+        },
+        "nature/2023+": {
+          "f1": 0.7605,
+          "recall": 0.683,
+          "precision": 0.858,
+          "n_articles": 97,
+          "tp": 894,
+          "fp": 148,
+          "fn": 415
+        },
+        "nature/pre-2023": {
+          "f1": 0.8679,
+          "recall": 1.0,
+          "precision": 0.7667,
+          "n_articles": 3,
+          "tp": 23,
+          "fp": 7,
+          "fn": 0
+        },
+        "peerj/2023+": {
+          "f1": 0.6282,
+          "recall": 0.4736,
+          "precision": 0.9327,
+          "n_articles": 31,
+          "tp": 305,
+          "fp": 22,
+          "fn": 339
+        },
+        "peerj/pre-2023": {
+          "f1": 0.6821,
+          "recall": 0.5276,
+          "precision": 0.9646,
+          "n_articles": 19,
+          "tp": 191,
+          "fp": 7,
+          "fn": 171
+        },
+        "plos/2023+": {
+          "f1": 0.691,
+          "recall": 0.5553,
+          "precision": 0.9146,
+          "n_articles": 100,
+          "tp": 964,
+          "fp": 90,
+          "fn": 772
+        },
+        "plos/pre-2023": {
+          "f1": 0.6509,
+          "recall": 0.4985,
+          "precision": 0.9376,
+          "n_articles": 50,
+          "tp": 496,
+          "fp": 33,
+          "fn": 499
+        }
+      }
+    }
+  }
+}

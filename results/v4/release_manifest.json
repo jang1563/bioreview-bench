@@ -1,0 +1,98 @@
+{
+  "release_generated_at": "2026-03-30T11:01:09.825752+00:00",
+  "split": "test",
+  "source_results_dir": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v4",
+  "output_dir": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v4",
+  "policy": {
+    "exclude_dedup_gt": true,
+    "one_result_per_tool_version": true,
+    "ranking_metric": "f1_micro"
+  },
+  "matching": {
+    "thresholds": [
+      0.65
+    ],
+    "algorithms": [
+      "hungarian"
+    ]
+  },
+  "artifacts": {
+    "leaderboard_md": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v4/leaderboard.md",
+    "leaderboard_json": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v4/leaderboard.json",
+    "release_manifest_json": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v4/release_manifest.json"
+  },
+  "included_results": [
+    {
+      "rank": 1,
+      "tool_name": "Haiku-4.5",
+      "tool_version": "claude-haiku-4-5-20251001",
+      "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v4/haiku_test_v4.json",
+      "run_date": "2026-03-30",
+      "recall": 0.7591463414634146,
+      "precision": 0.6916666666666667,
+      "f1": 0.7238372093023255,
+      "recall_major": 0.8928436958797425,
+      "n_articles": 600
+    },
+    {
+      "rank": 2,
+      "tool_name": "Gemini-2.5-Flash",
+      "tool_version": "gemini-2.5-flash",
+      "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v4/gemini25flash_test_v4.json",
+      "run_date": "2026-03-30",
+      "recall": 0.7375609756097561,
+      "precision": 0.703337597395046,
+      "f1": 0.7200428596940294,
+      "recall_major": 0.8801058286340709,
+      "n_articles": 600
+    },
+    {
+      "rank": 3,
+      "tool_name": "GPT-4o-mini",
+      "tool_version": "gpt-4o-mini",
+      "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v4/gpt4omini_test_v4.json",
+      "run_date": "2026-03-30",
+      "recall": 0.7170731707317073,
+      "precision": 0.7213838792786161,
+      "f1": 0.7192220659286893,
+      "recall_major": 0.8556735304801801,
+      "n_articles": 600
+    },
+    {
+      "rank": 4,
+      "tool_name": "BM25",
+      "tool_version": "bm25-specter2",
+      "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v4/bm25_test_v4.json",
+      "run_date": "2026-03-30",
+      "recall": 0.6680487804878049,
+      "precision": 0.7608333333333334,
+      "f1": 0.7114285714285714,
+      "recall_major": 0.8098356520970549,
+      "n_articles": 600
+    },
+    {
+      "rank": 5,
+      "tool_name": "Llama-3.3-70B",
+      "tool_version": "llama-3.3-70b",
+      "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v4/llama33_test_v4.json",
+      "run_date": "2026-03-30",
+      "recall": 0.6141463414634146,
+      "precision": 0.7852799002027132,
+      "f1": 0.6892492985697666,
+      "recall_major": 0.8016035648486504,
+      "n_articles": 600
+    },
+    {
+      "rank": 6,
+      "tool_name": "Gemini-Flash-Lite",
+      "tool_version": "gemini-2.5-flash-lite",
+      "result_file": "/Users/jak4013/Dropbox/Bioinformatics/Claude/peer-review-benchmark/results/v4/gemini_flash_lite_test_v4.json",
+      "run_date": "2026-03-30",
+      "recall": 0.6428048780487805,
+      "precision": 0.7281392457521757,
+      "f1": 0.6828162445754259,
+      "recall_major": 0.7998897549365217,
+      "n_articles": 600
+    }
+  ]
+}
