@@ -1,0 +1,547 @@
+"""Incremental dataset update pipeline CLI.
+
+Orchestrates periodic collection across multiple sources with state tracking,
+deduplication, and lockfile-based concurrency control.
+
+Usage:
+    # Dry-run: collect + parse only, no LLM, $0 cost
+    uv run bioreview-update --source elife --dry-run -n 5
+
+    # Full incremental update (append new articles)
+    uv run bioreview-update --source elife -n 200
+
+    # Update all sources
+    uv run bioreview-update --source all -n 200
+
+    # Update + re-split + push to the private raw archive
+    uv run bioreview-update --source elife -n 200 --update-splits --push-hf
+"""
+
+from __future__ import annotations
+
+import asyncio
+import datetime as _dt
+import fcntl
+import json
+import logging
+import os
+import sys
+from datetime import datetime, timedelta
+from pathlib import Path
+
+import click
+from rich.console import Console
+
+from ..collect.hf_push import PRIVATE_RAW_REPO_ID
+from ..collect.registry import SOURCE_REGISTRY, get_source_config
+from ..collect.state import (
+    RunRecord,
+    StateManager,
+    _detect_trigger,
+    make_run_id,
+)
+from ..project_defaults import (
+    DEFAULT_BENCHMARK_SPLIT_VERSION,
+    resolve_frozen_ids_path,
+)
+
+console = Console()
+ROOT = Path(__file__).resolve().parents[2]  # peer-review-benchmark/
+log = logging.getLogger(__name__)
+
+
+def _setup_file_logging(data_dir: Path) -> Path | None:
+    """Set up file logging for CI audit trail. Returns log path or None."""
+    log_dir = data_dir / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now(_dt.UTC).strftime("%Y%m%d_%H%M%S")
+    log_path = log_dir / f"update_{ts}.log"
+
+    handler = logging.FileHandler(log_path, encoding="utf-8")
+    handler.setLevel(logging.INFO)
+    handler.setFormatter(logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s"))
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
+    return log_path
+
+
+# Date buffer: when resuming incremental collection, look back this many days
+# from last_article_date to catch articles with delayed indexing.
+_DATE_BUFFER_DAYS = 3
+
+
+def _acquire_lock(lock_path: Path) -> int | None:
+    """Acquire an exclusive lockfile. Returns fd on success, None if locked."""
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(str(lock_path), os.O_WRONLY | os.O_CREAT, 0o644)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return fd
+    except OSError:
+        os.close(fd)
+        return None
+
+
+def _release_lock(fd: int) -> None:
+    """Release and close a lockfile."""
+    try:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+    finally:
+        os.close(fd)
+
+
+async def _run_source_update(
+    source_name: str,
+    max_new_articles: int,
+    state_mgr: StateManager,
+    model: str,
+    dry_run: bool,
+    data_dir: Path,
+    manifest_dir: Path,
+) -> dict:
+    """Run incremental collection for a single source. Returns stats dict."""
+    config = get_source_config(source_name)
+    state = state_mgr.load()
+    source_state = state.get_source(source_name)
+
+    # Determine output path
+    output_path = data_dir / "processed" / config.output_filename
+
+    # Startup sync: add any IDs from JSONL that are missing from state
+    # (recovery from interrupted runs). We only ADD, never REMOVE, because
+    # state may track IDs from multiple files (e.g. elife_legacy_v1.jsonl).
+    # Also sync last_article_date to prevent stale start_date after crash.
+    if output_path.exists():
+        jsonl_ids: set[str] = set()
+        max_date_sync: str | None = None
+        with output_path.open(encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    entry = json.loads(line)
+                    aid = entry.get("id", "")
+                    if aid:
+                        jsonl_ids.add(aid)
+                    pub = str(entry.get("published_date") or "")
+                    if pub and (max_date_sync is None or pub > max_date_sync):
+                        max_date_sync = pub
+
+        missing_from_state = jsonl_ids - source_state.id_set
+        date_stale = max_date_sync and max_date_sync != source_state.last_article_date
+        if missing_from_state or date_stale:
+            if missing_from_state:
+                console.print(
+                    f"  [yellow]State sync: +{len(missing_from_state)} IDs added from JSONL"
+                )
+                source_state.collected_ids = sorted(
+                    set(source_state.collected_ids) | missing_from_state
+                )
+            if date_stale:
+                console.print(
+                    f"  [yellow]State sync: last_article_date "
+                    f"{source_state.last_article_date} → {max_date_sync}"
+                )
+                source_state.last_article_date = max_date_sync
+            state_mgr.save(state)
+            state = state_mgr.load()
+            source_state = state.get_source(source_name)
+
+    # Calculate start_date with buffer
+    if source_state.last_article_date:
+        last_dt = datetime.strptime(source_state.last_article_date, "%Y-%m-%d")
+        buffered = last_dt - timedelta(days=_DATE_BUFFER_DAYS)
+        start_date = buffered.strftime("%Y-%m-%d")
+    else:
+        start_date = config.default_start_date
+
+    known_ids = source_state.id_set
+    run_started_at = datetime.now(_dt.UTC).isoformat()
+
+    console.print(f"  [dim]start_date={start_date}, known_ids={len(known_ids)}[/dim]")
+
+    if source_name == "elife":
+        from .collect_elife import _run
+
+        manifest_path = manifest_dir / "em-v1.0.json"
+        stats = await _run(
+            subjects=config.default_subjects,
+            start_date=start_date,
+            end_date=None,
+            order="desc",
+            max_articles=max_new_articles,
+            output=output_path,
+            manifest_path=manifest_path,
+            model=model,
+            dry_run=dry_run,
+            append=True,
+            known_ids=known_ids,
+        )
+    elif source_name == "plos":
+        from .collect_plos import _run as _run_plos
+
+        manifest_path = manifest_dir / "em-plos-v1.0.json"
+        stats = await _run_plos(
+            journals=config.collector_kwargs.get("journals", []),
+            start_date=start_date,
+            end_date=None,
+            max_articles=max_new_articles,
+            output=output_path,
+            manifest_path=manifest_path,
+            model=model,
+            dry_run=dry_run,
+            append=True,
+            known_ids=known_ids,
+        )
+    elif source_name == "f1000":
+        from .collect_f1000 import _run as _run_f1000
+
+        manifest_path = manifest_dir / "em-f1000-v1.0.json"
+        stats = await _run_f1000(
+            journals=config.collector_kwargs.get("journals", []),
+            start_date=start_date,
+            end_date=None,
+            max_articles=max_new_articles,
+            output=output_path,
+            manifest_path=manifest_path,
+            model=model,
+            dry_run=dry_run,
+            append=True,
+            known_ids=known_ids,
+        )
+    elif source_name == "nature":
+        from .collect_nature import _run as _run_nature
+
+        manifest_path = manifest_dir / "em-nature-v1.0.json"
+        stats = await _run_nature(
+            journals=config.collector_kwargs.get("journals", []),
+            start_date=start_date,
+            end_date=None,
+            max_articles=max_new_articles,
+            output=output_path,
+            manifest_path=manifest_path,
+            model=model,
+            dry_run=dry_run,
+            append=True,
+            known_ids=known_ids,
+        )
+    elif source_name == "peerj":
+        from .collect_peerj import _run as _run_peerj
+
+        manifest_path = manifest_dir / "em-peerj-v1.0.json"
+        stats = await _run_peerj(
+            start_date=start_date,
+            end_date=None,
+            max_articles=max_new_articles,
+            output=output_path,
+            manifest_path=manifest_path,
+            model=model,
+            dry_run=dry_run,
+            append=True,
+            known_ids=known_ids,
+        )
+    else:
+        console.print(f"  [yellow]Source '{source_name}' collection not yet implemented")
+        stats = {"total_fetched": 0, "skipped": 0, "xml_ok": 0, "xml_fail": 0}
+
+    # Update state with newly collected articles (add-only, same as startup sync)
+    if stats["xml_ok"] > 0 and output_path.exists():
+        state = state_mgr.load()
+        source_state = state.get_source(source_name)
+
+        jsonl_ids: set[str] = set()
+        max_date = source_state.last_article_date
+        with output_path.open(encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                entry = json.loads(line)
+                aid = entry.get("id", "")
+                if aid:
+                    jsonl_ids.add(aid)
+                pub = str(entry.get("published_date") or "")
+                if pub and (max_date is None or pub > max_date):
+                    max_date = pub
+
+        missing = jsonl_ids - source_state.id_set
+        if missing:
+            source_state.collected_ids = sorted(set(source_state.collected_ids) | missing)
+            source_state.last_article_date = max_date
+
+    # Record run
+    run = RunRecord(
+        run_id=make_run_id(source_name),
+        source=source_name,
+        started_at=run_started_at,
+        completed_at=datetime.now(_dt.UTC).isoformat(),
+        trigger=_detect_trigger(),
+        new_articles=stats["xml_ok"],
+        skipped_duplicates=stats.get("skipped", 0),
+        cost_usd_est=stats["xml_ok"] * 0.009 if not dry_run else 0.0,
+        dry_run=dry_run,
+    )
+    state.add_run(run)
+    state_mgr.save(state)
+
+    return stats
+
+
+def _run_update_splits(data_dir: Path) -> None:
+    """Re-run the canonical split only when its frozen test artifact is available."""
+    import subprocess
+
+    splits_dir = data_dir / "splits"
+    frozen_path = resolve_frozen_ids_path(
+        splits_dir,
+        split="test",
+        version=DEFAULT_BENCHMARK_SPLIT_VERSION,
+    )
+    script = ROOT / "scripts" / "rebuild_splits.py"
+    if frozen_path is None:
+        raise RuntimeError(
+            "Refusing to update canonical splits: no frozen v4 test-ID artifact "
+            f"was found under {splits_dir}."
+        )
+
+    cmd = [
+        sys.executable,
+        str(script),
+        "-s",
+        "elife",
+        "-s",
+        "plos",
+        "-s",
+        "f1000",
+        "-s",
+        "nature",
+        "-s",
+        "peerj",
+        "--input-dir",
+        str(data_dir / "processed"),
+        "--output-dir",
+        str(splits_dir / DEFAULT_BENCHMARK_SPLIT_VERSION),
+        "--version",
+        DEFAULT_BENCHMARK_SPLIT_VERSION,
+        "--seed",
+        "42",
+        "--val-ratio",
+        "0.15",
+        "--test-ratio",
+        "0.15",
+        "--usable-only",
+        "--frozen-test",
+        str(frozen_path),
+    ]
+
+    console.print(f"  [dim]Using frozen test: {frozen_path.name}[/dim]")
+    console.print(f"  [dim]Script: {script.name}[/dim]")
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode == 0:
+        console.print("  [green]Splits updated successfully")
+        for line in result.stdout.strip().split("\n")[-4:]:
+            console.print(f"  {line}")
+    else:
+        console.print(f"  [red]Split failed: {result.stderr}")
+        raise RuntimeError(
+            f"Canonical split update failed with exit code {result.returncode}."
+        )
+
+
+def _run_push_hf(
+    data_dir: Path,
+    version_tag: str | None = None,
+    repo_id: str = PRIVATE_RAW_REPO_ID,
+) -> None:
+    """Push full data to a verified private Hugging Face archive."""
+    from ..collect.hf_push import push_to_hub
+
+    try:
+        result = push_to_hub(
+            data_dir=data_dir,
+            repo_id=repo_id,
+            version_tag=version_tag,
+        )
+    except ImportError:
+        console.print("  [red]huggingface_hub not installed. Run: uv sync --extra hub")
+        return
+
+    uploaded = result.get("uploaded", [])
+    console.print(f"  [green]Uploaded {len(uploaded)} files to HuggingFace Hub")
+    for path in uploaded:
+        console.print(f"    {path}")
+
+
+@click.command()
+@click.option(
+    "--source",
+    "-s",
+    type=click.Choice(["elife", "plos", "f1000", "nature", "peerj", "all"]),
+    default="elife",
+    show_default=True,
+    help="Source to collect from (or 'all' for all sources)",
+)
+@click.option(
+    "--max-new-articles",
+    "-n",
+    default=200,
+    show_default=True,
+    help="Maximum new articles to collect per source",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Collection + parsing only, no LLM ($0 cost)",
+)
+@click.option(
+    "--model",
+    default=lambda: os.getenv("BIOREVIEW_MODEL_ID", "claude-haiku-4-5-20251001"),
+    help="Anthropic model ID",
+)
+@click.option(
+    "--data-dir",
+    default=None,
+    help="Data directory (default: <project>/data)",
+)
+@click.option(
+    "--update-splits",
+    is_flag=True,
+    default=False,
+    help="Re-run train/val/test split after collection (preserves frozen test set)",
+)
+@click.option(
+    "--push-hf",
+    is_flag=True,
+    default=False,
+    help="Push full data to a verified private Hugging Face archive",
+)
+@click.option(
+    "--hf-repo-id",
+    default=PRIVATE_RAW_REPO_ID,
+    show_default=True,
+    help="Private raw-archive repository used by --push-hf; public targets are rejected",
+)
+@click.option(
+    "--version-bump",
+    type=click.Choice(["minor", "major", "none"]),
+    default="minor",
+    show_default=True,
+    help="Version bump after push: minor (1.0→1.1), major (1.x→2.0), or none",
+)
+def main(
+    source: str,
+    max_new_articles: int,
+    dry_run: bool,
+    model: str,
+    data_dir: str | None,
+    update_splits: bool,
+    push_hf: bool,
+    hf_repo_id: str,
+    version_bump: str,
+) -> None:
+    """Incremental dataset update pipeline."""
+    data_path = Path(data_dir) if data_dir else ROOT / "data"
+    state_path = data_path / "update_state.json"
+    manifest_dir = data_path / "manifests"
+    lock_path = data_path / ".update.lock"
+
+    # Determine sources to process
+    if source == "all":
+        sources = sorted(SOURCE_REGISTRY)
+    else:
+        sources = [source]
+
+    # File logging for CI audit trail
+    log_path = _setup_file_logging(data_path)
+
+    console.print("[bold cyan]bioreview-bench Update Pipeline[/bold cyan]")
+    console.print(f"  sources  : {sources}")
+    console.print(f"  max/src  : {max_new_articles}")
+    console.print(f"  dry-run  : {dry_run}")
+    console.print(f"  state    : {state_path}")
+    if log_path:
+        console.print(f"  log      : {log_path}")
+    console.print()
+
+    log.info("Update started: sources=%s max=%d dry_run=%s", sources, max_new_articles, dry_run)
+
+    # Acquire lockfile
+    lock_fd = _acquire_lock(lock_path)
+    if lock_fd is None:
+        console.print("[yellow]Another update is running. Exiting.")
+        sys.exit(0)
+
+    try:
+        total_new = 0
+        total_skipped = 0
+
+        for src_name in sources:
+            console.print(f"[bold]--- {src_name} ---[/bold]")
+            state_mgr = StateManager(state_path)
+
+            try:
+                stats = asyncio.run(
+                    _run_source_update(
+                        source_name=src_name,
+                        max_new_articles=max_new_articles,
+                        state_mgr=state_mgr,
+                        model=model,
+                        dry_run=dry_run,
+                        data_dir=data_path,
+                        manifest_dir=manifest_dir,
+                    )
+                )
+                total_new += stats.get("xml_ok", 0)
+                total_skipped += stats.get("skipped", 0)
+            except Exception as e:
+                console.print(f"[red]Error collecting {src_name}: {e}")
+
+        console.print()
+        console.print("[bold]Collection complete[/bold]")
+        console.print(f"  New articles: {total_new}")
+        console.print(f"  Skipped:      {total_skipped}")
+        log.info("Collection complete: new=%d skipped=%d", total_new, total_skipped)
+
+        # --- Post-collection: re-split ---
+        if update_splits and total_new > 0 and not dry_run:
+            console.print()
+            console.print("[bold]Updating splits...[/bold]")
+            _run_update_splits(data_path)
+
+        # --- Post-collection: version bump + push to HuggingFace Hub ---
+        if push_hf and not dry_run:
+            state_mgr = StateManager(state_path)
+            state = state_mgr.load()
+
+            # Bump version
+            tag = None
+            if version_bump != "none" and total_new > 0:
+                old_ver = state.dataset_version
+                if version_bump == "major":
+                    new_ver = state.bump_major()
+                else:
+                    new_ver = state.bump_minor()
+                tag = f"v{new_ver}"
+                state_mgr.save(state)
+                console.print(f"  [dim]Version: {old_ver} → {new_ver} (tag: {tag})[/dim]")
+
+            console.print()
+            console.print("[bold]Pushing to private Hugging Face archive...[/bold]")
+            _run_push_hf(
+                data_path,
+                version_tag=tag,
+                repo_id=hf_repo_id,
+            )
+
+        console.print()
+        console.print("[bold green]All done.[/bold green]")
+
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Interrupted.")
+        sys.exit(0)
+    finally:
+        _release_lock(lock_fd)
+
+
+if __name__ == "__main__":
+    main()

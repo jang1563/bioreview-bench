@@ -1,0 +1,133 @@
+{
+  "splits": {
+    "train": {
+      "articles": 5387,
+      "concerns": 79121,
+      "avg_concerns_per_article": 14.7,
+      "source_distribution": {
+        "elife": 1409,
+        "f1000": 2149,
+        "nature": 315,
+        "peerj": 165,
+        "plos": 1349
+      }
+    },
+    "validation": {
+      "articles": 953,
+      "concerns": 14101,
+      "avg_concerns_per_article": 14.8,
+      "source_distribution": {
+        "elife": 251,
+        "f1000": 380,
+        "nature": 55,
+        "peerj": 29,
+        "plos": 238
+      }
+    },
+    "test": {
+      "articles": 600,
+      "concerns": 8647,
+      "avg_concerns_per_article": 14.4,
+      "source_distribution": {
+        "elife": 150,
+        "f1000": 150,
+        "nature": 100,
+        "peerj": 50,
+        "plos": 150
+      }
+    }
+  },
+  "total_articles": 6940,
+  "total_concerns": 101869,
+  "avg_concerns_per_article": 14.7,
+  "source_distribution": {
+    "elife": 1810,
+    "f1000": 2679,
+    "nature": 470,
+    "peerj": 244,
+    "plos": 1737
+  },
+  "severity_distribution": {
+    "major": {
+      "count": 63617,
+      "percent": 62.4
+    },
+    "minor": {
+      "count": 35869,
+      "percent": 35.2
+    },
+    "optional": {
+      "count": 2383,
+      "percent": 2.3
+    }
+  },
+  "author_stance_distribution": {
+    "no_response": {
+      "count": 92836,
+      "percent": 91.1
+    },
+    "partial": {
+      "count": 5229,
+      "percent": 5.1
+    },
+    "conceded": {
+      "count": 3250,
+      "percent": 3.2
+    },
+    "rebutted": {
+      "count": 491,
+      "percent": 0.5
+    },
+    "unclear": {
+      "count": 63,
+      "percent": 0.1
+    }
+  },
+  "category_distribution": {
+    "writing_clarity": {
+      "count": 35166,
+      "percent": 34.5
+    },
+    "missing_experiment": {
+      "count": 15715,
+      "percent": 15.4
+    },
+    "interpretation": {
+      "count": 15395,
+      "percent": 15.1
+    },
+    "design_flaw": {
+      "count": 10462,
+      "percent": 10.3
+    },
+    "prior_art_novelty": {
+      "count": 7550,
+      "percent": 7.4
+    },
+    "reagent_method_specificity": {
+      "count": 7282,
+      "percent": 7.1
+    },
+    "statistical_methodology": {
+      "count": 5090,
+      "percent": 5.0
+    },
+    "figure_issue": {
+      "count": 4950,
+      "percent": 4.9
+    },
+    "other": {
+      "count": 259,
+      "percent": 0.3
+    }
+  },
+  "review_format_distribution": {
+    "journal": 5519,
+    "reviewed_preprint": 1418,
+    "unknown": 3
+  },
+  "author_response_distribution": {
+    "with_response": 4284,
+    "without_response": 2656
+  }
+}

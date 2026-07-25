@@ -1,0 +1,12 @@
+{
+  "n_articles": 981,
+  "n_haiku_total": 14683,
+  "n_gpt_total": 10812,
+  "n_ensemble_total": 13419,
+  "n_both": 10437,
+  "n_haiku_borderline": 2607,
+  "n_gpt_borderline": 375,
+  "n_haiku_excluded": 1639,
+  "n_gpt_excluded": 0,
+  "n_no_gpt": 0
+}

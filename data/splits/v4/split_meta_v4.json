@@ -1,0 +1,52 @@
+{
+  "version": "v4",
+  "seed": 42,
+  "val_ratio": 0.15,
+  "test_ratio": "balanced",
+  "frozen_test": null,
+  "balanced_test": "{\"elife\":150,\"plos\":150,\"f1000\":150,\"nature\":100,\"peerj\":50}",
+  "usable_only": true,
+  "sources": [
+    "elife",
+    "plos",
+    "f1000",
+    "nature",
+    "peerj"
+  ],
+  "source_counts": {
+    "elife": 1810,
+    "plos": 1737,
+    "f1000": 2679,
+    "nature": 470,
+    "peerj": 244
+  },
+  "split_sizes": {
+    "train": 5387,
+    "val": 953,
+    "test": 600,
+    "total": 6940
+  },
+  "split_source_distribution": {
+    "train": {
+      "nature": 315,
+      "f1000": 2149,
+      "plos": 1349,
+      "elife": 1409,
+      "peerj": 165
+    },
+    "val": {
+      "f1000": 380,
+      "plos": 238,
+      "elife": 251,
+      "nature": 55,
+      "peerj": 29
+    },
+    "test": {
+      "f1000": 150,
+      "nature": 100,
+      "plos": 150,
+      "elife": 150,
+      "peerj": 50
+    }
+  }
+}

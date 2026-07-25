@@ -1,0 +1,210 @@
+{
+  "extractor_models": {
+    "primary": "claude-haiku-4-5-20251001",
+    "secondary": "gpt-4o-mini"
+  },
+  "n_articles_haiku": 981,
+  "n_articles_gpt": 981,
+  "n_articles_common": 981,
+  "threshold": 0.65,
+  "concern_overlap": {
+    "forward": {
+      "matched": 6411,
+      "total_haiku": 10027,
+      "frac": 0.6393736910342076
+    },
+    "reverse": {
+      "matched": 6411,
+      "total_gpt": 6572,
+      "frac": 0.9755021302495435
+    }
+  },
+  "category_agreement": {
+    "kappa": 0.5282,
+    "n_pairs": 6411,
+    "confusion_matrix": {
+      "design_flaw": {
+        "design_flaw": 362,
+        "interpretation": 111,
+        "missing_experiment": 92,
+        "other": 14,
+        "prior_art_novelty": 9,
+        "reagent_method_specificity": 8,
+        "statistical_methodology": 21,
+        "writing_clarity": 105
+      },
+      "interpretation": {
+        "design_flaw": 33,
+        "interpretation": 702,
+        "missing_experiment": 59,
+        "other": 11,
+        "prior_art_novelty": 24,
+        "reagent_method_specificity": 5,
+        "statistical_methodology": 11,
+        "writing_clarity": 148
+      },
+      "missing_experiment": {
+        "design_flaw": 53,
+        "interpretation": 109,
+        "missing_experiment": 509,
+        "other": 27,
+        "prior_art_novelty": 14,
+        "reagent_method_specificity": 4,
+        "statistical_methodology": 27,
+        "writing_clarity": 55
+      },
+      "other": {
+        "design_flaw": 0,
+        "interpretation": 1,
+        "missing_experiment": 1,
+        "other": 4,
+        "prior_art_novelty": 2,
+        "reagent_method_specificity": 1,
+        "statistical_methodology": 1,
+        "writing_clarity": 1
+      },
+      "prior_art_novelty": {
+        "design_flaw": 15,
+        "interpretation": 55,
+        "missing_experiment": 28,
+        "other": 16,
+        "prior_art_novelty": 342,
+        "reagent_method_specificity": 6,
+        "statistical_methodology": 3,
+        "writing_clarity": 77
+      },
+      "reagent_method_specificity": {
+        "design_flaw": 19,
+        "interpretation": 18,
+        "missing_experiment": 127,
+        "other": 11,
+        "prior_art_novelty": 12,
+        "reagent_method_specificity": 174,
+        "statistical_methodology": 33,
+        "writing_clarity": 158
+      },
+      "statistical_methodology": {
+        "design_flaw": 53,
+        "interpretation": 30,
+        "missing_experiment": 44,
+        "other": 4,
+        "prior_art_novelty": 1,
+        "reagent_method_specificity": 2,
+        "statistical_methodology": 268,
+        "writing_clarity": 31
+      },
+      "writing_clarity": {
+        "design_flaw": 96,
+        "interpretation": 145,
+        "missing_experiment": 258,
+        "other": 38,
+        "prior_art_novelty": 70,
+        "reagent_method_specificity": 64,
+        "statistical_methodology": 52,
+        "writing_clarity": 1637
+      }
+    },
+    "per_category_agreement": {
+      "design_flaw": 0.3653,
+      "interpretation": 0.4802,
+      "missing_experiment": 0.3618,
+      "other": 0.0303,
+      "prior_art_novelty": 0.5074,
+      "reagent_method_specificity": 0.271,
+      "statistical_methodology": 0.4613,
+      "writing_clarity": 0.5578
+    }
+  },
+  "severity_agreement": {
+    "kappa": 0.4767,
+    "confusion_matrix": {
+      "major": {
+        "major": 3428,
+        "minor": 1104,
+        "optional": 13
+      },
+      "minor": {
+        "major": 354,
+        "minor": 1387,
+        "optional": 45
+      },
+      "optional": {
+        "major": 15,
+        "minor": 45,
+        "optional": 20
+      }
+    }
+  },
+  "volume": {
+    "haiku_mean": 14.22,
+    "gpt_mean": 6.7,
+    "n_articles": 981,
+    "wilcoxon_statistic": 11763.0,
+    "wilcoxon_p": 0.0,
+    "per_source": {
+      "plos": {
+        "haiku_mean": 17.02,
+        "gpt_mean": 2.47,
+        "n_articles": 260
+      },
+      "f1000": {
+        "haiku_mean": 17.08,
+        "gpt_mean": 12.12,
+        "n_articles": 403
+      },
+      "elife": {
+        "haiku_mean": 5.74,
+        "gpt_mean": 1.59,
+        "n_articles": 273
+      },
+      "nature": {
+        "haiku_mean": 38.75,
+        "gpt_mean": 7.88,
+        "n_articles": 8
+      },
+      "peerj": {
+        "haiku_mean": 20.57,
+        "gpt_mean": 14.84,
+        "n_articles": 37
+      }
+    }
+  },
+  "ranking": {
+    "haiku_gt_f1": {
+      "BM25": 0.684,
+      "GPT-4o-mini": 0.693,
+      "Gemini-2.5-Flash": 0.686,
+      "Gemini-Flash-Lite": 0.659,
+      "Haiku-4.5": 0.699,
+      "Llama-3.3-70B": 0.65
+    },
+    "gpt_gt_f1": {
+      "BM25": 0.502,
+      "GPT-4o-mini": 0.4879,
+      "Gemini-2.5-Flash": 0.4849,
+      "Gemini-Flash-Lite": 0.4861,
+      "Haiku-4.5": 0.4523,
+      "Llama-3.3-70B": 0.5123
+    },
+    "haiku_gt_rank": {
+      "BM25": 4,
+      "GPT-4o-mini": 2,
+      "Gemini-2.5-Flash": 3,
+      "Gemini-Flash-Lite": 5,
+      "Haiku-4.5": 1,
+      "Llama-3.3-70B": 6
+    },
+    "gpt_gt_rank": {
+      "BM25": 2,
+      "GPT-4o-mini": 3,
+      "Gemini-2.5-Flash": 5,
+      "Gemini-Flash-Lite": 4,
+      "Haiku-4.5": 6,
+      "Llama-3.3-70B": 1
+    },
+    "kendall_tau": -0.6,
+    "kendall_p": 0.136111,
+    "n_rank_swaps": 12,
+    "n_models": 6
+  }
+}

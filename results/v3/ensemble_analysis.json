@@ -1,0 +1,308 @@
+{
+  "agreement": {
+    "elife": {
+      "total": 602,
+      "both": 427,
+      "haiku_only_borderline": 129,
+      "gpt_only_borderline": 46,
+      "haiku_only_no_gpt": 0,
+      "pct_both": 70.9
+    },
+    "f1000": {
+      "total": 6799,
+      "both": 5023,
+      "haiku_only_borderline": 1664,
+      "gpt_only_borderline": 112,
+      "haiku_only_no_gpt": 0,
+      "pct_both": 73.9
+    },
+    "nature": {
+      "total": 296,
+      "both": 71,
+      "haiku_only_borderline": 225,
+      "gpt_only_borderline": 0,
+      "haiku_only_no_gpt": 0,
+      "pct_both": 24.0
+    },
+    "peerj": {
+      "total": 804,
+      "both": 606,
+      "haiku_only_borderline": 194,
+      "gpt_only_borderline": 4,
+      "haiku_only_no_gpt": 0,
+      "pct_both": 75.4
+    },
+    "plos": {
+      "total": 2237,
+      "both": 731,
+      "haiku_only_borderline": 1505,
+      "gpt_only_borderline": 1,
+      "haiku_only_no_gpt": 0,
+      "pct_both": 32.7
+    },
+    "_total": {
+      "total": 10738,
+      "both": 6858,
+      "haiku_only_borderline": 3717,
+      "gpt_only_borderline": 163,
+      "haiku_only_no_gpt": 0,
+      "pct_both": 63.9
+    }
+  },
+  "volumes": {
+    "haiku": {
+      "mean": 14.97,
+      "median": 12,
+      "total": 14683,
+      "n": 981
+    },
+    "ensemble": {
+      "mean": 10.95,
+      "median": 8,
+      "total": 10738,
+      "n": 981
+    },
+    "gpt": {
+      "mean": 7.16,
+      "median": 4,
+      "total": 7021,
+      "n": 981
+    }
+  },
+  "category_distribution": {
+    "haiku": {
+      "writing_clarity": 5172,
+      "interpretation": 2240,
+      "missing_experiment": 2146,
+      "design_flaw": 1431,
+      "prior_art_novelty": 1113,
+      "reagent_method_specificity": 1042,
+      "statistical_methodology": 764,
+      "figure_issue": 736,
+      "other": 39
+    },
+    "ensemble": {
+      "writing_clarity": 3928,
+      "interpretation": 1557,
+      "missing_experiment": 1348,
+      "design_flaw": 1051,
+      "prior_art_novelty": 854,
+      "reagent_method_specificity": 826,
+      "statistical_methodology": 610,
+      "figure_issue": 541,
+      "other": 23
+    },
+    "gpt": {
+      "writing_clarity": 2265,
+      "interpretation": 1207,
+      "missing_experiment": 1143,
+      "design_flaw": 648,
+      "prior_art_novelty": 482,
+      "figure_issue": 449,
+      "statistical_methodology": 432,
+      "reagent_method_specificity": 270,
+      "other": 125
+    }
+  },
+  "baseline_evaluation": {
+    "haiku_gt": {
+      "Haiku-4.5": {
+        "recall": 0.6852,
+        "precision": 0.6746,
+        "f1": 0.6799,
+        "n_articles": 981,
+        "n_gt": 13947,
+        "n_tool": 14165,
+        "n_matched": 9556
+      },
+      "GPT-4o-mini": {
+        "recall": 0.6779,
+        "precision": 0.709,
+        "f1": 0.6931,
+        "n_articles": 981,
+        "n_gt": 13947,
+        "n_tool": 13335,
+        "n_matched": 9455
+      },
+      "Gemini-2.5-Flash": {
+        "recall": 0.6583,
+        "precision": 0.7153,
+        "f1": 0.6857,
+        "n_articles": 981,
+        "n_gt": 13947,
+        "n_tool": 12836,
+        "n_matched": 9182
+      },
+      "BM25": {
+        "recall": 0.6305,
+        "precision": 0.747,
+        "f1": 0.6839,
+        "n_articles": 981,
+        "n_gt": 13947,
+        "n_tool": 11772,
+        "n_matched": 8794
+      },
+      "Gemini-Flash-Lite": {
+        "recall": 0.6103,
+        "precision": 0.7153,
+        "f1": 0.6586,
+        "n_articles": 981,
+        "n_gt": 13947,
+        "n_tool": 11900,
+        "n_matched": 8512
+      },
+      "Llama-3.3-70B": {
+        "recall": 0.5473,
+        "precision": 0.7989,
+        "f1": 0.6496,
+        "n_articles": 981,
+        "n_gt": 13947,
+        "n_tool": 9554,
+        "n_matched": 7633
+      }
+    },
+    "ensemble_gt": {
+      "Haiku-4.5": {
+        "recall": 0.6404,
+        "precision": 0.461,
+        "f1": 0.5361,
+        "n_articles": 981,
+        "n_gt": 10197,
+        "n_tool": 14165,
+        "n_matched": 6530
+      },
+      "GPT-4o-mini": {
+        "recall": 0.6417,
+        "precision": 0.4907,
+        "f1": 0.5561,
+        "n_articles": 981,
+        "n_gt": 10197,
+        "n_tool": 13335,
+        "n_matched": 6543
+      },
+      "Gemini-2.5-Flash": {
+        "recall": 0.6185,
+        "precision": 0.4914,
+        "f1": 0.5476,
+        "n_articles": 981,
+        "n_gt": 10197,
+        "n_tool": 12836,
+        "n_matched": 6307
+      },
+      "BM25": {
+        "recall": 0.5916,
+        "precision": 0.5125,
+        "f1": 0.5492,
+        "n_articles": 981,
+        "n_gt": 10197,
+        "n_tool": 11772,
+        "n_matched": 6033
+      },
+      "Gemini-Flash-Lite": {
+        "recall": 0.5778,
+        "precision": 0.4951,
+        "f1": 0.5333,
+        "n_articles": 981,
+        "n_gt": 10197,
+        "n_tool": 11900,
+        "n_matched": 5892
+      },
+      "Llama-3.3-70B": {
+        "recall": 0.506,
+        "precision": 0.5401,
+        "f1": 0.5225,
+        "n_articles": 981,
+        "n_gt": 10197,
+        "n_tool": 9554,
+        "n_matched": 5160
+      }
+    },
+    "gpt_gt": {
+      "Haiku-4.5": {
+        "recall": 0.7136,
+        "precision": 0.3311,
+        "f1": 0.4523,
+        "n_articles": 981,
+        "n_gt": 6572,
+        "n_tool": 14165,
+        "n_matched": 4690
+      },
+      "GPT-4o-mini": {
+        "recall": 0.7389,
+        "precision": 0.3642,
+        "f1": 0.4879,
+        "n_articles": 981,
+        "n_gt": 6572,
+        "n_tool": 13335,
+        "n_matched": 4856
+      },
+      "Gemini-2.5-Flash": {
+        "recall": 0.7159,
+        "precision": 0.3665,
+        "f1": 0.4849,
+        "n_articles": 981,
+        "n_gt": 6572,
+        "n_tool": 12836,
+        "n_matched": 4705
+      },
+      "BM25": {
+        "recall": 0.7005,
+        "precision": 0.3911,
+        "f1": 0.502,
+        "n_articles": 981,
+        "n_gt": 6572,
+        "n_tool": 11772,
+        "n_matched": 4604
+      },
+      "Gemini-Flash-Lite": {
+        "recall": 0.6832,
+        "precision": 0.3773,
+        "f1": 0.4861,
+        "n_articles": 981,
+        "n_gt": 6572,
+        "n_tool": 11900,
+        "n_matched": 4490
+      },
+      "Llama-3.3-70B": {
+        "recall": 0.6286,
+        "precision": 0.4324,
+        "f1": 0.5123,
+        "n_articles": 981,
+        "n_gt": 6572,
+        "n_tool": 9554,
+        "n_matched": 4131
+      }
+    }
+  },
+  "rankings": {
+    "haiku_gt": [
+      "GPT-4o-mini",
+      "Gemini-2.5-Flash",
+      "BM25",
+      "Haiku-4.5",
+      "Gemini-Flash-Lite",
+      "Llama-3.3-70B"
+    ],
+    "ensemble_gt": [
+      "GPT-4o-mini",
+      "BM25",
+      "Gemini-2.5-Flash",
+      "Haiku-4.5",
+      "Gemini-Flash-Lite",
+      "Llama-3.3-70B"
+    ],
+    "gpt_gt": [
+      "Llama-3.3-70B",
+      "BM25",
+      "GPT-4o-mini",
+      "Gemini-Flash-Lite",
+      "Gemini-2.5-Flash",
+      "Haiku-4.5"
+    ]
+  },
+  "kendall_tau": {
+    "haiku_vs_gpt": -0.2,
+    "haiku_vs_ensemble": 0.8666666666666667,
+    "ensemble_vs_gpt": -0.06666666666666667
+  }
+}

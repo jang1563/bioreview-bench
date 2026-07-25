@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="BioReview-Bench v4.1.3: a rights-minimized public index and frozen score snapshot for biomedical peer-review research.">
+  <title>BioReview-Bench v4.1.3</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f7f5f0;
+      --panel: #ffffff;
+      --ink: #17201c;
+      --muted: #5d6a63;
+      --line: #d6ddd8;
+      --accent: #8a351b;
+      --soft: #f3e7df;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141816;
+        --panel: #1c231f;
+        --ink: #edf2ef;
+        --muted: #adb9b2;
+        --line: #3a463f;
+        --accent: #ff9b78;
+        --soft: #3b2922;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main { width: min(920px, calc(100% - 2rem)); margin: 0 auto; padding: 4rem 0 5rem; }
+    h1, h2 { line-height: 1.15; letter-spacing: -.025em; }
+    h1 { margin: .35rem 0 1rem; font-size: clamp(2.4rem, 8vw, 4.7rem); }
+    h2 { margin-top: 0; font-size: 1.35rem; }
+    p { max-width: 74ch; }
+    a { color: var(--accent); text-underline-offset: .18em; }
+    code { font-size: .92em; }
+    .eyebrow { color: var(--accent); font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .lead { color: var(--muted); font-size: 1.18rem; }
+    .notice {
+      margin: 2rem 0;
+      padding: 1rem 1.15rem;
+      border: 1px solid var(--accent);
+      border-radius: .6rem;
+      background: var(--soft);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .card {
+      padding: 1.2rem;
+      border: 1px solid var(--line);
+      border-radius: .6rem;
+      background: var(--panel);
+    }
+    .stat { display: block; font-size: 1.7rem; font-weight: 780; }
+    .label { color: var(--muted); font-size: .9rem; }
+    ul { padding-left: 1.25rem; }
+    footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--line); color: var(--muted); }
+    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Public documentation · v4.1.3 · 25 July 2026</div>
+  <h1>BioReview-Bench</h1>
+  <p class="lead">
+    A silver-standard benchmark for measuring how closely an AI-generated
+    biomedical review overlaps concerns recorded in published peer review.
+  </p>
+
+  <div class="notice">
+    <strong>Claim boundary.</strong> The reference concerns, categories,
+    severities, and response-linked stance labels were structured by an LLM and
+    have not yet received independent expert validation. Scores measure overlap
+    with these recorded references; they do not measure scientific truth or
+    certify review quality.
+  </div>
+
+  <div class="notice">
+    <strong>Public boundary.</strong> The Hugging Face release is a
+    rights-minimized, non-executable index, not a public test set or open
+    leaderboard. The F1000 DOI-stem audit is a source-specific lower bound:
+    115 families cross train–validation, 41 cross train–test, and 9 cross
+    validation–test. Development data overlap 49/150 F1000 test articles.
+    At the uncalibrated Jaccard cutoff 0.195, query-time family filtering
+    reduced BM25 F1 from 0.0577 to 0.0148 on the primary full-600 snapshot.
+    The 450-article non-eLife result is post-hoc. See the
+    <a href="https://github.com/jang1563/bioreview-bench/blob/main/results/v4/measurement_audit.md">measurement audit</a>
+    and <a href="https://github.com/jang1563/bioreview-bench/blob/main/KNOWN_ISSUES.md">known issues</a>.
+  </div>
+
+  <div class="grid" aria-label="Dataset summary">
+    <div class="card"><span class="stat">6,940</span><span class="label">articles</span></div>
+    <div class="card"><span class="stat">101,869</span><span class="label">structured concerns</span></div>
+    <div class="card"><span class="stat">5</span><span class="label">peer-review sources</span></div>
+  </div>
+
+  <section class="card">
+    <h2>Current evaluation</h2>
+    <ul>
+      <li>Official frozen v4 score snapshot: 600 articles.</li>
+      <li>Non-eLife analysis: 450-article post-hoc subset, not a replacement snapshot.</li>
+      <li>Jaccard operating-point sweeps are sensitivity diagnostics, not matcher calibration.</li>
+      <li>Historical matcher: unadapted <code>allenai/specter2_base</code> with automatic mean pooling and no recorded adapter/revision.</li>
+      <li>
+        Threshold-aware Hungarian assignment at <code>τ = 0.65</code>:
+        maximize eligible match count first, then total similarity.
+      </li>
+      <li>
+        The threshold has not been independently validated by expert pair
+        judgments, so absolute scores and small gaps are provisional and
+        matcher-dependent.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>NeurIPS 2026 review status</h2>
+    <p>
+      The public response reports all three reviewer ratings (2/6), the initial
+      meta-review recommendation, and the revisions made in v4.1. The v4.1.2
+      hotfix added the public artifact boundary and aggregate measurement
+      audit. v4.1.3 corrects the paired statistical procedure, extends
+      aggregate split/sensitivity checks, and validates the exact public
+      package tree.
+      The conference
+      process was still ongoing when this page was updated; those reviews are
+      not presented as a final decision.
+    </p>
+  </section>
+
+  <section>
+    <h2>Release materials</h2>
+    <ul>
+      <li><a href="https://github.com/jang1563/bioreview-bench">GitHub repository</a></li>
+      <li><a href="https://github.com/jang1563/bioreview-bench/blob/main/NEURIPS_2026_REVIEW_RESPONSE.md">Public review response</a></li>
+      <li><a href="https://github.com/jang1563/bioreview-bench/blob/main/EVALUATION_PROTOCOL.md">Evaluation protocol</a></li>
+      <li><a href="https://github.com/jang1563/bioreview-bench/blob/main/LIMITATIONS_AND_ETHICS.md">Limitations and ethics</a></li>
+      <li><a href="https://github.com/jang1563/bioreview-bench/blob/main/KNOWN_ISSUES.md">Known issues</a></li>
+      <li><a href="https://github.com/jang1563/bioreview-bench/blob/main/results/v4/measurement_audit.md">Measurement audit</a></li>
+      <li><a href="https://huggingface.co/datasets/jang1563/bioreview-bench">Hugging Face public index</a></li>
+      <li><a href="report.html">Archived pre-v4 report notice</a></li>
+    </ul>
+    <p>
+      The Hugging Face v4.1.3 release is a clean-history, rights-minimized index.
+      Raw publisher text, normalized concern text, reviewer names/emails,
+      explicit identity fields, and test targets remain private. Concern IDs
+      may retain source-local review ordinals that do not identify a person.
+      There is no public test-scoring or result-submission service.
+    </p>
+  </section>
+
+  <footer>
+    Code is released under Apache-2.0. Benchmark annotations and packaging
+    metadata use CC BY-NC 4.0. Underlying articles, reviews, and author responses
+    remain governed by their source-specific terms.
+  </footer>
+</main>
+</body>
+</html>

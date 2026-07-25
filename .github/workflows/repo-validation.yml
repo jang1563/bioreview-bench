@@ -1,0 +1,82 @@
+name: Repo Validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: '3.12'
+  UV_VERSION: '0.6'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: uv sync --extra collect --extra evaluate --extra baseline --extra hub --extra dev
+
+      - name: Run test suite
+        run: uv run pytest -q
+
+      - name: Compile package and scripts
+        run: uv run python -m compileall -q bioreview_bench scripts tests
+
+      - name: Verify local-only material is absent from tree and history
+        run: |
+          tracked_paths="$(
+            git ls-files \
+              'paper/**' \
+              '2026_NeurIPS/**' \
+              'Conference/2026_AI/2026_NeurIPS/**' \
+              'Conferences/2026_AI/2026_NeurIPS/**' \
+              'SESSION_*.md' \
+              'PLAN.md' \
+              'CRITICAL_REVIEW.md' \
+              'SYSTEM_REVIEW_*.md' \
+              'ANNOTATION_GUIDELINES.md' \
+              'DATA_SOURCES.md' \
+              'RELATED_WORK.md' \
+              'scripts/overnight_collect.sh' \
+              'results/v4/error_analysis.json'
+          )"
+          if [ -n "${tracked_paths}" ]; then
+            echo "Local-only paths must not be tracked:"
+            echo "${tracked_paths}"
+            exit 1
+          fi
+
+          local_only_pattern='^(paper/|2026_NeurIPS/|Conference/2026_AI/2026_NeurIPS/|Conferences/2026_AI/2026_NeurIPS/|SESSION_[^/]*\.md$|PLAN\.md$|CRITICAL_REVIEW\.md$|SYSTEM_REVIEW_[^/]*\.md$|ANNOTATION_GUIDELINES\.md$|DATA_SOURCES\.md$|RELATED_WORK\.md$|scripts/overnight_collect\.sh$|results/v4/error_analysis\.json$)'
+          historical_paths="$(
+            git rev-list --objects --all \
+              | cut -d' ' -f2- \
+              | grep -E "${local_only_pattern}" \
+              || true
+          )"
+          if [ -n "${historical_paths}" ]; then
+            echo "Local-only paths remain reachable in Git history:"
+            echo "${historical_paths}"
+            exit 1
+          fi
+
+      - name: Check docs and release artifacts
+        run: uv run python scripts/check_release_artifacts.py

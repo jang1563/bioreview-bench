@@ -1,0 +1,61 @@
+BioReview-Bench — Dual License
+
+Copyright (c) 2026 JangKeun Kim, Weill Cornell Medicine
+
+This repository contains both software and benchmark data. Each component is
+licensed separately to distinguish non-commercial research use from commercial use.
+
+================================================================================
+1. CODE (Python package, evaluation harness, scripts, tests)
+   License: Apache License 2.0
+================================================================================
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use the code files except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+================================================================================
+2. BENCHMARK DATA (annotations, concern labels, severity ratings, metadata,
+   task definitions, evaluation splits)
+   License: Creative Commons Attribution-NonCommercial 4.0 International
+            (CC BY-NC 4.0)
+================================================================================
+
+You are free to:
+  - Share: copy and redistribute the benchmark data in any medium or format
+  - Adapt: remix, transform, and build upon the benchmark data
+
+Under the following terms:
+  - Attribution: You must give appropriate credit, provide a link to the
+    license, and indicate if changes were made.
+  - NonCommercial: You may not use the benchmark data for commercial purposes.
+  - No additional restrictions: You may not apply legal terms or technological
+    measures that legally restrict others from doing anything the license permits.
+
+Full license text: https://creativecommons.org/licenses/by-nc/4.0/legalcode
+
+================================================================================
+3. UNDERLYING ARTICLE AND REVIEW CONTENT (article text, reviewer comments,
+   author responses from eLife, PLOS, F1000Research, PeerJ, Nature Portfolio)
+   License: Source-specific
+================================================================================
+
+Redistribution of underlying publisher content follows per-source terms.
+See LICENSE_MATRIX.md for the detailed source-by-source redistribution policy.
+
+================================================================================
+COMMERCIAL LICENSING
+================================================================================
+
+For commercial use of the benchmark data, annotations, or derivative products,
+a separate commercial license is required. Contact:
+
+  JangKeun Kim
+  Email: jak4013@med.cornell.edu
+  Weill Cornell Medicine, New York, NY

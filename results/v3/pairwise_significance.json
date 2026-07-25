@@ -1,0 +1,10 @@
+{
+  "status": "withdrawn_invalid_inference",
+  "release": "v3",
+  "invalidated_in": "v4.1.3",
+  "numeric_results_included": false,
+  "reason": "The original paired bootstrap resampled the observed article-pair distribution and counted sign crossings without constructing a valid null distribution. Its values, including exact zeros, must not be interpreted as p-values.",
+  "replacement_method": "article_paired_label_swap_randomization_delta_micro_f1",
+  "replacement_scope": "Executable in scripts/source_analysis.py for authorized local data; no corrected v3 pairwise p-values are claimed in this release.",
+  "provenance_note": "The withdrawn numeric values remain available in earlier immutable Git history for auditability."
+}

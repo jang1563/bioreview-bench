@@ -1,0 +1,365 @@
+{
+  "description": "Paper metrics computed from temporal_analysis.json",
+  "no_elife": {
+    "Haiku-4.5": {
+      "recall": 0.7317,
+      "precision": 0.7936,
+      "f1": 0.7614,
+      "tp": 5357,
+      "fp": 1393,
+      "fn": 1964,
+      "n_articles": 450
+    },
+    "Gemini-2.5-Flash": {
+      "recall": 0.7082,
+      "precision": 0.807,
+      "f1": 0.7544,
+      "tp": 5185,
+      "fp": 1240,
+      "fn": 2136,
+      "n_articles": 450
+    },
+    "GPT-4o-mini": {
+      "recall": 0.6856,
+      "precision": 0.8254,
+      "f1": 0.749,
+      "tp": 5019,
+      "fp": 1062,
+      "fn": 2302,
+      "n_articles": 450
+    },
+    "BM25": {
+      "recall": 0.6326,
+      "precision": 0.8576,
+      "f1": 0.7281,
+      "tp": 4631,
+      "fp": 769,
+      "fn": 2690,
+      "n_articles": 450
+    },
+    "Llama-3.3-70B": {
+      "recall": 0.5748,
+      "precision": 0.8814,
+      "f1": 0.6958,
+      "tp": 4208,
+      "fp": 566,
+      "fn": 3113,
+      "n_articles": 450
+    },
+    "Gemini-Flash-Lite": {
+      "recall": 0.6078,
+      "precision": 0.8264,
+      "f1": 0.7005,
+      "tp": 4450,
+      "fp": 935,
+      "fn": 2871,
+      "n_articles": 450
+    }
+  },
+  "full_set": {
+    "Haiku-4.5": {
+      "recall": 0.7591,
+      "precision": 0.6917,
+      "f1": 0.7238,
+      "tp": 6225,
+      "fp": 2775,
+      "fn": 1975,
+      "n_articles": 600
+    },
+    "Gemini-2.5-Flash": {
+      "recall": 0.7376,
+      "precision": 0.7033,
+      "f1": 0.72,
+      "tp": 6048,
+      "fp": 2551,
+      "fn": 2152,
+      "n_articles": 600
+    },
+    "GPT-4o-mini": {
+      "recall": 0.7171,
+      "precision": 0.7214,
+      "f1": 0.7192,
+      "tp": 5880,
+      "fp": 2271,
+      "fn": 2320,
+      "n_articles": 600
+    },
+    "BM25": {
+      "recall": 0.668,
+      "precision": 0.7608,
+      "f1": 0.7114,
+      "tp": 5478,
+      "fp": 1722,
+      "fn": 2722,
+      "n_articles": 600
+    },
+    "Llama-3.3-70B": {
+      "recall": 0.6141,
+      "precision": 0.7853,
+      "f1": 0.6892,
+      "tp": 5036,
+      "fp": 1377,
+      "fn": 3164,
+      "n_articles": 600
+    },
+    "Gemini-Flash-Lite": {
+      "recall": 0.6428,
+      "precision": 0.7281,
+      "f1": 0.6828,
+      "tp": 5271,
+      "fp": 1968,
+      "fn": 2929,
+      "n_articles": 600
+    }
+  },
+  "elife_only": {
+    "Haiku-4.5": {
+      "recall": 0.9875,
+      "precision": 0.3858,
+      "f1": 0.5548,
+      "tp": 868,
+      "fp": 1382,
+      "fn": 11,
+      "n_articles": 150
+    },
+    "Gemini-2.5-Flash": {
+      "recall": 0.9818,
+      "precision": 0.397,
+      "f1": 0.5653,
+      "tp": 863,
+      "fp": 1311,
+      "fn": 16,
+      "n_articles": 150
+    },
+    "GPT-4o-mini": {
+      "recall": 0.9795,
+      "precision": 0.4159,
+      "f1": 0.5839,
+      "tp": 861,
+      "fp": 1209,
+      "fn": 18,
+      "n_articles": 150
+    },
+    "BM25": {
+      "recall": 0.9636,
+      "precision": 0.4706,
+      "f1": 0.6323,
+      "tp": 847,
+      "fp": 953,
+      "fn": 32,
+      "n_articles": 150
+    },
+    "Llama-3.3-70B": {
+      "recall": 0.942,
+      "precision": 0.5052,
+      "f1": 0.6577,
+      "tp": 828,
+      "fp": 811,
+      "fn": 51,
+      "n_articles": 150
+    },
+    "Gemini-Flash-Lite": {
+      "recall": 0.934,
+      "precision": 0.4428,
+      "f1": 0.6008,
+      "tp": 821,
+      "fp": 1033,
+      "fn": 58,
+      "n_articles": 150
+    }
+  },
+  "f1000_temporal": {
+    "Haiku-4.5": {
+      "pre_2023_f1": 0.7826,
+      "post_2023_f1": 0.7086,
+      "gap_pp": 7.4,
+      "pre_n": 71,
+      "post_n": 79
+    },
+    "Gemini-2.5-Flash": {
+      "pre_2023_f1": 0.7755,
+      "post_2023_f1": 0.6961,
+      "gap_pp": 7.9,
+      "pre_n": 71,
+      "post_n": 79
+    },
+    "GPT-4o-mini": {
+      "pre_2023_f1": 0.7757,
+      "post_2023_f1": 0.6967,
+      "gap_pp": 7.9,
+      "pre_n": 71,
+      "post_n": 79
+    },
+    "BM25": {
+      "pre_2023_f1": 0.7629,
+      "post_2023_f1": 0.6793,
+      "gap_pp": 8.4,
+      "pre_n": 71,
+      "post_n": 79
+    },
+    "Llama-3.3-70B": {
+      "pre_2023_f1": 0.7411,
+      "post_2023_f1": 0.6552,
+      "gap_pp": 8.6,
+      "pre_n": 71,
+      "post_n": 79
+    },
+    "Gemini-Flash-Lite": {
+      "pre_2023_f1": 0.7436,
+      "post_2023_f1": 0.6457,
+      "gap_pp": 9.8,
+      "pre_n": 71,
+      "post_n": 79
+    }
+  },
+  "per_source": {
+    "Haiku-4.5": {
+      "f1000": {
+        "f1": 0.7423,
+        "recall": 0.7411,
+        "precision": 0.7434
+      },
+      "nature": {
+        "f1": 0.7815,
+        "recall": 0.8311,
+        "precision": 0.7375
+      },
+      "peerj": {
+        "f1": 0.7376,
+        "recall": 0.6441,
+        "precision": 0.8628
+      },
+      "plos": {
+        "f1": 0.7757,
+        "recall": 0.7078,
+        "precision": 0.858
+      }
+    },
+    "Gemini-2.5-Flash": {
+      "f1000": {
+        "f1": 0.732,
+        "recall": 0.7078,
+        "precision": 0.758
+      },
+      "nature": {
+        "f1": 0.7853,
+        "recall": 0.8183,
+        "precision": 0.7548
+      },
+      "peerj": {
+        "f1": 0.7238,
+        "recall": 0.6173,
+        "precision": 0.8746
+      },
+      "plos": {
+        "f1": 0.7675,
+        "recall": 0.6884,
+        "precision": 0.8672
+      }
+    },
+    "GPT-4o-mini": {
+      "f1000": {
+        "f1": 0.7325,
+        "recall": 0.6949,
+        "precision": 0.7744
+      },
+      "nature": {
+        "f1": 0.7878,
+        "recall": 0.7928,
+        "precision": 0.7828
+      },
+      "peerj": {
+        "f1": 0.7136,
+        "recall": 0.5944,
+        "precision": 0.8925
+      },
+      "plos": {
+        "f1": 0.7544,
+        "recall": 0.6591,
+        "precision": 0.8819
+      }
+    },
+    "BM25": {
+      "f1000": {
+        "f1": 0.7172,
+        "recall": 0.6452,
+        "precision": 0.8072
+      },
+      "nature": {
+        "f1": 0.7852,
+        "recall": 0.7462,
+        "precision": 0.8283
+      },
+      "peerj": {
+        "f1": 0.6824,
+        "recall": 0.5447,
+        "precision": 0.9133
+      },
+      "plos": {
+        "f1": 0.7221,
+        "recall": 0.599,
+        "precision": 0.9089
+      }
+    },
+    "Llama-3.3-70B": {
+      "f1000": {
+        "f1": 0.6942,
+        "recall": 0.5928,
+        "precision": 0.8375
+      },
+      "nature": {
+        "f1": 0.7629,
+        "recall": 0.6884,
+        "precision": 0.8554
+      },
+      "peerj": {
+        "f1": 0.6479,
+        "recall": 0.493,
+        "precision": 0.9448
+      },
+      "plos": {
+        "f1": 0.6769,
+        "recall": 0.5346,
+        "precision": 0.9223
+      }
+    },
+    "Gemini-Flash-Lite": {
+      "f1000": {
+        "f1": 0.6903,
+        "recall": 0.627,
+        "precision": 0.7678
+      },
+      "nature": {
+        "f1": 0.7578,
+        "recall": 0.7305,
+        "precision": 0.7872
+      },
+      "peerj": {
+        "f1": 0.6391,
+        "recall": 0.499,
+        "precision": 0.8885
+      },
+      "plos": {
+        "f1": 0.6984,
+        "recall": 0.5723,
+        "precision": 0.8957
+      }
+    }
+  },
+  "macro_f1": {
+    "Haiku-4.5": 0.7593,
+    "Gemini-2.5-Flash": 0.7522,
+    "GPT-4o-mini": 0.7471,
+    "BM25": 0.7267,
+    "Llama-3.3-70B": 0.6955,
+    "Gemini-Flash-Lite": 0.6964
+  },
+  "ranking_no_elife": [
+    "Haiku-4.5",
+    "Gemini-2.5-Flash",
+    "GPT-4o-mini",
+    "BM25",
+    "Gemini-Flash-Lite",
+    "Llama-3.3-70B"
+  ]
+}

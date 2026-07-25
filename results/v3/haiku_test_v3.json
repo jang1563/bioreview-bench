@@ -1,0 +1,140 @@
+{
+  "tool_name": "Haiku-4.5",
+  "tool_version": "claude-haiku-4-5-20251001",
+  "git_hash": "",
+  "benchmark_version": "1.0",
+  "extraction_manifest_id": "em-v1.0",
+  "split": "test",
+  "run_date": "2026-03-21T01:37:53.944387Z",
+  "recall_overall": 0.7247080236614591,
+  "precision_overall": 0.6746205435933639,
+  "f1_micro": 0.6987678695477313,
+  "recall_major": 0.8721528668140485,
+  "f1_macro": 0.0,
+  "soft_recall_overall": 0.8016226538871503,
+  "soft_precision_overall": 0.6169090067461673,
+  "soft_f1": 0.6972396160322026,
+  "ci_recall": {
+    "lo": 0.6973235656778124,
+    "hi": 0.7504755865567533,
+    "n_bootstrap": 1000
+  },
+  "ci_precision": {
+    "lo": 0.6542128681404054,
+    "hi": 0.6949032895665679,
+    "n_bootstrap": 1000
+  },
+  "bootstrap_n": 1000,
+  "per_category": {
+    "interpretation": {
+      "recall": 0.7932313398238294,
+      "precision": 0.6401047512158623,
+      "f1_micro": 0.7084886128364389,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 2157,
+      "n_matched": 1711,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "missing_experiment": {
+      "recall": 0.8434782608695652,
+      "precision": 0.5449438202247191,
+      "f1_micro": 0.6621160409556314,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 2070,
+      "n_matched": 1746,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "writing_clarity": {
+      "recall": 0.6331668747399084,
+      "precision": 0.7905949597298,
+      "f1_micro": 0.7031773541305605,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 4806,
+      "n_matched": 3043,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "prior_art_novelty": {
+      "recall": 0.7092469018112488,
+      "precision": 0.6863468634686347,
+      "f1_micro": 0.6976090014064698,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 1049,
+      "n_matched": 744,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "design_flaw": {
+      "recall": 0.8010279001468429,
+      "precision": 0.6395076201641267,
+      "f1_micro": 0.711212516297262,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 1362,
+      "n_matched": 1091,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "other": {
+      "recall": 0.7368421052631579,
+      "precision": 0.6829268292682927,
+      "f1_micro": 0.7088607594936709,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 38,
+      "n_matched": 28,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "reagent_method_specificity": {
+      "recall": 0.6273100616016427,
+      "precision": 0.7647058823529411,
+      "f1_micro": 0.6892272983643541,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 974,
+      "n_matched": 611,
+      "ci_recall": null,
+      "ci_precision": null
+    },
+    "statistical_methodology": {
+      "recall": 0.7972602739726027,
+      "precision": 0.7617801047120419,
+      "f1_micro": 0.7791164658634538,
+      "f1_macro": 0.0,
+      "aucpr": 0.0,
+      "brier_score": null,
+      "n_human_concerns": 730,
+      "n_matched": 582,
+      "ci_recall": null,
+      "ci_precision": null
+    }
+  },
+  "per_stance": {},
+  "matching_stats": {
+    "n_tool_concerns": 14165,
+    "n_human_concerns": 13186,
+    "n_matched_pairs": 9556,
+    "threshold": 0.65,
+    "algorithm": "hungarian"
+  },
+  "n_articles": 944,
+  "n_human_concerns": 13186,
+  "n_tool_concerns": 14165,
+  "excluded_figure_concerns": 684,
+  "dedup_gt": false,
+  "notes": ""
+}
